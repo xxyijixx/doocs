@@ -2,8 +2,11 @@ package websocket
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"support-plugin/internal/config"
+	"support-plugin/internal/pkg/dootask"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -102,6 +105,26 @@ func (c *Client) readPump() {
 		// 设置发送者和会话UUID
 		msg.Sender = c.ClientType
 		msg.ConvUUID = c.ConvUUID
+
+		fmt.Println("发送消息到机器人", msg.Sender)
+		if msg.Sender == "customer" {
+			go func(content string) {
+				fmt.Println("发送消息到机器人")
+				robot := dootask.DootaskRobot{
+					Webhook: config.Cfg.DooTask.WebHook,
+					Token:   config.Cfg.DooTask.Token,
+					Version: config.Cfg.DooTask.Version,
+				}
+				robot.Message = &dootask.DootaskMessage{
+					Text:     "有一条新消息" + content,
+					DialogId: "29",
+					Token:    config.Cfg.DooTask.Token,
+					Version:  config.Cfg.DooTask.Version,
+				}
+				result, err := robot.SendMsg()
+				fmt.Println("发送消息到机器人", result, err)
+			}(msg.Content)
+		}
 
 		// 广播消息
 		WebSocketManager.Broadcast <- &msg
