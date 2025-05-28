@@ -3,6 +3,7 @@ package routes
 import (
 	"support-plugin/internal/headlers"
 	"support-plugin/internal/middleware"
+	"support-plugin/internal/pkg/websocket"
 
 	_ "support-plugin/docs"
 
@@ -37,6 +38,10 @@ func RegisterRoutes(r *gin.Engine) {
 			chatRoutes.GET("/:uuid/messages", headlers.Chat.GetMessages)
 			// 获取对话信息
 			chatRoutes.GET("/:uuid", headlers.Chat.GetConversation)
+			// WebSocket连接
+			chatRoutes.GET("/ws", func(c *gin.Context) {
+				websocket.ServeWs(c)
+			})
 		}
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

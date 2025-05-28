@@ -7,6 +7,7 @@ import (
 	"support-plugin/internal/config"
 	"support-plugin/internal/middleware"
 	"support-plugin/internal/pkg/database"
+	"support-plugin/internal/pkg/websocket"
 	"support-plugin/internal/routes"
 
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,9 @@ func main() {
 	config.Cfg.Print()
 
 	database.InitDB()
+
+	// 启动WebSocket管理器
+	go websocket.WebSocketManager.Start()
 
 	// 创建Gin实例
 	r := gin.Default()

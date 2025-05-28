@@ -8,6 +8,7 @@ import (
 
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
+	"support-plugin/internal/pkg/websocket"
 )
 
 type ChatService struct{}
@@ -60,6 +61,9 @@ func (s *ChatService) SendMessage(conversationUUID, content, sender string) (*mo
 
 	// 更新对话的最后更新时间
 	database.DB.Model(&conversation).Update("updated_at", time.Now())
+
+	// 通过WebSocket广播消息
+	go websocket.BroadcastMessage(conversationUUID, "message", content, sender)
 
 	return &message, nil
 }

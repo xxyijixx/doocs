@@ -1,6 +1,7 @@
 const CONVERSATION_UUID_KEY = 'conversation_uuid';
 let conversationUuid = localStorage.getItem(CONVERSATION_UUID_KEY);
 let API_BASE_URL = '';
+let socket = null; // WebSocket连接
 
 async function createNewConversation() {
     try {
@@ -87,6 +88,9 @@ async function initializeChatWidget(options) {
         }
     }
     console.log('Conversation UUID:', conversationUuid);
+    
+    // 初始化WebSocket连接
+    initWebSocket();
 
     // Here you would typically render your chat widget UI
     // For now, let's just add a simple indicator
@@ -203,6 +207,62 @@ async function initializeChatWidget(options) {
         });
         // 确保加载消息后滚动到最底部
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // 初始化WebSocket连接
+    function initWebSocket() {
+        // 如果已经有连接，先关闭
+        if (socket) {
+            socket.close();
+        }
+
+        // 创建WebSocket连接
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${API_BASE_URL.replace(/^https?:\/\//, '')}/api/v1/chat/ws?conv_uuid=${conversationUuid}&client_type=customer`;
+        
+        try {
+            socket = new WebSocket(wsUrl);
+            
+            // 连接打开时
+            socket.onopen = () => {
+                console.log('WebSocket连接已建立');
+            };
+            
+            // 接收消息
+            socket.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    // 只处理消息类型的数据
+                    if (message.type === 'message') {
+                        // 如果是客服发送的消息，显示在聊天窗口中
+                        if (message.sender === 'agent') {
+                            addMessageToChat({ content: message.content, sender: 'agent' });
+                        }
+                    }
+                } catch (e) {
+                    console.error('解析WebSocket消息失败:', e);
+                }
+            };
+            
+            // 连接关闭
+            socket.onclose = () => {
+                console.log('WebSocket连接已关闭');
+                // 可以在这里添加重连逻辑
+                setTimeout(() => {
+                    if (conversationUuid) {
+                        initWebSocket();
+                    }
+                }, 5000); // 5秒后尝试重连
+            };
+            
+            // 连接错误
+            socket.onerror = (error) => {
+                console.error('WebSocket错误:', error);
+            };
+            
+        } catch (error) {
+            console.error('创建WebSocket连接失败:', error);
+        }
     }
 
     // Expose functions globally for external access

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket聊天测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .chat-container {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .customer {
+            background-color: #dcf8c6;
+            margin-left: auto;
+            text-align: right;
+        }
+        .agent {
+            background-color: #e9ecef;
+        }
+        .input-container {
+            display: flex;
+        }
+        #message-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .connection-info {
+            margin-bottom: 20px;
+        }
+        .status {
+            font-weight: bold;
+        }
+        .connected {
+            color: green;
+        }
+        .disconnected {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket聊天测试</h1>
+    
+    <div class="connection-info">
+        <div>
+            <label for="conv-uuid">会话UUID:</label>
+            <input type="text" id="conv-uuid" placeholder="输入会话UUID">
+        </div>
+        <div>
+            <label for="client-type">客户端类型:</label>
+            <select id="client-type">
+                <option value="customer">客户</option>
+                <option value="agent">客服</option>
+            </select>
+        </div>
+        <div>
+            <button id="connect-btn">连接</button>
+            <button id="disconnect-btn" disabled>断开连接</button>
+        </div>
+        <div>
+            状态: <span id="connection-status" class="status disconnected">未连接</span>
+        </div>
+    </div>
+
+    <div class="chat-container" id="chat-container"></div>
+    
+    <div class="input-container">
+        <input type="text" id="message-input" placeholder="输入消息..." disabled>
+        <button id="send-btn" disabled>发送</button>
+    </div>
+
+    <script>
+        let socket = null;
+        const connectBtn = document.getElementById('connect-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const sendBtn = document.getElementById('send-btn');
+        const messageInput = document.getElementById('message-input');
+        const chatContainer = document.getElementById('chat-container');
+        const connectionStatus = document.getElementById('connection-status');
+        const convUuidInput = document.getElementById('conv-uuid');
+        const clientTypeSelect = document.getElementById('client-type');
+
+        // 连接WebSocket
+        connectBtn.addEventListener('click', () => {
+            const convUuid = convUuidInput.value.trim();
+            const clientType = clientTypeSelect.value;
+            
+            if (!convUuid) {
+                alert('请输入会话UUID');
+                return;
+            }
+
+            // 创建WebSocket连接
+            const wsUrl = `ws://localhost:8888/api/v1/chat/ws?conv_uuid=${convUuid}&client_type=${clientType}`;
+            
+            try {
+                socket = new WebSocket(wsUrl);
+                
+                // 连接打开时
+                socket.onopen = () => {
+                    connectionStatus.textContent = '已连接';
+                    connectionStatus.classList.remove('disconnected');
+                    connectionStatus.classList.add('connected');
+                    
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    messageInput.disabled = false;
+                    sendBtn.disabled = false;
+                    
+                    // 添加系统消息
+                    addMessage('系统', `已连接到会话: ${convUuid}`);
+                };
+                
+                // 接收消息
+                socket.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        addMessage(message.sender, message.content);
+                    } catch (e) {
+                        // 如果不是JSON格式，直接显示
+                        addMessage('系统', event.data);
+                    }
+                };
+                
+                // 连接关闭
+                socket.onclose = () => {
+                    connectionStatus.textContent = '已断开连接';
+                    connectionStatus.classList.remove('connected');
+                    connectionStatus.classList.add('disconnected');
+                    
+                    connectBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                    messageInput.disabled = true;
+                    sendBtn.disabled = true;
+                    
+                    addMessage('系统', '连接已关闭');
+                    socket = null;
+                };
+                
+                // 连接错误
+                socket.onerror = (error) => {
+                    console.error('WebSocket错误:', error);
+                    addMessage('系统', '连接发生错误');
+                };
+                
+            } catch (error) {
+                console.error('创建WebSocket连接失败:', error);
+                alert('创建WebSocket连接失败: ' + error.message);
+            }
+        });
+
+        // 断开连接
+        disconnectBtn.addEventListener('click', () => {
+            if (socket) {
+                socket.close();
+            }
+        });
+
+        // 发送消息
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                alert('WebSocket未连接');
+                return;
+            }
+
+            const content = messageInput.value.trim();
+            if (!content) return;
+
+            const clientType = clientTypeSelect.value;
+            const convUuid = convUuidInput.value.trim();
+            
+            // 创建消息对象
+            const message = {
+                conv_uuid: convUuid,
+                content: content,
+                sender: clientType,
+                type: 'message'
+            };
+            
+            // 发送消息
+            socket.send(JSON.stringify(message));
+            
+            // 清空输入框
+            messageInput.value = '';
+        }
+
+        // 添加消息到聊天窗口
+        function addMessage(sender, content) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            
+            // 根据发送者设置样式
+            if (sender === 'customer') {
+                messageElement.classList.add('customer');
+                messageElement.textContent = content;
+            } else if (sender === 'agent') {
+                messageElement.classList.add('agent');
+                messageElement.textContent = content;
+            } else {
+                // 系统消息
+                messageElement.style.backgroundColor = '#f0f0f0';
+                messageElement.style.color = '#666';
+                messageElement.style.fontStyle = 'italic';
+                messageElement.style.textAlign = 'center';
+                messageElement.style.margin = '10px auto';
+                messageElement.textContent = content;
+            }
+            
+            chatContainer.appendChild(messageElement);
+            
+            // 滚动到底部
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // 初始化：尝试从URL获取会话UUID
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const convUuid = urlParams.get('conv_uuid');
+            if (convUuid) {
+                convUuidInput.value = convUuid;
+            }
+        });
+    </script>
+</body>
+</html>
