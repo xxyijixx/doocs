@@ -10,9 +10,7 @@ BUILD_DIR := ./bin
 # Swagger 文档目录
 SWAG_DIR := ./docs
 
-.PHONY: all build run clean swag
-
-all: build
+.PHONY: all build run clean swag frontend-build-widget frontend-build-admin
 
 build:
 	@echo "Building $(APP_NAME)..."
@@ -34,3 +32,14 @@ swag:
 	@echo "Generating Swagger documentation..."
 	@swag init
 	@echo "Swagger documentation generated."
+
+frontend-build-widget:
+	@echo "Building widget frontend..."
+	@cd web/widget && npm install && npm run build
+
+frontend-build-admin:
+	@echo "Building admin frontend..."
+	@cd web/admin && npm install && npm run build
+
+# 将前端构建添加到 all 目标，或者单独执行
+all: build frontend-build-widget frontend-build-admin
