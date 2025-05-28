@@ -29,6 +29,7 @@ async function createNewConversation() {
 
 async function getMessages(uuid) {
     try {
+        // 后端现在默认返回最新的消息，不再需要分页参数
         const response = await fetch(`${API_BASE_URL}/api/v1/chat/${uuid}/messages`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -198,9 +199,10 @@ async function initializeChatWidget(options) {
     if (conversationUuid) {
         const messages = await getMessages(conversationUuid);
         messages.forEach(msg => {
-            console.log("msg: ", msg, "msg.content: ", msg.content, "msg.sender: ", msg.sender)
             addMessageToChat(msg);
         });
+        // 确保加载消息后滚动到最底部
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
     // Expose functions globally for external access

@@ -77,14 +77,17 @@ func (s *ChatService) GetMessages(conversationUUID string, page, pageSize int) (
 	var total int64
 	database.DB.Model(&models.Message{}).Where("conversation_id = ?", conversation.ID).Count(&total)
 
-	// 分页查询消息
+	// 查询最新的消息
 	var messages []models.Message
-	offset := (page - 1) * pageSize
 	result = database.DB.Where("conversation_id = ?", conversation.ID).
-		Order("created_at ASC").
-		Offset(offset).
-		Limit(pageSize).
+		Order("created_at DESC"). // 降序排列，获取最新消息
+		Limit(pageSize).          // 限制返回数量
 		Find(&messages)
+
+	// 反转切片，使消息按时间正序排列
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
 
 	if result.Error != nil {
 		return nil, 0, result.Error
