@@ -6,17 +6,26 @@ import (
 
 	"support-plugin/internal/config"
 	"support-plugin/internal/middleware"
+	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/routes"
 
 	"github.com/gin-gonic/gin"
 )
 
+// @title Support Plugin API
+// @version 1.0
+// @description Support Plugin API
+// @host localhost:8888
+// @BasePath /api/v1
+// @schemes http
 func main() {
 	// 初始化配置
 	config.InitConfig()
 
 	// 打印配置信息
 	config.Cfg.Print()
+
+	database.InitDB()
 
 	// 创建Gin实例
 	r := gin.Default()

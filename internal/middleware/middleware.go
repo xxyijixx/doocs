@@ -8,12 +8,6 @@ import (
 func RegisterGlobal(r *gin.Engine) {
 	// 注册CORS中间件
 	r.Use(CORSMiddleware())
-
-	// 注册日志中间件
-	r.Use(LoggerMiddleware())
-
-	// 注册错误处理中间件
-	r.Use(ErrorHandlerMiddleware())
 }
 
 // CORSMiddleware 处理跨域请求

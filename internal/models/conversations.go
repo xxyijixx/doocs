@@ -23,8 +23,8 @@ func (m *Message) TableName() string {
 type Conversations struct {
 	ID         uint           `gorm:"primaryKey" json:"id"`
 	Uuid       string         `gorm:"column:uuid;not null" json:"uuid"`
-	AgentID    uint           `gorm:"column:agent_id;not null" json:"agent_id"`
-	CustomerID uint           `gorm:"column:customer_id;not null" json:"customer_id"`
+	AgentID    uint           `gorm:"column:agent_id;default:0" json:"agent_id"`
+	CustomerID uint           `gorm:"column:customer_id;default:0" json:"customer_id"`
 	CreatedAt  time.Time      `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt  time.Time      `gorm:"column:updated_at" json:"updated_at"`
 	DeletedAt  gorm.DeletedAt `gorm:"column:deleted_at" json:"deleted_at"`

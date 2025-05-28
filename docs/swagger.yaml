@@ -1,0 +1,184 @@
+basePath: /api/v1
+definitions:
+  models.ConversationResponse:
+    properties:
+      uuid:
+        description: 对话UUID
+        type: string
+    type: object
+  models.PaginationData:
+    properties:
+      items:
+        description: 分页项目数据
+      page:
+        description: 当前页码
+        type: integer
+      page_size:
+        description: 每页大小
+        type: integer
+      pages:
+        description: 总页数
+        type: integer
+      total:
+        description: 总记录数
+        type: integer
+    type: object
+  models.Response:
+    properties:
+      code:
+        description: 状态码
+        type: integer
+      data:
+        description: 响应数据
+      error:
+        description: 错误信息，仅在出错时返回
+        type: string
+      message:
+        description: 响应消息
+        type: string
+    type: object
+  models.SendMessageRequest:
+    properties:
+      content:
+        type: string
+      sender:
+        description: '"agent" 或 "customer"'
+        type: string
+      uuid:
+        type: string
+    required:
+    - content
+    - sender
+    - uuid
+    type: object
+host: localhost:8888
+info:
+  contact: {}
+  description: Support Plugin API
+  title: Support Plugin API
+  version: "1.0"
+paths:
+  /chat:
+    post:
+      consumes:
+      - application/json
+      description: 创建客服和客户之间的新对话
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.ConversationResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: 创建新对话
+  /chat/{uuid}:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定对话的详细信息
+      parameters:
+      - description: 对话UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: 获取对话信息
+  /chat/{uuid}/messages:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定对话的消息历史记录
+      parameters:
+      - description: 对话UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: 页码,默认1
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量,默认20
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PaginationData'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: 获取对话消息列表
+  /chat/messages:
+    post:
+      consumes:
+      - application/json
+      description: 在指定对话中发送新消息
+      parameters:
+      - description: 发送消息请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.SendMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: 发送消息
+schemes:
+- http
+swagger: "2.0"

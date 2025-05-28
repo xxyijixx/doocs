@@ -1,9 +1,9 @@
 package headlers
 
 import (
-	"net/http"
 	"support-plugin/internal/config"
 	"support-plugin/internal/pkg"
+	"support-plugin/internal/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,8 +22,7 @@ func (d DooTaskHeadler) Chat(c *gin.Context) {
 	message := rebot.ConvertToMessage(c)
 	message.Text = "接收到信息：" + message.Text
 	rebot.SendMsg()
-	c.JSON(http.StatusOK, gin.H{
-		"status":  "ok",
-		"message": "服务运行正常",
+	response.Success(c, "服务运行正常", gin.H{
+		"status": "ok",
 	})
 }
