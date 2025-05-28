@@ -6,10 +6,17 @@ type AppConfig struct {
 }
 
 type DBConfig struct {
+	Type string `mapstructure:"type" default:"sqlite"` // mysql or sqlite
+
+	// MySQL 配置
 	Host     string `mapstructure:"host" default:"127.0.0.1"`
 	Port     int    `mapstructure:"port" default:"3306"`
 	User     string `mapstructure:"user" default:"root"`
 	Password string `mapstructure:"password" default:""`
+	DBName   string `mapstructure:"dbname" default:"app_db"`
+
+	// SQLite 配置
+	SQLitePath string `mapstructure:"sqlite_path" default:"./app.db"`
 }
 
 type RedisConfig struct {
