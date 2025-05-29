@@ -73,7 +73,14 @@ func ServeWs(c *gin.Context) {
 		AgentID:    agentID,
 	}
 	// 注册新客户端
+	logger.App.Info("准备发送客户端到注册通道",
+		zap.String("remoteAddr", client.Conn.RemoteAddr().String()),
+		zap.String("ClientType", client.ClientType),
+		zap.String("ConvUUID", client.ConvUUID),
+		zap.String("AgentID", client.AgentID))
+	logger.App.Info("尝试注册新客户端", zap.String("remoteAddr", client.Conn.RemoteAddr().String()), zap.String("ClientType", client.ClientType))
 	WebSocketManager.Register <- client
+	logger.App.Info("新客户端已发送到注册通道", zap.String("remoteAddr", client.Conn.RemoteAddr().String()), zap.String("ClientType", client.ClientType))
 
 	// 启动goroutine处理读写操作
 	go client.writePump()

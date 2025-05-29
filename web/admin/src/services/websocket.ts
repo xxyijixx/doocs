@@ -10,9 +10,14 @@ class WebSocketService {
   private errorListeners: Array<(event: Event) => void> = [];
 
   public connect(agentId: string): void {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      console.log('WebSocket is already connected.');
-      return;
+    if (this.socket) {
+      if (this.socket.readyState === WebSocket.CONNECTING || this.socket.readyState === WebSocket.OPEN) {
+        console.log('WebSocket is already connecting or connected.');
+        return;
+      } else if (this.socket.readyState === WebSocket.CLOSING || this.socket.readyState === WebSocket.CLOSED) {
+        console.log('WebSocket is in a closing or closed state, attempting to close and reconnect.');
+        this.socket.close(); // Ensure the old socket is properly closed
+      }
     }
 
     // Append agentId as a query parameter

@@ -63,7 +63,7 @@ func NewManager() *Manager {
 		Clients:      make(map[*Client]bool),
 		ConvClients:  make(map[string][]*Client),
 		AgentClients: make([]*Client, 0),
-		Register:     make(chan *Client),
+		Register:     make(chan *Client, 1000),
 		Unregister:   make(chan *Client),
 		Broadcast:    make(chan *Message),
 	}
@@ -71,9 +71,15 @@ func NewManager() *Manager {
 
 // Start 启动WebSocket管理器
 func (m *Manager) Start() {
+	defer func() {
+		if err := recover(); err != nil {
+			logger.App.Error("WebSocketManager Start panic", zap.Any("error", err))
+		}
+	}()
 	for {
 		select {
 		case client := <-m.Register:
+			logger.App.Info("Manager 接收到新客户端", zap.String("remoteAddr", client.Conn.RemoteAddr().String()), zap.String("ClientType", client.ClientType))
 			logger.App.Info("新客户端连接", zap.String("remoteAddr", client.Conn.RemoteAddr().String()), zap.String("ClientType", client.ClientType))
 			m.mutex.Lock()
 			m.Clients[client] = true
@@ -98,30 +104,32 @@ func (m *Manager) Start() {
 				m.AgentClients = append(m.AgentClients, client)
 			}
 			m.mutex.Unlock()
+			logger.App.Info("Manager 完成新客户端处理", zap.String("remoteAddr", client.Conn.RemoteAddr().String()), zap.String("ClientType", client.ClientType))
 
 		case client := <-m.Unregister:
+			logger.App.Info("Manager 接收到客户端注销请求", zap.String("remoteAddr", client.Conn.RemoteAddr().String()), zap.String("ClientType", client.ClientType))
 			m.mutex.Lock()
 			if _, ok := m.Clients[client]; ok {
 				delete(m.Clients, client)
 				close(client.Send)
 
-				// 从会话的客户端列表中移除
+				// 从 ConvClients 中移除
 				if client.ConvUUID != "" {
-					clients := m.ConvClients[client.ConvUUID]
-					for i, c := range clients {
-						if c == client {
-							m.ConvClients[client.ConvUUID] = append(clients[:i], clients[i+1:]...)
-							break
+					if clients, ok := m.ConvClients[client.ConvUUID]; ok {
+						for i, c := range clients {
+							if c == client {
+								m.ConvClients[client.ConvUUID] = append(clients[:i], clients[i+1:]...)
+								// 如果会话中没有其他客户端了，可以考虑清理该会话的条目
+								if len(m.ConvClients[client.ConvUUID]) == 0 {
+									delete(m.ConvClients, client.ConvUUID)
+								}
+								break
+							}
 						}
-					}
-
-					// 如果会话没有客户端了，删除会话条目
-					if len(m.ConvClients[client.ConvUUID]) == 0 {
-						delete(m.ConvClients, client.ConvUUID)
 					}
 				}
 
-				// 如果是客服，从客服连接列表中移除
+				// 从 AgentClients 中移除
 				if client.ClientType == "agent" {
 					for i, c := range m.AgentClients {
 						if c == client {
@@ -132,6 +140,7 @@ func (m *Manager) Start() {
 				}
 			}
 			m.mutex.Unlock()
+			logger.App.Info("Manager 完成客户端注销处理", zap.String("remoteAddr", client.Conn.RemoteAddr().String()), zap.String("ClientType", client.ClientType))
 
 		case message := <-m.Broadcast:
 			m.mutex.RLock()
@@ -164,11 +173,12 @@ func (m *Manager) Start() {
 					case client.Send <- []byte(message.Content):
 					default:
 						close(client.Send)
-						m.mutex.RUnlock()
+						m.mutex.Unlock() // Release RLock before acquiring Lock
+
 						m.mutex.Lock()
 						delete(m.Clients, client)
 						m.mutex.Unlock()
-						m.mutex.RLock()
+						m.mutex.RLock() // Reacquire RLock after modifying Clients
 					}
 				}
 			}
@@ -189,11 +199,12 @@ func (m *Manager) SendToConversation(convUUID string, message []byte) {
 			default:
 				// 如果发送失败，关闭连接并移除客户端
 				close(client.Send)
-				m.mutex.RUnlock()
+				m.mutex.Unlock() // Release RLock before acquiring Lock
+
 				m.mutex.Lock()
 				delete(m.Clients, client)
 				m.mutex.Unlock()
-				m.mutex.RLock()
+				m.mutex.RLock() // Reacquire RLock after modifying Clients
 			}
 		}
 	}
