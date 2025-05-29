@@ -26,11 +26,27 @@ type Manager struct {
 
 // Message 表示通过WebSocket发送的消息
 type Message struct {
-	ConvUUID string `json:"conv_uuid"`
-	Content  string `json:"content"`
-	Sender   string `json:"sender"`
-	Type     string `json:"type"` // 消息类型："message", "notification", 等
+	ConvUUID string      `json:"conv_uuid"`
+	Content  string      `json:"content"`
+	Sender   string      `json:"sender"`
+	Type     MessageType `json:"type"` // 消息类型："message", "notification", 等
 }
+
+// MessageType 定义消息类型
+type MessageType string
+
+const (
+	// MessageTypeMessage 普通消息
+	MessageTypeMessage MessageType = "message"
+	// MessageTypeNotification 通知消息
+	MessageTypeNotification MessageType = "notification"
+	// MessageTypeAgentOnlineStatus 坐席在线状态消息
+	MessageTypeAgentOnlineStatus MessageType = "agent_online_status"
+	// MessageTypeAgentTypingStatus 坐席输入状态消息
+	MessageTypeAgentTypingStatus MessageType = "agent_typing_status"
+	// MessageTypeCustomerTypingStatus 客户输入状态消息
+	MessageTypeCustomerTypingStatus MessageType = "customer_typing_status"
+)
 
 // NewManager 创建一个新的WebSocket管理器
 func NewManager() *Manager {

@@ -2,12 +2,15 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 
+	"support-plugin/internal/config"
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
+	"support-plugin/internal/pkg/dootask"
 	"support-plugin/internal/pkg/websocket"
 )
 
@@ -63,7 +66,26 @@ func (s *ChatService) SendMessage(conversationUUID, content, sender string) (*mo
 	database.DB.Model(&conversation).Update("updated_at", time.Now())
 
 	// 通过WebSocket广播消息
-	go websocket.BroadcastMessage(conversationUUID, "message", content, sender)
+	go websocket.BroadcastMessage(conversationUUID, websocket.MessageTypeMessage, content, sender)
+	fmt.Println("发送消息到机器人", sender)
+	if sender == "customer" {
+		go func(content string) {
+			fmt.Println("发送消息到机器人")
+			robot := dootask.DootaskRobot{
+				Webhook: config.Cfg.DooTask.WebHook,
+				Token:   config.Cfg.DooTask.Token,
+				Version: config.Cfg.DooTask.Version,
+			}
+			robot.Message = &dootask.DootaskMessage{
+				Text:     fmt.Sprintf("有一条新消息:\n%s", content),
+				DialogId: "29",
+				Token:    config.Cfg.DooTask.Token,
+				Version:  config.Cfg.DooTask.Version,
+			}
+			result, err := robot.SendMsg()
+			fmt.Println("发送消息到机器人", result, err)
+		}(content)
+	}
 
 	return &message, nil
 }

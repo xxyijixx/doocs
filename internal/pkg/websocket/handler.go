@@ -2,11 +2,8 @@ package websocket
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"support-plugin/internal/config"
-	"support-plugin/internal/pkg/dootask"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -106,26 +103,6 @@ func (c *Client) readPump() {
 		msg.Sender = c.ClientType
 		msg.ConvUUID = c.ConvUUID
 
-		fmt.Println("发送消息到机器人", msg.Sender)
-		if msg.Sender == "customer" {
-			go func(content string) {
-				fmt.Println("发送消息到机器人")
-				robot := dootask.DootaskRobot{
-					Webhook: config.Cfg.DooTask.WebHook,
-					Token:   config.Cfg.DooTask.Token,
-					Version: config.Cfg.DooTask.Version,
-				}
-				robot.Message = &dootask.DootaskMessage{
-					Text:     "有一条新消息" + content,
-					DialogId: "29",
-					Token:    config.Cfg.DooTask.Token,
-					Version:  config.Cfg.DooTask.Version,
-				}
-				result, err := robot.SendMsg()
-				fmt.Println("发送消息到机器人", result, err)
-			}(msg.Content)
-		}
-
 		// 广播消息
 		WebSocketManager.Broadcast <- &msg
 	}
@@ -175,7 +152,7 @@ func (c *Client) writePump() {
 }
 
 // BroadcastMessage 向特定会话广播消息
-func BroadcastMessage(convUUID string, msgType string, content string, sender string) error {
+func BroadcastMessage(convUUID string, msgType MessageType, content string, sender string) error {
 	msg := Message{
 		ConvUUID: convUUID,
 		Content:  content,
