@@ -20,6 +20,7 @@ import (
 // @Param page query int false "页码,默认1"
 // @Param page_size query int false "每页数量,默认20"
 // @Param status query string false "状态筛选(open/closed)"
+// @Param keyword query string false "关键词搜索"
 // @Success 200 {object} models.Response{data=models.PaginationData}
 // @Failure 401 {object} models.Response
 // @Failure 500 {object} models.Response
@@ -38,6 +39,8 @@ func (h ChatHeadler) GetAgentConversations(c *gin.Context) {
 	// 获取状态筛选参数
 	status := c.Query("status")
 
+	keyword := c.Query("keyword")
+
 	// 构建查询
 	query := database.DB.Model(&models.Conversations{})
 	// query = query.Where("agent_id = ?", agentID)
@@ -45,6 +48,10 @@ func (h ChatHeadler) GetAgentConversations(c *gin.Context) {
 	// 应用状态筛选
 	if status != "" {
 		query = query.Where("status = ?", status)
+	}
+
+	if keyword != "" {
+		query = query.Where("title LIKE ? OR content LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
 	}
 
 	// 计算总数

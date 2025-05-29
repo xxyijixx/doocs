@@ -50,6 +50,9 @@ func (s *ChatService) CreateConversationWithDetails(agentID, customerID uint, ti
 	if result.Error != nil {
 		return "", result.Error
 	}
+	database.DB.Model(&conversation).Updates(map[string]interface{}{
+		"title": fmt.Sprintf("%s %d", "会话", conversation.ID),
+	})
 
 	return uuidStr, nil
 }
@@ -110,7 +113,7 @@ func (s *ChatService) SendMessageWithDetails(conversationUUID, content, sender, 
 				Version: config.Cfg.DooTask.Version,
 			}
 			robot.Message = &dootask.DootaskMessage{
-				Text:     fmt.Sprintf("有一条新消息:\n%s", content),
+				Text:     fmt.Sprintf("[%s]有一条新消息:\n%s", conversation.Title, content),
 				DialogId: "22",
 				Token:    config.Cfg.DooTask.Token,
 				Version:  config.Cfg.DooTask.Version,
