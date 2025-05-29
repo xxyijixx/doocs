@@ -11,6 +11,7 @@ import (
 const (
 	CSConfigKeyWelcome = "welcome_config"
 	CSConfigKeyDooTask = "dootask_config"
+	CSConfigKeyAuth    = "auth_config"
 	CSConfigKeyOther   = "other_config"
 	// 后续扩展可统一添加
 )
@@ -41,9 +42,18 @@ type DooTaskConfig struct {
 	WebHook string `json:"webhook" default:""`
 }
 
+// config_key = auth_config
+type AuthConfig struct {
+	JWTSecret              string `json:"jwt_secret"`                              // JWT密钥
+	TokenExpireHours       int    `json:"token_expire_hours" default:"24"`         // 令牌过期时间（小时）
+	RequireAgentAuth       bool   `json:"require_agent_auth" default:"true"`       // 是否要求客服认证
+	AllowCustomerAnonymous bool   `json:"allow_customer_anonymous" default:"true"` // 是否允许客户匿名访问
+}
+
 var ConfigTypeRegistry = map[string]func() interface{}{
 	CSConfigKeyWelcome: func() interface{} { return &WelcomeConfig{} },
 	CSConfigKeyDooTask: func() interface{} { return &DooTaskConfig{} },
+	CSConfigKeyAuth:    func() interface{} { return &AuthConfig{} },
 }
 
 func LoadConfig[T any](db *gorm.DB, key string) (*T, error) {

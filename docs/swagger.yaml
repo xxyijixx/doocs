@@ -1,10 +1,80 @@
 basePath: /api/v1
 definitions:
+  models.Agent:
+    type: object
+  models.AgentInfoResponse:
+    properties:
+      avatar:
+        description: 头像URL
+        type: string
+      id:
+        description: 客服ID
+        type: integer
+      name:
+        description: 显示名称
+        type: string
+      status:
+        description: 状态
+        type: string
+      username:
+        description: 用户名
+        type: string
+    type: object
+  models.AgentLoginRequest:
+    properties:
+      password:
+        description: 密码
+        type: string
+      username:
+        description: 用户名
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  models.AgentLoginResponse:
+    properties:
+      agent_id:
+        description: 客服ID
+        type: integer
+      avatar:
+        description: 头像URL
+        type: string
+      expires_at:
+        description: 过期时间戳
+        type: integer
+      name:
+        description: 显示名称
+        type: string
+      token:
+        description: 认证令牌
+        type: string
+      username:
+        description: 用户名
+        type: string
+    type: object
   models.ConversationResponse:
     properties:
       uuid:
         description: 对话UUID
         type: string
+    type: object
+  models.CreateConversationRequest:
+    properties:
+      agent_id:
+        type: integer
+      customer_id:
+        type: integer
+      source:
+        default: widget
+        description: 来源（可选）
+        type: string
+      title:
+        description: 会话标题（可选）
+        type: string
+    required:
+    - agent_id
+    - customer_id
     type: object
   models.PaginationData:
     properties:
@@ -41,8 +111,15 @@ definitions:
     properties:
       content:
         type: string
+      metadata:
+        description: 元数据（JSON格式，可选）
+        type: string
       sender:
         description: '"agent" 或 "customer"'
+        type: string
+      type:
+        default: text
+        description: 消息类型：text, image, file, system
         type: string
       uuid:
         type: string
@@ -58,11 +135,118 @@ info:
   title: Support Plugin API
   version: "1.0"
 paths:
+  /auth/agents:
+    post:
+      consumes:
+      - application/json
+      description: 创建新的客服账号
+      parameters:
+      - description: 客服信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Agent'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.AgentInfoResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: 创建客服账号
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 客服登录并获取认证令牌
+      parameters:
+      - description: 登录请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AgentLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.AgentLoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: 客服登录
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前认证客服的详细信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.AgentInfoResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: 获取当前客服信息
   /chat:
     post:
       consumes:
       - application/json
       description: 创建客服和客户之间的新对话
+      parameters:
+      - description: 创建对话请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateConversationRequest'
       produces:
       - application/json
       responses:
@@ -151,6 +335,81 @@ paths:
           schema:
             $ref: '#/definitions/models.Response'
       summary: 获取对话消息列表
+  /chat/agent/{uuid}/close:
+    put:
+      consumes:
+      - application/json
+      description: 关闭指定的对话
+      parameters:
+      - description: 对话UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: 关闭对话
+  /chat/agent/conversations:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前认证客服的所有对话列表
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 页码,默认1
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量,默认20
+        in: query
+        name: page_size
+        type: integer
+      - description: 状态筛选(open/closed)
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PaginationData'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: 获取客服的所有对话
   /chat/messages:
     post:
       consumes:

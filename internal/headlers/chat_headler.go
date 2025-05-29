@@ -19,13 +19,22 @@ var Chat = ChatHeadler{}
 // @Description 创建客服和客户之间的新对话
 // @Accept json
 // @Produce json
+// @Param request body models.CreateConversationRequest true "创建对话请求参数"
 // @Success 200 {object} models.Response{data=models.ConversationResponse}
 // @Failure 400 {object} models.Response
 // @Failure 500 {object} models.Response
 // @Router /chat [post]
 func (h ChatHeadler) CreateConversation(c *gin.Context) {
+	// 解析请求参数
+	var req models.CreateConversationRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "参数错误", err)
+		return
+	}
+
 	// 创建对话
-	uuid, err := service.Chat.CreateConversation()
+	uuid, err := service.Chat.CreateConversationWithDetails(req.AgentID, req.CustomerID, req.Title, req.Source)
 	if err != nil {
 		response.ServerError(c, "创建对话失败", err)
 		return
@@ -55,7 +64,7 @@ func (h ChatHeadler) SendMessage(c *gin.Context) {
 	}
 
 	// 发送消息
-	message, err := service.Chat.SendMessage(req.UUID, req.Content, req.Sender)
+	message, err := service.Chat.SendMessageWithDetails(req.UUID, req.Content, req.Sender, req.Type, req.Metadata)
 	if err != nil {
 		response.ServerError(c, "发送消息失败", err)
 		return

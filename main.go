@@ -7,6 +7,7 @@ import (
 	"support-plugin/internal/config"
 	"support-plugin/internal/middleware"
 	"support-plugin/internal/pkg/database"
+	"support-plugin/internal/pkg/initialize"
 	"support-plugin/internal/pkg/websocket"
 	"support-plugin/internal/routes"
 
@@ -21,12 +22,15 @@ import (
 // @schemes http
 func main() {
 	// 初始化配置
-	config.InitConfig()
+	config.Init()
 
 	// 打印配置信息
 	config.Cfg.Print()
 
 	database.InitDB()
+
+	// 执行初始化操作
+	initialize.Init()
 
 	// 启动WebSocket管理器
 	go websocket.WebSocketManager.Start()

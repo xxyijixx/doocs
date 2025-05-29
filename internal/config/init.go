@@ -15,7 +15,7 @@ import (
 
 var Cfg *Config // 全局配置变量
 
-func InitConfig() {
+func Init() {
 	// 加载 .env
 	_ = godotenv.Load(".env")
 

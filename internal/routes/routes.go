@@ -27,9 +27,26 @@ func RegisterRoutes(r *gin.Engine) {
 			dooTaskRoutes.POST("/chat", headlers.DooTask.Chat)
 		}
 
+		// 认证相关路由
+		authRoutes := v1.Group("/auth")
+		{
+			// 客服登录
+			authRoutes.POST("/login", headlers.Auth.Login)
+
+			// 需要认证的路由
+			authProtected := authRoutes.Group("", middleware.AgentAuthMiddleware())
+			{
+				// 获取当前客服信息
+				authProtected.GET("/me", headlers.Auth.GetCurrentAgent)
+				// 创建客服账号
+				authProtected.POST("/agents", headlers.Auth.CreateAgent)
+			}
+		}
+
 		// 对话相关路由
 		chatRoutes := v1.Group("/chat")
 		{
+			// 公共路由 - 客户可访问
 			// 创建对话
 			chatRoutes.POST("", headlers.Chat.CreateConversation)
 			// 发送消息
@@ -42,6 +59,15 @@ func RegisterRoutes(r *gin.Engine) {
 			chatRoutes.GET("/ws", func(c *gin.Context) {
 				websocket.ServeWs(c)
 			})
+
+			// 需要客服认证的路由
+			chatProtected := chatRoutes.Group("/agent", middleware.AgentAuthMiddleware())
+			{
+				// 获取客服的所有对话
+				chatProtected.GET("/conversations", headlers.Chat.GetAgentConversations)
+				// 关闭对话
+				chatProtected.PUT("/:uuid/close", headlers.Chat.CloseConversation)
+			}
 		}
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

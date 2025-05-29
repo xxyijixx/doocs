@@ -27,3 +27,22 @@ type MessageListResponse struct {
 	Messages   interface{} `json:"messages"`   // 消息列表
 	Pagination interface{} `json:"pagination"` // 分页信息
 }
+
+// AgentLoginResponse 客服登录响应数据
+type AgentLoginResponse struct {
+	Token     string `json:"token"`      // 认证令牌
+	AgentID   uint   `json:"agent_id"`   // 客服ID
+	Username  string `json:"username"`   // 用户名
+	Name      string `json:"name"`       // 显示名称
+	Avatar    string `json:"avatar"`     // 头像URL
+	ExpiresAt int64  `json:"expires_at"` // 过期时间戳
+}
+
+// AgentInfoResponse 客服信息响应数据
+type AgentInfoResponse struct {
+	ID       uint   `json:"id"`       // 客服ID
+	Username string `json:"username"` // 用户名
+	Name     string `json:"name"`     // 显示名称
+	Avatar   string `json:"avatar"`   // 头像URL
+	Status   string `json:"status"`   // 状态
+}

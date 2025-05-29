@@ -49,6 +49,11 @@ func ServeWs(c *gin.Context) {
 		return
 	}
 
+	if clientType == "agent" {
+		// 客服端需要验证Token
+		// TODO: 验证Token
+	}
+
 	// 升级HTTP连接为WebSocket连接
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {

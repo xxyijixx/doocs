@@ -84,7 +84,7 @@ func InitDB() {
 	DB = db
 	log.Println("数据库连接成功")
 
-	db.AutoMigrate(&models.CSConfig{}, &models.Message{}, &models.Conversations{})
+	db.AutoMigrate(&models.CSConfig{}, &models.Agent{}, &models.Customer{}, &models.Message{}, &models.Conversations{})
 }
 
 // GetDB 获取数据库连接

@@ -18,16 +18,31 @@ type ChatService struct{}
 
 var Chat = ChatService{}
 
-// CreateConversation 创建新对话
+// CreateConversation 创建新对话（基础版本，保留向后兼容性）
 func (s *ChatService) CreateConversation() (string, error) {
+	return s.CreateConversationWithDetails(0, 0, "", "widget")
+}
+
+// CreateConversationWithDetails 创建新对话（详细版本）
+func (s *ChatService) CreateConversationWithDetails(agentID, customerID uint, title, source string) (string, error) {
 	// 生成UUID
 	uuidStr := uuid.New().String()
 
+	// 如果没有提供来源，设置默认值
+	if source == "" {
+		source = "widget"
+	}
+
 	// 创建对话记录
 	conversation := models.Conversations{
-		Uuid:      uuidStr,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Uuid:       uuidStr,
+		AgentID:    agentID,
+		CustomerID: customerID,
+		Title:      title,
+		Source:     source,
+		Status:     "open",
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
 
 	// 保存到数据库
@@ -39,8 +54,13 @@ func (s *ChatService) CreateConversation() (string, error) {
 	return uuidStr, nil
 }
 
-// SendMessage 发送消息
+// SendMessage 发送消息（基础版本，保留向后兼容性）
 func (s *ChatService) SendMessage(conversationUUID, content, sender string) (*models.Message, error) {
+	return s.SendMessageWithDetails(conversationUUID, content, sender, "text", "")
+}
+
+// SendMessageWithDetails 发送消息（详细版本）
+func (s *ChatService) SendMessageWithDetails(conversationUUID, content, sender, msgType, metadata string) (*models.Message, error) {
 	// 查找对话
 	var conversation models.Conversations
 	result := database.DB.Where("uuid = ?", conversationUUID).First(&conversation)
@@ -48,12 +68,22 @@ func (s *ChatService) SendMessage(conversationUUID, content, sender string) (*mo
 		return nil, errors.New("对话不存在")
 	}
 
+	// 如果消息类型为空，设置默认值
+	if msgType == "" {
+		msgType = "text"
+	}
+
+	// 获取当前时间
+	now := time.Now()
+
 	// 创建消息
 	message := models.Message{
 		ConversationID: conversation.ID,
 		Content:        content,
 		Sender:         sender,
-		CreatedAt:      time.Now(),
+		Type:           msgType,
+		Metadata:       metadata,
+		CreatedAt:      now,
 	}
 
 	// 保存消息
@@ -62,8 +92,11 @@ func (s *ChatService) SendMessage(conversationUUID, content, sender string) (*mo
 		return nil, result.Error
 	}
 
-	// 更新对话的最后更新时间
-	database.DB.Model(&conversation).Update("updated_at", time.Now())
+	// 更新对话的最后更新时间和最后消息时间
+	database.DB.Model(&conversation).Updates(map[string]interface{}{
+		"updated_at":      now,
+		"last_message_at": now,
+	})
 
 	// 通过WebSocket广播消息
 	go websocket.BroadcastMessage(conversationUUID, websocket.MessageTypeMessage, content, sender)

@@ -45,6 +45,11 @@ func NotFound(c *gin.Context, message string) {
 	Fail(c, http.StatusNotFound, message, nil)
 }
 
+// Unauthorized 401错误响应
+func Unauthorized(c *gin.Context, message string) {
+	Fail(c, http.StatusUnauthorized, message, nil)
+}
+
 // SuccessWithPagination 带分页的成功响应
 func SuccessWithPagination(c *gin.Context, message string, items interface{}, total int64, page, pageSize int) {
 	pages := int64(0)
