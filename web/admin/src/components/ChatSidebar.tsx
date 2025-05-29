@@ -7,9 +7,10 @@ import { ThemeToggle } from './ThemeToggle';
 interface ChatSidebarProps {
   selectedUuid?: string | null;
   onSelectConversation: (uuid: string) => void;
+  onRefresh: () => void;
 }
 
-export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedUuid, onSelectConversation }) => {
+export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedUuid, onSelectConversation, onRefresh }) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -21,7 +22,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedUuid, onSelect
       setLoading(false);
     };
     fetchConversations();
-  }, []);
+  }, [onRefresh]);
 
   // 搜索过滤
   const filtered = conversations.filter(c =>

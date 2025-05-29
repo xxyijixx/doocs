@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { ChatSidebar } from '../components/ChatSidebar';
 import { ChatWindow } from '../components/ChatWindow';
 
-export const Chat: React.FC = () => {
+interface ChatProps {
+  onRefreshConversations: () => void;
+}
+
+export const Chat: React.FC<ChatProps> = ({ onRefreshConversations }) => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
 
   return (
@@ -10,6 +14,7 @@ export const Chat: React.FC = () => {
       <ChatSidebar
         selectedUuid={selectedConversation}
         onSelectConversation={setSelectedConversation}
+        onRefresh={onRefreshConversations}
       />
       <div className="flex-1 h-full">
         <ChatWindow conversationUuid={selectedConversation} />

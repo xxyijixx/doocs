@@ -109,7 +109,7 @@ func (c *Client) readPump() {
 
 		// 解析消息
 		var msg Message
-		if err := json.Unmarshal(message, &msg); err != nil {
+		if err := json.Unmarshal(message, &msg.Data); err != nil {
 			log.Printf("error unmarshalling message: %v", err)
 			continue
 		}
@@ -170,7 +170,7 @@ func (c *Client) writePump() {
 func BroadcastMessage(convUUID string, msgType MessageType, content string, sender string) error {
 	msg := Message{
 		ConvUUID: convUUID,
-		Content:  content,
+		Data:     []byte(content),
 		Sender:   sender,
 		Type:     msgType,
 	}

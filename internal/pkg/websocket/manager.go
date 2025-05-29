@@ -31,10 +31,10 @@ type Manager struct {
 
 // Message 表示通过WebSocket发送的消息
 type Message struct {
-	ConvUUID string      `json:"conv_uuid"`
-	Content  string      `json:"content"`
-	Sender   string      `json:"sender"`
-	Type     MessageType `json:"type"` // 消息类型："message", "notification", 等
+	ConvUUID string          `json:"conv_uuid"`
+	Data     json.RawMessage `json:"data"`
+	Sender   string          `json:"sender"`
+	Type     MessageType     `json:"type"` // 消息类型："message", "notification", 等
 }
 
 // MessageType 定义消息类型
@@ -104,10 +104,10 @@ func (m *Manager) handleRegister(client *Client) {
 
 	// 将客户端添加到对应会话的客户端列表
 	if client.ConvUUID != "" {
-		m.ConvClients[client.ConvUUID] = append(m.ConvClients[client.ConvUUID], client)
 
 		// 如果是新客户创建的会话，向所有客服推送新会话通知
 		if client.ClientType == "customer" {
+			m.ConvClients[client.ConvUUID] = append(m.ConvClients[client.ConvUUID], client)
 			logger.App.Info("New customer conversation created",
 				zap.String("convUUID", client.ConvUUID),
 				zap.String("remoteAddr", client.Conn.RemoteAddr().String()))
@@ -200,14 +200,14 @@ func (m *Manager) handleBroadcast(message *Message) {
 		// 如果是普通消息，并且是客户发送的，向所有客服推送新消息通知
 		if message.Type == MessageTypeMessage && message.Sender == "customer" {
 			// 异步通知，避免死锁
-			go m.notifyAgentsNewMessage(message.ConvUUID, message.Content)
+			go m.notifyAgentsNewMessage(message.ConvUUID, string(message.Data))
 		}
 
 		// 向会话中的所有客户端发送消息
 		if clients, ok := m.ConvClients[message.ConvUUID]; ok {
 			for _, client := range clients {
 				select {
-				case client.Send <- []byte(message.Content):
+				case client.Send <- message.Data:
 					// 发送成功
 				default:
 					// 发送失败，记录需要移除的客户端
@@ -219,7 +219,7 @@ func (m *Manager) handleBroadcast(message *Message) {
 		// 向所有客服广播新会话或新消息通知
 		for _, client := range m.AgentClients {
 			select {
-			case client.Send <- []byte(message.Content):
+			case client.Send <- message.Data:
 				// 发送成功
 			default:
 				// 发送失败，记录需要移除的客户端
@@ -307,9 +307,22 @@ var WebSocketManager = NewManager()
 // notifyAgentsNewConversation 向所有客服推送新会话通知
 func (m *Manager) notifyAgentsNewConversation(convUUID string) {
 	// 创建新会话通知消息
+	// 使用messages.go中定义的新会话数据结构
+	dataContent := NewConversationData{
+		ConvUUID: convUUID,
+	}
+
+	// 将匿名结构体序列化为json.RawMessage
+	dataBytes, err := json.Marshal(dataContent)
+	if err != nil {
+		logger.App.Error("Failed to marshal new conversation data content", zap.Error(err))
+		return
+	}
+
+	// 创建新会话通知消息
 	message := &Message{
 		ConvUUID: convUUID,
-		Content:  convUUID, // 内容为会话UUID，客服端可以根据UUID获取会话详情
+		Data:     json.RawMessage(dataBytes),
 		Sender:   "system",
 		Type:     MessageTypeNewConversation,
 	}
@@ -328,9 +341,23 @@ func (m *Manager) notifyAgentsNewConversation(convUUID string) {
 // notifyAgentsNewMessage 向所有客服推送新消息通知
 func (m *Manager) notifyAgentsNewMessage(convUUID string, content string) {
 	// 创建新消息通知
+	// 使用messages.go中定义的新消息数据结构
+	dataContent := NewMessageData{
+		ConvUUID: convUUID,
+		Content:  content,
+	}
+
+	// 将匿名结构体序列化为json.RawMessage
+	dataBytes, err := json.Marshal(dataContent)
+	if err != nil {
+		logger.App.Error("Failed to marshal new message data content", zap.Error(err))
+		return
+	}
+
+	// 创建新消息通知
 	message := &Message{
 		ConvUUID: convUUID,
-		Content:  content, // 消息内容
+		Data:     json.RawMessage(dataBytes),
 		Sender:   "system",
 		Type:     MessageTypeNewMessage,
 	}

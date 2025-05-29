@@ -65,6 +65,8 @@ func RegisterRoutes(r *gin.Engine) {
 			{
 				// 获取客服的所有对话
 				chatProtected.GET("/conversations", headlers.Chat.GetAgentConversations)
+				// 根据UUID获取对话信息
+				chatRoutes.GET("/conversations/:uuid", headlers.Chat.GetConversationByUUID)
 				// 关闭对话
 				chatProtected.PUT("/:uuid/close", headlers.Chat.CloseConversation)
 			}

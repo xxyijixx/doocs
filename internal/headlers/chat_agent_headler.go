@@ -75,6 +75,34 @@ func (h ChatHeadler) GetAgentConversations(c *gin.Context) {
 	})
 }
 
+// @Summary 获取指定UUID的对话信息
+// @Description 根据对话UUID获取详细的对话信息
+// @Accept json
+// @Produce json
+// @Param uuid path string true "对话UUID"
+// @Success 200 {object} models.Response{data=models.Conversations}
+// @Failure 400 {object} models.Response
+// @Failure 500 {object} models.Response
+// @Router /chat/conversations/{uuid} [get]
+func (h ChatHeadler) GetConversationByUUID(c *gin.Context) {
+	// 获取对话UUID
+	uuid := c.Param("uuid")
+	if uuid == "" {
+		response.BadRequest(c, "缺少对话UUID", nil)
+		return
+	}
+
+	// 查找对话
+	var conversation models.Conversations
+	result := database.DB.Where("uuid = ?", uuid).First(&conversation)
+	if result.Error != nil {
+		response.BadRequest(c, "对话不存在", result.Error)
+		return
+	}
+
+	response.Success(c, "获取成功", conversation)
+}
+
 // @Summary 关闭对话
 // @Description 关闭指定的对话
 // @Accept json

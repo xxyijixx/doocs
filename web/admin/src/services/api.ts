@@ -5,9 +5,22 @@ const api = axios.create({
   baseURL: 'http://localhost:8888/api/v1',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer token',
   },
 });
+
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token'); // 假设token存储在localStorage中
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    config.headers.Authorization = `Bearer 1234`;
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export const chatApi = {
   // 获取会话列表
@@ -31,4 +44,10 @@ export const chatApi = {
     const response = await api.post<ApiResponse<null>>('/chat/messages', message);
     return response.data;
   },
-}; 
+
+  // 根据UUID获取会话信息
+  getConversationByUUID: async (uuid: string) => {
+    const response = await api.get<ApiResponse<Conversation>>(`/chat/conversations/${uuid}`);
+    return response.data;
+  },
+};

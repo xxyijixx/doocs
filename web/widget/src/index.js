@@ -233,12 +233,13 @@ async function initializeChatWidget(options) {
             // 接收消息
             socket.onmessage = (event) => {
                 try {
-                    const message = JSON.parse(event.data);
+                    const fullMessage = JSON.parse(event.data);
                     // 只处理消息类型的数据
-                    if (message.type === 'message') {
+                    if (fullMessage.type === 'message') {
+                        const messageData = JSON.parse(fullMessage.data);
                         // 如果是客服发送的消息，显示在聊天窗口中
-                        if (message.sender === 'agent') {
-                            addMessageToChat({ content: message.content, sender: 'agent' });
+                        if (fullMessage.sender === 'agent') {
+                            addMessageToChat({ content: messageData.content, sender: 'agent' });
                         }
                     }
                 } catch (e) {

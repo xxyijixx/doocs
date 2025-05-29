@@ -1,9 +1,16 @@
 import React, { useEffect } from 'react';
 import { Chat } from './pages/Chat';
+import { useState } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { webSocketService } from './services/websocket';
+import { chatApi } from './services/api';
 
 const App: React.FC = () => {
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refreshConversations = () => {
+    setRefreshKey(prevKey => prevKey + 1);
+  };
   const initialized = React.useRef(false);
 
   useEffect(() => {
@@ -21,13 +28,22 @@ const App: React.FC = () => {
       console.log('Message from server in App.tsx: ', event.data);
       // TODO: Handle incoming messages, e.g., update state, show notifications
       try {
-        const message = JSON.parse(event.data);
+        const fullMessage = JSON.parse(event.data);
         // Example: Dispatch an action or update a context based on message type
-        if (message.type === 'new_conversation') {
-          console.log('New conversation notification:', message.data);
+        if (fullMessage.type === 'new_conversation') {
+          const messageData = JSON.parse(fullMessage.data);
+          console.log('New conversation notification:', messageData);
+          // 当收到新会话通知时，触发会话列表刷新
+          // 可以通过Context或Redux等状态管理工具通知ChatSidebar刷新
+          // 或者，如果ChatSidebar的fetchConversations依赖于某个props，可以更新该props来触发刷新
+          // 目前，我们假设ChatSidebar会自行处理刷新逻辑，或者需要一个回调函数
+          // 暂时不在这里直接调用fetchConversationDetails，因为用户选择了刷新列表的方案
+          refreshConversations();
+
           // Potentially update a list of conversations or show a notification
-        } else if (message.type === 'new_message') {
-          console.log('New message notification:', message.data);
+        } else if (fullMessage.type === 'new_message') {
+          const messageData = JSON.parse(fullMessage.data);
+          console.log('New message notification:', messageData);
           // Potentially update the specific conversation's messages or show a notification
         }
       } catch (error) {
@@ -68,10 +84,12 @@ const App: React.FC = () => {
     }
   }, [webSocketService]);
 
+
+
   return (
     <ThemeProvider>
       <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <Chat />
+        <Chat onRefreshConversations={refreshConversations} />
       </div>
     </ThemeProvider>
   );
