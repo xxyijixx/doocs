@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"support-plugin/internal/pkg/logger"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 )
 
 const (
@@ -61,14 +63,15 @@ func ServeWs(c *gin.Context) {
 		return
 	}
 
+	agentID := c.Query("agent_id")
 	// 创建新的客户端
 	client := &Client{
 		Conn:       conn,
 		Send:       make(chan []byte, 256),
 		ConvUUID:   convUUID,
 		ClientType: clientType,
+		AgentID:    agentID,
 	}
-
 	// 注册新客户端
 	WebSocketManager.Register <- client
 

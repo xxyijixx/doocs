@@ -2,9 +2,11 @@ package websocket
 
 import (
 	"encoding/json"
+	"support-plugin/internal/pkg/logger"
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 )
 
 // Client 表示一个WebSocket客户端连接
@@ -72,6 +74,7 @@ func (m *Manager) Start() {
 	for {
 		select {
 		case client := <-m.Register:
+			logger.App.Info("新客户端连接", zap.String("remoteAddr", client.Conn.RemoteAddr().String()), zap.String("ClientType", client.ClientType))
 			m.mutex.Lock()
 			m.Clients[client] = true
 			// 将客户端添加到对应会话的客户端列表
@@ -80,12 +83,18 @@ func (m *Manager) Start() {
 
 				// 如果是新客户创建的会话，向所有客服推送新会话通知
 				if client.ClientType == "customer" {
+					logger.App.Info("New customer conversation created",
+						zap.String("convUUID", client.ConvUUID),
+						zap.String("remoteAddr", client.Conn.RemoteAddr().String()))
 					m.notifyAgentsNewConversation(client.ConvUUID)
 				}
 			}
 
 			// 如果是客服，将其添加到客服连接列表
 			if client.ClientType == "agent" {
+				logger.App.Info("Agent client connected",
+					zap.String("agentID", client.AgentID),
+					zap.String("remoteAddr", client.Conn.RemoteAddr().String()))
 				m.AgentClients = append(m.AgentClients, client)
 			}
 			m.mutex.Unlock()

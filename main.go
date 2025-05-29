@@ -8,6 +8,7 @@ import (
 	"support-plugin/internal/middleware"
 	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/initialize"
+	"support-plugin/internal/pkg/logger"
 	"support-plugin/internal/pkg/websocket"
 	"support-plugin/internal/routes"
 
@@ -26,6 +27,8 @@ func main() {
 
 	// 打印配置信息
 	config.Cfg.Print()
+
+	logger.InitLogger()
 
 	database.InitDB()
 

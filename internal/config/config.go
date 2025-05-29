@@ -30,9 +30,14 @@ type DooTaskConfig struct {
 	WebHook string `mapstructure:"webhook" default:""`
 }
 
+type LoggerConfig struct {
+	Dir string `mapstructure:"dir" default:"logs"`
+}
+
 type Config struct {
 	App     AppConfig     `mapstructure:"app"`
 	DB      DBConfig      `mapstructure:"db"`
 	Redis   RedisConfig   `mapstructure:"redis"`
 	DooTask DooTaskConfig `mapstructure:"dootask"`
+	Log     LoggerConfig  `mapstructure:"log"`
 }
