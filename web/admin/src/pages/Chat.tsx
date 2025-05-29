@@ -3,7 +3,7 @@ import { ChatSidebar } from '../components/ChatSidebar';
 import { ChatWindow } from '../components/ChatWindow';
 
 interface ChatProps {
-  onRefreshConversations: () => void;
+  onRefreshConversations?: () => void; // 保留属性但设为可选，以便向后兼容
 }
 
 export const Chat: React.FC<ChatProps> = ({ onRefreshConversations }) => {
@@ -14,7 +14,7 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations }) => {
       <ChatSidebar
         selectedUuid={selectedConversation}
         onSelectConversation={setSelectedConversation}
-        onRefresh={onRefreshConversations}
+        onRefresh={onRefreshConversations} // 保留传递，但实际上已经不需要依赖这个属性了
       />
       <div className="flex-1 h-full">
         <ChatWindow conversationUuid={selectedConversation} />

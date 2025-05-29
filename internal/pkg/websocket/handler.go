@@ -168,6 +168,7 @@ func (c *Client) writePump() {
 
 // BroadcastMessage 向特定会话广播消息
 func BroadcastMessage(convUUID string, msgType MessageType, content string, sender string) error {
+	logger.App.Info("准备广播消息", zap.String("ConvUUID", convUUID), zap.Any("msgType", msgType), zap.String("Sender", sender), zap.String("Content", content))
 	msg := Message{
 		ConvUUID: convUUID,
 		Data:     []byte(content),

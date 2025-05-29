@@ -1,28 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { chatApi } from '../services/api';
 import type { Conversation } from '../types/chat';
 import { MagnifyingGlassIcon, HomeIcon, Cog6ToothIcon, UserGroupIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { ThemeToggle } from './ThemeToggle';
+import { useConversationStore } from '../store/conversationStore';
 
 interface ChatSidebarProps {
-  selectedUuid?: string | null;
+  selectedUuid: string | null;
   onSelectConversation: (uuid: string) => void;
-  onRefresh: () => void;
+  onRefresh?: () => void; // 设为可选，因为现在主要依赖 Zustand store
 }
 
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedUuid, onSelectConversation, onRefresh }) => {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const { conversations, loading, fetchConversations, refreshTrigger } = useConversationStore();
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchConversations = async () => {
-      const response = await chatApi.getConversations();
-      setConversations(response.data.items);
-      setLoading(false);
-    };
     fetchConversations();
-  }, [onRefresh]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger, onRefresh]);
 
   // 搜索过滤
   const filtered = conversations.filter(c =>

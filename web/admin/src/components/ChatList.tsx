@@ -44,7 +44,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onSelectConversation, select
   return (
     <div className="bg-white rounded-lg shadow h-full p-4">
       <h2 className="text-lg font-semibold mb-4">会话列表</h2>
-      <Listbox value={selectedConversation} onChange={c => onSelectConversation(c.uuid)}>
+      <Listbox value={selectedConversation} onChange={c => onSelectConversation(c!.uuid)}>
         <div className="relative">
           <Listbox.Button className="relative w-full cursor-default rounded-lg bg-gray-100 py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-blue-300 sm:text-sm">
             <span className="block truncate">
