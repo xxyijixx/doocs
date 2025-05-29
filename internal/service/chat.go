@@ -111,7 +111,7 @@ func (s *ChatService) SendMessageWithDetails(conversationUUID, content, sender, 
 			}
 			robot.Message = &dootask.DootaskMessage{
 				Text:     fmt.Sprintf("有一条新消息:\n%s", content),
-				DialogId: "29",
+				DialogId: "22",
 				Token:    config.Cfg.DooTask.Token,
 				Version:  config.Cfg.DooTask.Version,
 			}
