@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -10,32 +10,46 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    // 检查 HTML 元素是否已经有 dark 类
-    const isDark = document.documentElement.classList.contains('dark');
-    return isDark ? 'dark' : 'light';
-  });
+  // 从localStorage获取主题，如果没有则使用系统偏好
+  const getInitialTheme = (): Theme => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const storedPrefs = window.localStorage.getItem('theme');
+      if (storedPrefs) {
+        return storedPrefs as Theme;
+      }
 
+      const userMedia = window.matchMedia('(prefers-color-scheme: dark)');
+      if (userMedia.matches) {
+        return 'dark';
+      }
+    }
+
+    return 'light';
+  };
+
+  const [theme, setTheme] = useState<Theme>(getInitialTheme());
+
+  // 切换主题
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    console.log(`切换主题从 ${theme} 到 ${newTheme}`);
+    setTheme(newTheme);
+  };
+
+  // 当主题变化时，更新DOM和localStorage
   useEffect(() => {
     const root = window.document.documentElement;
-    // 当主题改变时，更新 document 的 class
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    // 保存主题到 localStorage
+    
+    // 移除旧主题类
+    root.classList.remove('light', 'dark');
+    // 添加新主题类
+    root.classList.add(theme);
+    
+    // 保存到localStorage
     localStorage.setItem('theme', theme);
+    
+    console.log(`主题已更新为: ${theme}，classList:`, root.classList);
   }, [theme]);
-
-  const toggleTheme = () => {
-    console.log('Toggling theme from:', theme);
-    setTheme(prevTheme => {
-      const newTheme = prevTheme === 'light' ? 'dark' : 'light';
-      console.log('New theme will be:', newTheme);
-      return newTheme;
-    });
-  };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
@@ -44,10 +58,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
-export const useTheme = () => {
+export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
-}; 
+};

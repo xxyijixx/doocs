@@ -1,14 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { chatApi } from '../services/api';
 import type { Message, Conversation } from '../types/chat';
-import { PaperAirplaneIcon, EllipsisVerticalIcon } from '@heroicons/react/24/outline';
+import { PaperAirplaneIcon, EllipsisVerticalIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useMessageStore } from '../store/messageStore';
 
 interface ChatWindowProps {
   conversationUuid?: string | null;
+  onBackClick?: () => void; // 添加返回按钮回调
 }
 
-export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationUuid }) => {
+export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationUuid, onBackClick }) => {
   const { messagesByConversation, loading, fetchMessages, refreshTrigger } = useMessageStore();
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState('');
@@ -85,7 +86,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationUuid }) => {
 
   if (!conversationUuid) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-400 text-lg">
+      <div className="flex-1 flex items-center justify-center text-gray-400 text-lg h-full">
         请选择一个会话开始聊天
       </div>
     );
@@ -96,6 +97,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationUuid }) => {
       {/* 顶部标题栏 */}
       <div className="flex items-center justify-between px-8 py-4 border-b dark:border-gray-700">
         <div className="flex items-center gap-3">
+          {onBackClick && (
+            <button 
+              onClick={onBackClick}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+            >
+              <ArrowLeftIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            </button>
+          )}
           <h2 className="text-xl font-semibold dark:text-white">
             {conversation?.title || `会话 ${conversation?.id || ''}`}
           </h2>

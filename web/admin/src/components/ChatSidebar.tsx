@@ -8,9 +8,10 @@ interface ChatSidebarProps {
   selectedUuid: string | null;
   onSelectConversation: (uuid: string) => void;
   onRefresh?: () => void; // 设为可选，因为现在主要依赖 Zustand store
+  isMobile?: boolean; // 添加移动端标识
 }
 
-export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedUuid, onSelectConversation, onRefresh }) => {
+export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedUuid, onSelectConversation, onRefresh, isMobile = false }) => {
   const { conversations, loading, fetchConversations, refreshTrigger } = useConversationStore();
   const [search, setSearch] = useState('');
 
@@ -30,7 +31,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedUuid, onSelect
   ];
 
   return (
-    <aside className="flex flex-col h-full w-80 bg-white dark:bg-gray-800 rounded-l-2xl shadow-lg px-6 py-8">
+    <aside className={`flex flex-col h-full ${isMobile ? 'w-full' : 'w-80'} bg-white dark:bg-gray-800 rounded-l-2xl shadow-lg px-6 py-8`}>
       {/* 顶部标题 */}
       <div className="flex items-center mb-6">
         <h2 className="text-2xl font-bold flex-1 dark:text-white">Dialogs</h2>
@@ -98,7 +99,6 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedUuid, onSelect
           <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900 transition shadow">
             <Cog6ToothIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
           </button>
-          <ThemeToggle />
         </div>
         <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800 transition shadow">
           <PlusIcon className="w-5 h-5" />

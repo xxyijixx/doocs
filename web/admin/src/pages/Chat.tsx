@@ -9,6 +9,29 @@ interface ChatProps {
 
 export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentConversationChange }) => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [showSidebar, setShowSidebar] = useState<boolean>(true);
+
+  // 检测屏幕尺寸
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
+
+  // 在移动端选择会话后自动切换到聊天窗口
+  useEffect(() => {
+    if (isMobile && selectedConversation) {
+      setShowSidebar(false);
+    }
+  }, [selectedConversation, isMobile]);
 
   // 当选中的会话变化时，通知父组件
   useEffect(() => {
@@ -22,16 +45,31 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentCon
     setSelectedConversation(uuid);
   };
 
+  // 返回会话列表（仅在移动端使用）
+  const handleBackToList = () => {
+    setShowSidebar(true);
+  };
+
   return (
-    <div className="flex w-[1100px] h-[700px] rounded-2xl shadow-2xl overflow-hidden bg-white dark:bg-gray-800">
-      <ChatSidebar
-        selectedUuid={selectedConversation}
-        onSelectConversation={handleSelectConversation}
-        onRefresh={onRefreshConversations} // 保留传递，但实际上已经不需要依赖这个属性了
-      />
-      <div className="flex-1 h-full">
-        <ChatWindow conversationUuid={selectedConversation} />
-      </div>
+    <div className="flex w-full md:w-full h-full md:h-full rounded-2xl shadow-2xl overflow-hidden bg-white dark:bg-gray-800">
+      {/* 在移动端根据状态显示侧边栏或聊天窗口 */}
+      {(!isMobile || (isMobile && showSidebar)) && (
+        <ChatSidebar
+          selectedUuid={selectedConversation}
+          onSelectConversation={handleSelectConversation}
+          onRefresh={onRefreshConversations}
+          isMobile={isMobile}
+        />
+      )}
+      
+      {(!isMobile || (isMobile && !showSidebar)) && (
+        <div className="flex-1 h-full">
+          <ChatWindow 
+            conversationUuid={selectedConversation} 
+            onBackClick={isMobile ? handleBackToList : undefined}
+          />
+        </div>
+      )}
     </div>
   );
 };

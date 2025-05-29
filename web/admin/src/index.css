@@ -12,3 +12,8 @@ body {
 #root {
   height: 100vh;
 }
+
+/* 确保暗黑模式样式正确应用 */
+.dark {
+  color-scheme: dark;
+}
