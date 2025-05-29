@@ -57,6 +57,8 @@ class WebSocketService {
 
   public close(): void {
     if (this.socket) {
+      // TODO: 解决链接被关闭的问题
+      console.log('关闭WS，Closing WebSocket connection');
       this.socket.close();
     }
   }

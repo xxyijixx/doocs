@@ -199,8 +199,11 @@ func (m *Manager) handleBroadcast(message *Message) {
 	if message.ConvUUID != "" {
 		// 如果是普通消息，并且是客户发送的，向所有客服推送新消息通知
 		if message.Type == MessageTypeMessage && message.Sender == "customer" {
+			logger.App.Info("向客服推送新消息",
+				zap.String("convUUID", message.ConvUUID),
+				zap.String("remoteAddr", message.ConvUUID))
 			// 异步通知，避免死锁
-			go m.notifyAgentsNewMessage(message.ConvUUID, string(message.Data))
+			go m.notifyAgentsNewMessage(message.ConvUUID, message.Data)
 		}
 
 		// 向会话中的所有客户端发送消息
@@ -236,6 +239,8 @@ func (m *Manager) handleBroadcast(message *Message) {
 
 // cleanupFailedClients 清理发送失败的客户端
 func (m *Manager) cleanupFailedClients(clients []*Client) {
+	logger.App.Warn("存在发送失败的客户端，开始清理",
+		zap.Int("failedCount", len(clients)))
 	for _, client := range clients {
 		// 关闭发送通道
 		close(client.Send)
@@ -252,10 +257,16 @@ func (m *Manager) cleanupFailedClients(clients []*Client) {
 
 // SendToConversation 向特定会话的所有客户端发送消息
 func (m *Manager) SendToConversation(convUUID string, message []byte) {
+	logger.App.Info("开始向会话发送消息",
+		zap.String("convUUID", convUUID),
+		zap.Int("messageLength", len(message)))
+
 	m.mutex.RLock()
 	clients, ok := m.ConvClients[convUUID]
 	if !ok {
 		m.mutex.RUnlock()
+		logger.App.Warn("未找到会话对应的客户端",
+			zap.String("convUUID", convUUID))
 		return
 	}
 
@@ -264,22 +275,40 @@ func (m *Manager) SendToConversation(convUUID string, message []byte) {
 	copy(clientsCopy, clients)
 	m.mutex.RUnlock()
 
+	logger.App.Info("准备向会话客户端发送消息",
+		zap.String("convUUID", convUUID),
+		zap.Int("clientCount", len(clientsCopy)))
+
 	var failedClients []*Client
 
 	for _, client := range clientsCopy {
 		select {
 		case client.Send <- message:
 			// 发送成功
+			logger.App.Debug("消息发送成功",
+				zap.String("convUUID", convUUID),
+				zap.String("clientAddr", client.Conn.RemoteAddr().String()))
 		default:
 			// 发送失败
+			logger.App.Error("消息发送失败",
+				zap.String("convUUID", convUUID),
+				zap.String("clientAddr", client.Conn.RemoteAddr().String()))
 			failedClients = append(failedClients, client)
 		}
 	}
 
 	// 清理失败的客户端
 	if len(failedClients) > 0 {
+		logger.App.Warn("存在发送失败的客户端，开始清理",
+			zap.String("convUUID", convUUID),
+			zap.Int("failedCount", len(failedClients)))
 		go m.cleanupFailedClients(failedClients)
 	}
+
+	logger.App.Info("会话消息发送完成",
+		zap.String("convUUID", convUUID),
+		zap.Int("successCount", len(clientsCopy)-len(failedClients)),
+		zap.Int("failedCount", len(failedClients)))
 }
 
 // GetClientsCount 获取特定会话的客户端数量
@@ -339,25 +368,25 @@ func (m *Manager) notifyAgentsNewConversation(convUUID string) {
 }
 
 // notifyAgentsNewMessage 向所有客服推送新消息通知
-func (m *Manager) notifyAgentsNewMessage(convUUID string, content string) {
+func (m *Manager) notifyAgentsNewMessage(convUUID string, content json.RawMessage) {
 	// 创建新消息通知
 	// 使用messages.go中定义的新消息数据结构
-	dataContent := NewMessageData{
-		ConvUUID: convUUID,
-		Content:  content,
-	}
+	// dataContent := NewMessageData{
+	// 	ConvUUID: convUUID,
+	// 	Content:  content,
+	// }
 
-	// 将匿名结构体序列化为json.RawMessage
-	dataBytes, err := json.Marshal(dataContent)
-	if err != nil {
-		logger.App.Error("Failed to marshal new message data content", zap.Error(err))
-		return
-	}
+	// // 将匿名结构体序列化为json.RawMessage
+	// dataBytes, err := json.Marshal(dataContent)
+	// if err != nil {
+	// 	logger.App.Error("Failed to marshal new message data content", zap.Error(err))
+	// 	return
+	// }
 
 	// 创建新消息通知
 	message := &Message{
 		ConvUUID: convUUID,
-		Data:     json.RawMessage(dataBytes),
+		Data:     content,
 		Sender:   "system",
 		Type:     MessageTypeNewMessage,
 	}
@@ -382,13 +411,20 @@ func (m *Manager) SendToAllAgents(message []byte) {
 	m.mutex.RUnlock()
 
 	var failedClients []*Client
-
+	logger.App.Info("准备向所有客服发送消息",
+		zap.Int("agentCount", len(agentsCopy)))
 	for _, client := range agentsCopy {
 		select {
 		case client.Send <- message:
 			// 发送成功
+			logger.App.Debug("向客服发送消息成功",
+				zap.String("clientAddr", client.Conn.RemoteAddr().String()),
+				zap.String("agentID", client.AgentID))
 		default:
 			// 发送失败
+			logger.App.Error("向客服发送消息失败",
+				zap.String("clientAddr", client.Conn.RemoteAddr().String()),
+				zap.String("agentID", client.AgentID))
 			failedClients = append(failedClients, client)
 		}
 	}

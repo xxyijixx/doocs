@@ -234,9 +234,12 @@ async function initializeChatWidget(options) {
             socket.onmessage = (event) => {
                 try {
                     const fullMessage = JSON.parse(event.data);
+                    console.log('收到完整消息:', fullMessage);
                     // 只处理消息类型的数据
-                    if (fullMessage.type === 'message') {
-                        const messageData = JSON.parse(fullMessage.data);
+                    if (fullMessage.type === 'new_message') {
+                        // const messageData = JSON.parse(fullMessage.data);
+                        const messageData = fullMessage.data;
+                        console.log('收到新消息:', messageData);
                         // 如果是客服发送的消息，显示在聊天窗口中
                         if (fullMessage.sender === 'agent') {
                             addMessageToChat({ content: messageData.content, sender: 'agent' });

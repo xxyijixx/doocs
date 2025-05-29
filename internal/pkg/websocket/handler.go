@@ -166,18 +166,68 @@ func (c *Client) writePump() {
 	}
 }
 
-// BroadcastMessage 向特定会话广播消息
-func BroadcastMessage(convUUID string, msgType MessageType, content string, sender string) error {
-	logger.App.Info("准备广播消息", zap.String("ConvUUID", convUUID), zap.Any("msgType", msgType), zap.String("Sender", sender), zap.String("Content", content))
-	msg := Message{
+// 向所以客服端广播消息
+func BroadcastToAllAgents(convUUID string, msgType MessageType, content string, sender string) {
+	// msgBytes, err := json.Marshal({"content":})
+	logger.App.Info("准备BroadcastToAllAgents广播消息", zap.String("ConvUUID", convUUID), zap.Any("msgType", msgType), zap.String("Sender", sender), zap.String("Content", content))
+	dataContent := NewMessageData{
 		ConvUUID: convUUID,
-		Data:     []byte(content),
+		Content:  content,
+	}
+
+	// 将匿名结构体序列化为json.RawMessage
+	dataBytes, err := json.Marshal(dataContent)
+	if err != nil {
+		logger.App.Error("Failed to marshal new message data content", zap.Error(err))
+		return
+	}
+
+	// 创建新消息通知
+	message := &Message{
+		ConvUUID: convUUID,
+		Data:     json.RawMessage(dataBytes),
 		Sender:   sender,
 		Type:     msgType,
 	}
 
-	msgBytes, err := json.Marshal(msg)
+	// 将消息转换为JSON
+	msgBytes, err := json.Marshal(message)
 	if err != nil {
+		logger.App.Error("广播消息时出错 Failed to marshal new message notification", zap.Error(err))
+		return
+	}
+
+	WebSocketManager.SendToAllAgents(msgBytes)
+}
+
+// BroadcastMessage 向特定会话广播消息
+func BroadcastMessage(convUUID string, msgType MessageType, content string, sender string) error {
+	logger.App.Info("准备广播消息", zap.String("ConvUUID", convUUID), zap.Any("msgType", msgType), zap.String("Sender", sender), zap.String("Content", content))
+	// msgBytes, err := json.Marshal({"content":})
+	dataContent := NewMessageData{
+		ConvUUID: convUUID,
+		Content:  content,
+	}
+
+	// 将匿名结构体序列化为json.RawMessage
+	dataBytes, err := json.Marshal(dataContent)
+	if err != nil {
+		logger.App.Error("Failed to marshal new message data content", zap.Error(err))
+		return err
+	}
+
+	// 创建新消息通知
+	message := &Message{
+		ConvUUID: convUUID,
+		Data:     json.RawMessage(dataBytes),
+		Sender:   sender,
+		Type:     msgType,
+	}
+
+	// 将消息转换为JSON
+	msgBytes, err := json.Marshal(message)
+	if err != nil {
+		logger.App.Error("广播消息时出错 Failed to marshal new message notification", zap.Error(err))
 		return err
 	}
 

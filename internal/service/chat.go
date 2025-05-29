@@ -98,10 +98,10 @@ func (s *ChatService) SendMessageWithDetails(conversationUUID, content, sender, 
 		"last_message_at": now,
 	})
 
-	// 通过WebSocket广播消息
-	go websocket.BroadcastMessage(conversationUUID, websocket.MessageTypeMessage, content, sender)
 	fmt.Println("发送消息到机器人", sender)
 	if sender == "customer" {
+		// 通过WebSocket广播消息
+		go websocket.BroadcastToAllAgents(conversationUUID, websocket.MessageTypeNewMessage, content, sender)
 		go func(content string) {
 			fmt.Println("发送消息到机器人")
 			robot := dootask.DootaskRobot{
@@ -118,6 +118,11 @@ func (s *ChatService) SendMessageWithDetails(conversationUUID, content, sender, 
 			result, err := robot.SendMsg()
 			fmt.Println("发送消息到机器人", result, err)
 		}(content)
+	}
+
+	if sender == "agent" {
+		// 通过WebSocket广播消息
+		go websocket.BroadcastMessage(conversationUUID, websocket.MessageTypeNewMessage, content, sender)
 	}
 
 	return &message, nil
