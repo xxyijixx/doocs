@@ -5,11 +5,13 @@ let socket = null; // WebSocket连接
 
 async function createNewConversation() {
     try {
+        const source = "widget"
         const response = await fetch(API_BASE_URL + '/api/v1/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({ source })
         });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

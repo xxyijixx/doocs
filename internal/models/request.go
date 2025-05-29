@@ -2,8 +2,8 @@ package models
 
 // CreateConversationRequest 创建对话请求结构体
 type CreateConversationRequest struct {
-	AgentID    uint   `json:"agent_id" binding:"required"`
-	CustomerID uint   `json:"customer_id" binding:"required"`
+	AgentID    uint   `json:"agent_id"`
+	CustomerID uint   `json:"customer_id"`
 	Title      string `json:"title"`                   // 会话标题（可选）
 	Source     string `json:"source" default:"widget"` // 来源（可选）
 }
