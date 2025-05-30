@@ -3,9 +3,8 @@ let conversationUuid = localStorage.getItem(CONVERSATION_UUID_KEY);
 let API_BASE_URL = '';
 let socket = null; // WebSocket连接
 
-async function createNewConversation() {
+async function createNewConversation(source) {
     try {
-        const source = "widget"
         const response = await fetch(API_BASE_URL + '/api/v1/chat', {
             method: 'POST',
             headers: {
@@ -77,13 +76,23 @@ async function sendMessage(uuid, content) {
 }
 
 async function initializeChatWidget(options) {
-    if (options && options.baseUrl) {
-        API_BASE_URL = options.baseUrl;
+    let baseUrl = 'http://localhost:8888'; // Default value
+    let source = 'widget'; // Default value
+
+    if (options) {
+        if (options.baseUrl) {
+            baseUrl = options.baseUrl;
+        }
+        if (options.source) {
+            source = options.source;
+        }
     }
+
+    API_BASE_URL = baseUrl;
 
     if (!conversationUuid) {
         console.log('No conversation UUID found, creating a new one...');
-        conversationUuid = await createNewConversation();
+        conversationUuid = await createNewConversation(source);
         if (!conversationUuid) {
             console.error('Could not initialize chat widget: Failed to create conversation.');
             return;
@@ -281,7 +290,7 @@ async function initializeChatWidget(options) {
 
 // If the script is loaded asynchronously, initialize it when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
-    // Always initialize the chat widget when DOM is ready
-    initializeChatWidget({ baseUrl: 'http://localhost:8888' });
+    // Always initialize the chat widget when DOM is ready with default values
+    initializeChatWidget({ baseUrl: 'http://localhost:8888', source: 'widget' });
 
 });
