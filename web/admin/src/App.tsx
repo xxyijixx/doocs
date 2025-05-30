@@ -8,6 +8,8 @@ import { useConversationStore } from './store/conversationStore';
 import { useMessageStore } from './store/messageStore';
 import type { Message } from './types/chat';
 import { ThemeToggle } from './components/ThemeToggle';
+import {isMicroApp} from '@dootask/tools';
+
 
 const App: React.FC = () => {
   const { triggerRefresh } = useConversationStore();
@@ -36,6 +38,9 @@ const App: React.FC = () => {
     // TODO: Replace 'test-agent-id' with the actual agent ID from authentication
     const agentId = '0'; 
     webSocketService.connect(agentId);
+    if (isMicroApp()) {
+      console.log('当前是微应用');
+    }
 
     const handleOpen = () => {
       console.log('WebSocket connected in App.tsx');
@@ -142,7 +147,7 @@ const App: React.FC = () => {
   return (
     <ThemeProvider>
       <Router>
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col p-[24px]">
           {/* 顶部导航栏 */}
           <header className="bg-white dark:bg-gray-800 shadow-sm">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -168,7 +173,7 @@ const App: React.FC = () => {
           </header>
           
           {/* 主内容区 */}
-          <main className="flex-1 container mx-auto px-4 py-8 h-[calc(100vh-60px)]">
+          <main className="flex-1 container mx-auto px-4 py-8 h-[calc(100vh-60px)] overflow-auto">
             <Routes>
               <Route path="/" element={<Chat onCurrentConversationChange={setCurrentConversationUuid} />} />
               <Route path="/config" element={<ServiceConfig />} />

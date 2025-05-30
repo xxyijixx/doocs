@@ -14,7 +14,7 @@ interface ConversationState {
   triggerRefresh: () => void;
 }
 
-export const useConversationStore = create<ConversationState>((set, get) => ({
+export const useConversationStore = create<ConversationState>((set) => ({
   conversations: [],
   loading: false,
   error: null,

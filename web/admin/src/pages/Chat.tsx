@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChatSidebar } from '../components/ChatSidebar';
 import { ChatWindow } from '../components/ChatWindow';
+import { Transition } from '@headlessui/react';
+import { DevicePhoneMobileIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
 
 interface ChatProps {
   onRefreshConversations?: () => void; // 保留属性但设为可选，以便向后兼容
@@ -51,25 +53,55 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentCon
   };
 
   return (
-    <div className="flex w-full md:w-full h-full md:h-full rounded-2xl shadow-2xl overflow-hidden bg-white dark:bg-gray-800">
-      {/* 在移动端根据状态显示侧边栏或聊天窗口 */}
-      {(!isMobile || (isMobile && showSidebar)) && (
+    <div className="flex w-full md:w-full h-full md:h-full rounded-2xl shadow-2xl overflow-hidden bg-white dark:bg-gray-800 relative">
+      {/* 设备类型指示器 */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
+        {isMobile ? (
+          <DevicePhoneMobileIcon className="w-4 h-4 text-blue-500" />
+        ) : (
+          <ComputerDesktopIcon className="w-4 h-4 text-green-500" />
+        )}
+        <span className="text-xs text-gray-600 dark:text-gray-300">
+          {isMobile ? '移动端' : '桌面端'}
+        </span>
+      </div>
+
+      {/* 侧边栏 - 使用 Transition 动画 */}
+      <Transition
+        show={!isMobile || (isMobile && showSidebar)}
+        enter="transition-transform duration-300 ease-in-out"
+        enterFrom="-translate-x-full"
+        enterTo="translate-x-0"
+        leave="transition-transform duration-300 ease-in-out"
+        leaveFrom="translate-x-0"
+        leaveTo="-translate-x-full"
+        as={isMobile ? "div" : "div"}
+        className={isMobile ? "absolute inset-0 z-20" : "relative"}
+      >
         <ChatSidebar
           selectedUuid={selectedConversation}
           onSelectConversation={handleSelectConversation}
           onRefresh={onRefreshConversations}
           isMobile={isMobile}
         />
-      )}
+      </Transition>
       
-      {(!isMobile || (isMobile && !showSidebar)) && (
-        <div className="flex-1 h-full">
-          <ChatWindow 
-            conversationUuid={selectedConversation} 
-            onBackClick={isMobile ? handleBackToList : undefined}
-          />
-        </div>
-      )}
+      {/* 聊天窗口 - 使用 Transition 动画 */}
+      <Transition
+        show={!isMobile || (isMobile && !showSidebar)}
+        enter="transition-transform duration-300 ease-in-out"
+        enterFrom="translate-x-full"
+        enterTo="translate-x-0"
+        leave="transition-transform duration-300 ease-in-out"
+        leaveFrom="translate-x-0"
+        leaveTo="translate-x-full"
+        as="div" className="flex-1 h-full"
+      >
+        <ChatWindow 
+          conversationUuid={selectedConversation} 
+          onBackClick={isMobile ? handleBackToList : undefined}
+        />
+      </Transition>
     </div>
   );
 };

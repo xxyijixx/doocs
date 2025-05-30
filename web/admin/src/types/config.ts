@@ -32,4 +32,8 @@ export interface CustomerServiceConfig {
     logoUrl: string;
     chatBubblePosition: 'left' | 'right';
   };
+
+  reserved1: string;
+  reserved2: string;
+  
 }

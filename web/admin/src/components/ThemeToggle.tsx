@@ -1,31 +1,42 @@
 import React from 'react';
 import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { Button } from '@headlessui/react';
 import { useTheme } from '../contexts/ThemeContext';
 
 export const ThemeToggle: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
 
-  const handleToggle = () => {
-    console.log('当前主题:', theme);
-    console.log('HTML classList 切换前:', document.documentElement.classList);
-    toggleTheme();
-    // 在下一个事件循环中检查切换后的状态
-    setTimeout(() => {
-      console.log('HTML classList 切换后:', document.documentElement.classList);
-    }, 0);
-  };
-
   return (
-    <button
-      onClick={handleToggle}
-      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-      aria-label={`切换到${theme === 'light' ? '暗色' : '亮色'}模式`}
+    <Button
+      onClick={toggleTheme}
+      className="relative p-3 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 group overflow-hidden"
+      aria-label={theme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'}
     >
-      {theme === 'light' ? (
-        <MoonIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-      ) : (
-        <SunIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-      )}
-    </button>
+      <div className="relative w-5 h-5">
+        {/* 太阳图标 */}
+        <SunIcon 
+          className={`absolute inset-0 w-5 h-5 text-yellow-500 transition-all duration-300 transform ${
+            theme === 'dark' 
+              ? 'opacity-100 rotate-0 scale-100' 
+              : 'opacity-0 rotate-180 scale-75'
+          }`} 
+        />
+        {/* 月亮图标 */}
+        <MoonIcon 
+          className={`absolute inset-0 w-5 h-5 text-blue-500 transition-all duration-300 transform ${
+            theme === 'light' 
+              ? 'opacity-100 rotate-0 scale-100' 
+              : 'opacity-0 -rotate-180 scale-75'
+          }`} 
+        />
+      </div>
+      
+      {/* 背景动画效果 */}
+      <div className={`absolute inset-0 rounded-xl transition-all duration-300 ${
+        theme === 'dark'
+          ? 'bg-gradient-to-br from-yellow-400/20 to-orange-400/20'
+          : 'bg-gradient-to-br from-blue-400/20 to-purple-400/20'
+      } opacity-0 group-hover:opacity-100`} />
+    </Button>
   );
 };
