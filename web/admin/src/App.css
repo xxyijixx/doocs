@@ -1,42 +1,37 @@
-#root {
+/* #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+} */
+
+html, body {
+  min-height: 100vh;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #151c28; /* 你的深色背景 */
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+#root, .app-main-container { /* 视你的根节点 class 或 id 而定 */
+  min-height: 100vh;
+  background: transparent; /* 避免内容区覆盖全局背景 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 可选：让内容宽度适配大屏 */
+  /* max-width: 1200px; */
+  /* margin: 0 auto; */
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+.scroll-content { /* 你的内容外层容器 class */
+  width: 100%;
+  max-width: 600px; /* 或你需要的宽度 */
+  margin: 32px auto;
+  overflow-y: auto;
+  /* 可选：内容区圆角和阴影 */
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: #1e2633; /* 内容区背景 */
+  padding: 24px;
 }

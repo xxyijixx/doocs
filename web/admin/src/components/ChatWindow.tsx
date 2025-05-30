@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { chatApi } from '../services/api';
-import type { Message, Conversation } from '../types/chat';
+import type { Conversation } from '../types/chat';
 import { PaperAirplaneIcon, EllipsisVerticalIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useMessageStore } from '../store/messageStore';
 
@@ -78,7 +78,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationUuid, onBack
       setNewMessage('');
       
       // 重新获取消息列表
-      // fetchMessages(conversationUuid);
+      fetchMessages(conversationUuid);
     } catch (error) {
       console.error('发送消息失败:', error);
     }

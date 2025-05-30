@@ -142,7 +142,7 @@ const App: React.FC = () => {
   return (
     <ThemeProvider>
       <Router>
-        <div className="h-full flex flex-col bg-gray-100 dark:bg-gray-900">
+        <div className="h-full flex flex-col">
           {/* 顶部导航栏 */}
           <header className="bg-white dark:bg-gray-800 shadow-sm">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
