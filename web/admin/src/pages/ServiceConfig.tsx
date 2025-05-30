@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import type { CustomerServiceConfig } from "../types/config";
 import { appReady, isMicroApp } from "@dootask/tools";
-import { createBot, getBotList } from "../utils/api";
-import type { UserBot } from '../types/dootask'
+import { createBot, getBotList, createProject, createTask, getTaskDialog, sendMessage, generateMentionMessage } from "../utils/api";
+import type { UserBot } from "../types/dootask";
 import {
   Listbox,
   ListboxButton,
@@ -20,8 +20,8 @@ import {
   Fieldset,
   Legend,
 } from "@headlessui/react";
-import { 
-  CheckIcon, 
+import {
+  CheckIcon,
   ChevronDownIcon,
   CogIcon,
   ClockIcon,
@@ -32,8 +32,8 @@ import {
   ScaleIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  SparklesIcon
-} from '@heroicons/react/20/solid'
+  SparklesIcon,
+} from "@heroicons/react/20/solid";
 
 export const ServiceConfig: React.FC = () => {
   // 默认配置
@@ -120,6 +120,59 @@ export const ServiceConfig: React.FC = () => {
         console.error("获取客服机器人列表失败:", error.message);
       });
   };
+
+  const onCreateProject = () => {
+    if (!isRunInMicroApp) {
+      return;
+    }
+    createProject({
+      name: "智慧客服",
+      flow: false,
+    }).then((response) => {
+      const projectId = response.data.id;
+      console.log(`项目ID: ${projectId}`);
+    }).catch((error) => {
+      console.error("创建项目失败:", error.message);
+    });
+  }
+
+  const onCreateTask = () => {
+    if (!isRunInMicroApp) {
+      return;
+    }
+    if (!selectedUserBot) {
+      console.error("请先选择一个机器人");
+      return;
+    }
+
+    createTask({
+      project_id: 15,
+      name: "智能客服任务1",
+      content: "kefu 1"
+    }).then((response) => {
+      const taskID = response.data.id; // 使用 const 或 let 声明 taskID
+      console.log(`任务ID: ${taskID}`);
+
+      // 创建任务成功后，获取任务对话并发送消息
+      getTaskDialog(taskID).then((response) => {
+        const dialogID = response.data.dialog_id; // 使用 const 或 let 声明 dialogID
+        console.log(`任务对话: ${dialogID}`);
+        sendMessage({
+          dialog_id: dialogID,
+          text: generateMentionMessage(selectedUserBot.id, "智慧客服", "初始化"),
+        }).then((response) => {
+          console.log("发送消息成功", response);
+        }).catch((error) => {
+          console.error("发送消息失败:", error.message);
+        });
+      }).catch((error) => {
+        console.error("获取任务对话失败:", error.message);
+      });
+
+    }).catch((error) => {
+      console.error("创建任务失败:", error.message);
+    });
+  }
 
   // 模拟从API加载配置
   useEffect(() => {
@@ -241,6 +294,111 @@ export const ServiceConfig: React.FC = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
+        {/* 机器人配置 */}
+        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <BoltIcon className="h-6 w-6 text-blue-500" />
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+              机器人配置
+            </h2>
+          </div>
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-4">
+              <Button
+                type="button"
+                onClick={() => {
+                  console.log("选择机器人");
+                  onGetUserBotList();
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 data-[focus]:ring-blue-500"
+              >
+                <SparklesIcon className="h-4 w-4" />
+                选择机器人
+              </Button>
+
+              <div className="relative">
+                <Listbox value={selectedUserBot} onChange={setSelectedUserBot}>
+                  <ListboxButton className="relative w-48 cursor-default rounded-md bg-white dark:bg-gray-700 py-2 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm">
+                    <span className="block truncate text-gray-900 dark:text-white">
+                      {selectedUserBot?.name || "未选择机器人"}
+                    </span>
+                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                      <ChevronDownIcon
+                        className="h-5 w-5 text-gray-400"
+                        aria-hidden="true"
+                      />
+                    </span>
+                  </ListboxButton>
+                  <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                    {userBots.map((bot) => (
+                      <ListboxOption
+                        key={bot.id}
+                        value={bot}
+                        className="group relative cursor-default select-none py-2 pl-10 pr-4 text-gray-900 dark:text-white data-[focus]:bg-blue-600 data-[focus]:text-white"
+                      >
+                        <span className="block truncate font-normal group-data-[selected]:font-semibold">
+                          {bot.name}
+                        </span>
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600 group-data-[focus]:text-white [.group:not([data-selected])_&]:hidden">
+                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                      </ListboxOption>
+                    ))}
+                  </ListboxOptions>
+                </Listbox>
+              </div>
+
+              <Button
+                type="button"
+                onClick={() => {
+                  console.log("创建机器人");
+                  onCreateUserBot();
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition data-[hover]:bg-green-600 data-[focus]:ring-2 data-[focus]:ring-green-500"
+              >
+                <BoltIcon className="h-4 w-4" />
+                创建机器人
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* 聊天配置 */}
+        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <BoltIcon className="h-6 w-6 text-blue-500" />
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+              聊天配置
+            </h2>
+          </div>
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-4">
+              <Button
+                type="button"
+                onClick={() => {
+                  console.log("选择机器人");
+                  onCreateProject()
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 focus:ring-blue-500"
+              >
+                <SparklesIcon className="h-4 w-4" />
+                创建项目
+              </Button>
+
+              <Button
+                type="button"
+                onClick={() => {
+                  console.log("创建机器人");
+                  onCreateTask();
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition data-[hover]:bg-green-600 data-[focus]:ring-2 data-[focus]:ring-green-500"
+              >
+                <BoltIcon className="h-4 w-4" />
+                增加站点
+              </Button>
+            </div>
+          </div>
+        </section>
         {/* 基本设置 */}
         <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center gap-2 mb-4">
@@ -310,11 +468,7 @@ export const ServiceConfig: React.FC = () => {
               <Switch
                 checked={config.workingHours.enabled}
                 onChange={(checked) =>
-                  handleNestedChange(
-                    "workingHours",
-                    "enabled",
-                    checked
-                  )
+                  handleNestedChange("workingHours", "enabled", checked)
                 }
                 className="group relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 data-[checked]:bg-blue-600"
               >
@@ -484,7 +638,10 @@ export const ServiceConfig: React.FC = () => {
                     handleNestedChange(
                       "agentAssignment",
                       "method",
-                      (value as unknown) as ("round-robin" | "least-busy" | "manual")
+                      value as unknown as
+                        | "round-robin"
+                        | "least-busy"
+                        | "manual"
                     )
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 appearance-none pr-10"
@@ -537,72 +694,6 @@ export const ServiceConfig: React.FC = () => {
                 placeholder="可选"
               />
             </Field>
-          </div>
-        </section>
-
-        {/* 机器人配置 */}
-        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <div className="flex items-center gap-2 mb-4">
-            <BoltIcon className="h-6 w-6 text-blue-500" />
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-              机器人配置
-            </h2>
-          </div>
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-4">
-              <Button
-                type="button"
-                onClick={() => {
-                  console.log("选择机器人");
-                  onGetUserBotList();
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 data-[focus]:ring-blue-500"
-              >
-                <SparklesIcon className="h-4 w-4" />
-                选择机器人
-              </Button>
-              
-              <div className="relative">
-                <Listbox value={selectedUserBot} onChange={setSelectedUserBot}>
-                  <ListboxButton className="relative w-48 cursor-default rounded-md bg-white dark:bg-gray-700 py-2 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm">
-                    <span className="block truncate text-gray-900 dark:text-white">
-                      {selectedUserBot?.name || '未选择机器人'}
-                    </span>
-                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                      <ChevronDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                    </span>
-                  </ListboxButton>
-                  <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    {userBots.map((bot) => (
-                      <ListboxOption
-                        key={bot.id}
-                        value={bot}
-                        className="group relative cursor-default select-none py-2 pl-10 pr-4 text-gray-900 dark:text-white data-[focus]:bg-blue-600 data-[focus]:text-white"
-                      >
-                        <span className="block truncate font-normal group-data-[selected]:font-semibold">
-                          {bot.name}
-                        </span>
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600 group-data-[focus]:text-white [.group:not([data-selected])_&]:hidden">
-                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                        </span>
-                      </ListboxOption>
-                    ))}
-                  </ListboxOptions>
-                </Listbox>
-              </div>
-              
-              <Button
-                type="button"
-                onClick={() => {
-                  console.log("创建机器人");
-                  onCreateUserBot();
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition data-[hover]:bg-green-600 data-[focus]:ring-2 data-[focus]:ring-green-500"
-              >
-                <BoltIcon className="h-4 w-4" />
-                创建机器人
-              </Button>
-            </div>
           </div>
         </section>
 
