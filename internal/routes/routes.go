@@ -43,6 +43,19 @@ func RegisterRoutes(r *gin.Engine) {
 			}
 		}
 
+		// 配置相关路由
+		configRoutes := v1.Group("/config")
+		{
+			// 获取所有配置
+			configRoutes.GET("", headlers.Config.GetAllConfigs)
+			// 获取指定配置
+			configRoutes.GET("/:config_key", headlers.Config.GetConfig)
+			// 保存配置
+			configRoutes.POST("/:config_key", headlers.Config.SaveConfig)
+			// 删除配置
+			configRoutes.DELETE("/:config_key", headlers.Config.DeleteConfig)
+		}
+
 		// 对话相关路由
 		chatRoutes := v1.Group("/chat")
 		{

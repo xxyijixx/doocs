@@ -50,6 +50,11 @@ func Unauthorized(c *gin.Context, message string) {
 	Fail(c, http.StatusUnauthorized, message, nil)
 }
 
+// InternalServerError
+func InternalServerError(c *gin.Context, message string, err error) {
+	Fail(c, http.StatusInternalServerError, message, err)
+}
+
 // SuccessWithPagination 带分页的成功响应
 func SuccessWithPagination(c *gin.Context, message string, items interface{}, total int64, page, pageSize int) {
 	pages := int64(0)

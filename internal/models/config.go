@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	CSConfigKeyWelcome = "welcome_config"
-	CSConfigKeyDooTask = "dootask_config"
-	CSConfigKeyAuth    = "auth_config"
-	CSConfigKeyOther   = "other_config"
+	CSConfigKeyWelcome         = "welcome_config"
+	CSConfigKeyDooTask         = "dootask_config"
+	CSConfigKeyAuth            = "auth_config"
+	CSConfigKeyOther           = "other_config"
+	CSConfigKeyCustomerService = "customer_service_config"
 	// 后续扩展可统一添加
 )
 
@@ -50,10 +51,74 @@ type AuthConfig struct {
 	AllowCustomerAnonymous bool   `json:"allow_customer_anonymous" default:"true"` // 是否允许客户匿名访问
 }
 
+// config_key = customer_service_config
+type CustomerServiceConfigData struct {
+	// 基本设置
+	ServiceName    string `json:"serviceName"`
+	WelcomeMessage string `json:"welcomeMessage"`
+	OfflineMessage string `json:"offlineMessage"`
+
+	// DooTask集成设置
+	DooTaskIntegration DooTaskIntegrationData `json:"dooTaskIntegration"`
+
+	// 工作时间设置
+	WorkingHours WorkingHoursData `json:"workingHours"`
+
+	// 自动回复设置
+	AutoReply AutoReplyData `json:"autoReply"`
+
+	// 客服分配设置
+	AgentAssignment AgentAssignmentData `json:"agentAssignment"`
+
+	// 界面设置
+	UI UIData `json:"ui"`
+
+	Reserved1 string `json:"reserved1"`
+	Reserved2 string `json:"reserved2"`
+}
+
+// DooTask集成设置子结构
+type DooTaskIntegrationData struct {
+	BotId     *int `json:"botId"`
+	ProjectId *int `json:"projectId"`
+	TaskId    *int `json:"taskId"`
+	DialogId  *int `json:"dialogId"`
+}
+
+// 工作时间设置子结构
+type WorkingHoursData struct {
+	Enabled   bool   `json:"enabled"`
+	StartTime string `json:"startTime"` // 格式: "HH:MM"
+	EndTime   string `json:"endTime"`   // 格式: "HH:MM"
+	WorkDays  []int  `json:"workDays"`  // 0-6, 0表示周日
+}
+
+// 自动回复设置子结构
+type AutoReplyData struct {
+	Enabled bool   `json:"enabled"`
+	Delay   int    `json:"delay"` // 延迟时间（秒）
+	Message string `json:"message"`
+}
+
+// 客服分配设置子结构
+type AgentAssignmentData struct {
+	Method          string `json:"method"`  // 'round-robin' | 'least-busy' | 'manual'
+	Timeout         int    `json:"timeout"` // 超时时间（秒）
+	FallbackAgentId *int   `json:"fallbackAgentId"`
+}
+
+// 界面设置子结构
+type UIData struct {
+	PrimaryColor       string `json:"primaryColor"` // 十六进制颜色代码
+	LogoUrl            string `json:"logoUrl"`
+	ChatBubblePosition string `json:"chatBubblePosition"` // 'left' | 'right'
+}
+
 var ConfigTypeRegistry = map[string]func() interface{}{
-	CSConfigKeyWelcome: func() interface{} { return &WelcomeConfig{} },
-	CSConfigKeyDooTask: func() interface{} { return &DooTaskConfig{} },
-	CSConfigKeyAuth:    func() interface{} { return &AuthConfig{} },
+	CSConfigKeyWelcome:         func() interface{} { return &WelcomeConfig{} },
+	CSConfigKeyDooTask:         func() interface{} { return &DooTaskConfig{} },
+	CSConfigKeyAuth:            func() interface{} { return &AuthConfig{} },
+	CSConfigKeyCustomerService: func() interface{} { return &CustomerServiceConfigData{} },
 }
 
 func LoadConfig[T any](db *gorm.DB, key string) (*T, error) {

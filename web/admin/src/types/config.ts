@@ -4,6 +4,14 @@ export interface CustomerServiceConfig {
   welcomeMessage: string;
   offlineMessage: string;
   
+  // DooTask集成设置
+  dooTaskIntegration: {
+    botId: number | null;
+    projectId: number | null;
+    taskId: number | null;
+    dialogId: number | null;
+  };
+  
   // 工作时间设置
   workingHours: {
     enabled: boolean;

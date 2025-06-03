@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import type { CustomerServiceConfig } from "../types/config";
 import { appReady, isMicroApp } from "@dootask/tools";
-import { createBot, getBotList, createProject, createTask, getTaskDialog, sendMessage, generateMentionMessage } from "../utils/api";
+import { createBot, getBotList, createProject, createTask, getTaskDialog, sendMessage, generateMentionMessage } from "../api/dootask";
+import { getConfig, saveConfig } from "../api/cs";
 import type { UserBot } from "../types/dootask";
 import {
   Listbox,
@@ -41,6 +42,13 @@ export const ServiceConfig: React.FC = () => {
     serviceName: "客服中心",
     welcomeMessage: "欢迎来到客服中心，请问有什么可以帮助您的？",
     offlineMessage: "当前客服不在线，请留言，我们会尽快回复您。",
+
+    dooTaskIntegration: {
+      botId: null,
+      projectId: null,
+      taskId: null,
+      dialogId: null,
+    },
 
     workingHours: {
       enabled: true,
@@ -125,14 +133,48 @@ export const ServiceConfig: React.FC = () => {
     if (!isRunInMicroApp) {
       return;
     }
+    if (!selectedUserBot) {
+      setSaveMessage({
+        type: "error",
+        text: "请先选择一个机器人",
+      });
+      return;
+    }
+    if (config.dooTaskIntegration.projectId) {
+      setSaveMessage({
+        type: "error",
+        text: "项目已存在，请先重置后再创建",
+      });
+      return;
+    }
+    
     createProject({
       name: "智慧客服",
       flow: false,
     }).then((response) => {
       const projectId = response.data.id;
       console.log(`项目ID: ${projectId}`);
+      
+      // 更新配置中的项目ID和机器人ID
+      setConfig(prev => ({
+        ...prev,
+        dooTaskIntegration: {
+          ...prev.dooTaskIntegration,
+          botId: selectedUserBot.id,
+          projectId: projectId,
+        }
+      }));
+      
+      setSaveMessage({
+        type: "success",
+        text: `项目创建成功，项目ID: ${projectId}`,
+      });
     }).catch((error) => {
       console.error("创建项目失败:", error.message);
+      setSaveMessage({
+        type: "error",
+        text: `创建项目失败: ${error.message}`,
+      });
     });
   }
 
@@ -141,63 +183,145 @@ export const ServiceConfig: React.FC = () => {
       return;
     }
     if (!selectedUserBot) {
-      console.error("请先选择一个机器人");
+      setSaveMessage({
+        type: "error",
+        text: "请先选择一个机器人",
+      });
+      return;
+    }
+    if (!config.dooTaskIntegration.projectId) {
+      setSaveMessage({
+        type: "error",
+        text: "请先创建项目",
+      });
+      return;
+    }
+    if (config.dooTaskIntegration.taskId) {
+      setSaveMessage({
+        type: "error",
+        text: "任务已存在，请先重置后再创建",
+      });
       return;
     }
 
     createTask({
-      project_id: 15,
+      project_id: config.dooTaskIntegration.projectId,
       name: "智能客服任务1",
       content: "kefu 1"
     }).then((response) => {
-      const taskID = response.data.id; // 使用 const 或 let 声明 taskID
+      const taskID = response.data.id;
       console.log(`任务ID: ${taskID}`);
 
       // 创建任务成功后，获取任务对话并发送消息
       getTaskDialog(taskID).then((response) => {
-        const dialogID = response.data.dialog_id; // 使用 const 或 let 声明 dialogID
+        const dialogID = response.data.dialog_id;
         console.log(`任务对话: ${dialogID}`);
+        
+        // 更新配置中的任务ID和对话ID
+        setConfig(prev => ({
+          ...prev,
+          dooTaskIntegration: {
+            ...prev.dooTaskIntegration,
+            taskId: taskID,
+            dialogId: dialogID,
+          }
+        }));
+        
         sendMessage({
           dialog_id: dialogID,
           text: generateMentionMessage(selectedUserBot.id, "智慧客服", "初始化"),
         }).then((response) => {
           console.log("发送消息成功", response);
+          setSaveMessage({
+            type: "success",
+            text: `任务创建成功，任务ID: ${taskID}, 对话ID: ${dialogID}`,
+          });
         }).catch((error) => {
           console.error("发送消息失败:", error.message);
+          setSaveMessage({
+            type: "error",
+            text: `发送消息失败: ${error.message}`,
+          });
         });
       }).catch((error) => {
         console.error("获取任务对话失败:", error.message);
+        setSaveMessage({
+          type: "error",
+          text: `获取任务对话失败: ${error.message}`,
+        });
       });
 
     }).catch((error) => {
       console.error("创建任务失败:", error.message);
+      setSaveMessage({
+        type: "error",
+        text: `创建任务失败: ${error.message}`,
+      });
     });
   }
 
-  // 模拟从API加载配置
+  // 重置配置
+  const onResetConfig = () => {
+    setConfig(prev => ({
+      ...prev,
+      dooTaskIntegration: {
+        botId: null,
+        projectId: null,
+        taskId: null,
+        dialogId: null,
+      }
+    }));
+    setSelectedUserBot(null);
+    setSaveMessage({
+      type: "success",
+      text: "配置已重置",
+    });
+  };
+
+  // 从API加载配置
   useEffect(() => {
     if (isMicroApp()) {
       console.log("当前是微应用");
       setIsRunInMicroApp(true);
     }
-    // 在实际应用中，这里应该调用API获取配置
+    
     const loadConfig = async () => {
       try {
-        // 模拟API调用延迟
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // 这里应该是API返回的数据
-        // 暂时使用默认配置
-        setConfig(defaultConfig);
+        // 尝试从后端加载配置
+        const configData = await getConfig('customer_service_config');
+        if (configData) {
+          setConfig(configData);
+          // 如果有机器人ID，尝试设置选中的机器人
+          if (configData.dooTaskIntegration?.botId) {
+            // 获取机器人列表并设置选中的机器人
+            if (isRunInMicroApp) {
+              getBotList().then((response) => {
+                const bots = response.data.list;
+                const selectedBot = bots.find(bot => bot.id === configData.dooTaskIntegration.botId);
+                if (selectedBot) {
+                  setSelectedUserBot(selectedBot);
+                }
+                setUserBots(bots);
+              }).catch((error) => {
+                console.error("获取机器人列表失败:", error.message);
+              });
+            }
+          }
+        } else {
+          // 如果没有配置，使用默认配置
+          setConfig(defaultConfig);
+        }
         setIsLoading(false);
       } catch (error) {
         console.error("加载配置失败:", error);
+        // 加载失败时使用默认配置
+        setConfig(defaultConfig);
         setIsLoading(false);
       }
     };
 
     loadConfig();
-  }, []);
+  }, [isRunInMicroApp]);
 
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
@@ -206,10 +330,8 @@ export const ServiceConfig: React.FC = () => {
     setSaveMessage(null);
 
     try {
-      // 模拟API调用延迟
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // 这里应该是保存配置的API调用
+      // 调用后端API保存配置
+      await saveConfig('customer_service_config', config);
       console.log("保存配置:", config);
 
       setSaveMessage({
@@ -220,7 +342,7 @@ export const ServiceConfig: React.FC = () => {
       console.error("保存配置失败:", error);
       setSaveMessage({
         type: "error",
-        text: "保存配置失败，请重试。",
+        text: `保存配置失败: ${error instanceof Error ? error.message : '未知错误'}`,
       });
     } finally {
       setIsSaving(false);
@@ -303,17 +425,37 @@ export const ServiceConfig: React.FC = () => {
             </h2>
           </div>
           <div className="space-y-4">
+            {/* 显示当前配置状态 */}
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">当前配置状态</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">机器人ID:</span>
+                  <span className="ml-2 font-mono">{config.dooTaskIntegration.botId || '未设置'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">项目ID:</span>
+                  <span className="ml-2 font-mono">{config.dooTaskIntegration.projectId || '未设置'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">任务ID:</span>
+                  <span className="ml-2 font-mono">{config.dooTaskIntegration.taskId || '未设置'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">对话ID:</span>
+                  <span className="ml-2 font-mono">{config.dooTaskIntegration.dialogId || '未设置'}</span>
+                </div>
+              </div>
+            </div>
+            
             <div className="flex flex-wrap gap-4">
               <Button
                 type="button"
-                onClick={() => {
-                  console.log("选择机器人");
-                  onGetUserBotList();
-                }}
+                onClick={onGetUserBotList}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 data-[focus]:ring-blue-500"
               >
                 <SparklesIcon className="h-4 w-4" />
-                选择机器人
+                获取机器人列表
               </Button>
 
               <div className="relative">
@@ -350,10 +492,7 @@ export const ServiceConfig: React.FC = () => {
 
               <Button
                 type="button"
-                onClick={() => {
-                  console.log("创建机器人");
-                  onCreateUserBot();
-                }}
+                onClick={onCreateUserBot}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition data-[hover]:bg-green-600 data-[focus]:ring-2 data-[focus]:ring-green-500"
               >
                 <BoltIcon className="h-4 w-4" />
@@ -372,14 +511,35 @@ export const ServiceConfig: React.FC = () => {
             </h2>
           </div>
           <div className="space-y-4">
+            {/* 显示当前配置状态 */}
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">当前配置状态</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">机器人ID:</span>
+                  <span className="ml-2 font-mono">{config.dooTaskIntegration.botId || '未设置'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">项目ID:</span>
+                  <span className="ml-2 font-mono">{config.dooTaskIntegration.projectId || '未设置'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">任务ID:</span>
+                  <span className="ml-2 font-mono">{config.dooTaskIntegration.taskId || '未设置'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">对话ID:</span>
+                  <span className="ml-2 font-mono">{config.dooTaskIntegration.dialogId || '未设置'}</span>
+                </div>
+              </div>
+            </div>
+            
             <div className="flex flex-wrap gap-4">
               <Button
                 type="button"
-                onClick={() => {
-                  console.log("选择机器人");
-                  onCreateProject()
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 focus:ring-blue-500"
+                onClick={onCreateProject}
+                disabled={!selectedUserBot || !!config.dooTaskIntegration.projectId}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <SparklesIcon className="h-4 w-4" />
                 创建项目
@@ -387,14 +547,21 @@ export const ServiceConfig: React.FC = () => {
 
               <Button
                 type="button"
-                onClick={() => {
-                  console.log("创建机器人");
-                  onCreateTask();
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition data-[hover]:bg-green-600 data-[focus]:ring-2 data-[focus]:ring-green-500"
+                onClick={onCreateTask}
+                disabled={!selectedUserBot || !config.dooTaskIntegration.projectId || !!config.dooTaskIntegration.taskId}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition data-[hover]:bg-green-600 data-[focus]:ring-2 data-[focus]:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <BoltIcon className="h-4 w-4" />
-                增加站点
+                创建任务
+              </Button>
+
+              <Button
+                type="button"
+                onClick={onResetConfig}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition data-[hover]:bg-red-600 data-[focus]:ring-2 data-[focus]:ring-red-500"
+              >
+                <ExclamationTriangleIcon className="h-4 w-4" />
+                重置配置
               </Button>
             </div>
           </div>
