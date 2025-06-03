@@ -2,9 +2,24 @@ import React, { useState, useEffect } from "react";
 import type { SystemConfig } from "../types/config";
 import type { CustomerServiceSource } from "../types/source";
 import { appReady, isMicroApp } from "@dootask/tools";
-import { createBot, getBotList, createProject, createTask, getTaskDialog, sendMessage, generateMentionMessage } from "../api/dootask";
+import {
+  createBot,
+  getBotList,
+  createProject,
+  createTask,
+  getTaskDialog,
+  openUserDialog,
+  getUserDialogList,
+  sendMessage,
+  generateMentionMessage,
+} from "../api/dootask";
 import { getConfig, saveConfig } from "../api/cs";
-import { createSource, getSourceList, updateSource, deleteSource } from "../api/source";
+import {
+  createSource,
+  // updateSource,
+  getSourceList,
+  deleteSource,
+} from "../api/source";
 import type { UserBot } from "../types/dootask";
 import {
   Listbox,
@@ -28,8 +43,8 @@ import {
   ChevronDownIcon,
   CogIcon,
   ClockIcon,
-  ChatBubbleLeftRightIcon,
-  UserGroupIcon,
+  // ChatBubbleLeftRightIcon,
+  // UserGroupIcon,
   BoltIcon,
   PaintBrushIcon,
   ScaleIcon,
@@ -49,6 +64,7 @@ export const ServiceConfig: React.FC = () => {
 
     dooTaskIntegration: {
       botId: null,
+      botToken: "",
       projectId: null,
     },
 
@@ -86,7 +102,8 @@ export const ServiceConfig: React.FC = () => {
   };
 
   // 状态管理
-  const [systemConfig, setSystemConfig] = useState<SystemConfig>(defaultSystemConfig);
+  const [systemConfig, setSystemConfig] =
+    useState<SystemConfig>(defaultSystemConfig);
   const [sources, setSources] = useState<CustomerServiceSource[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -97,33 +114,50 @@ export const ServiceConfig: React.FC = () => {
   const [isRunInMicroApp, setIsRunInMicroApp] = useState<boolean>(isMicroApp());
   const [userBots, setUserBots] = useState<UserBot[]>([]);
   const [selectedUserBot, setSelectedUserBot] = useState<UserBot | null>(null);
-  
+
   // 来源管理相关状态
   const [newSourceName, setNewSourceName] = useState<string>("");
   const [isCreatingSource, setIsCreatingSource] = useState<boolean>(false);
-  const [editingSource, setEditingSource] = useState<CustomerServiceSource | null>(null);
+  const [editingSource, setEditingSource] =
+    useState<CustomerServiceSource | null>(null);
 
   appReady().then(() => {
     console.log("微应用初始化完成");
   });
 
   // 创建机器人
-  const onCreateUserBot = () => {
+  const onCreateUserBot = async () => {
     if (!isRunInMicroApp) {
       return;
     }
-    createBot({
-      id: 0,
-      avatar: [],
-      name: "客服机器人",
-    })
-      .then((response) => {
-        const botId = response.data.id;
-        console.log(`客服机器人ID: ${botId}`);
-      })
-      .catch((error) => {
-        console.error("编辑客服机器人失败:", error.message);
+
+    try {
+      const createBotResponse = await createBot({
+        id: 0,
+        avatar: [],
+        name: "客服机器人",
       });
+      const botId = createBotResponse.data.id;
+      console.log(`客服机器人ID: ${botId}`);
+
+      // 创建成功后发送消息去生成Token
+      const openUserDialogResponse = await openUserDialog(botId);
+      const userBotDialogID = openUserDialogResponse.data.id;
+      console.log(`对话ID: ${userBotDialogID}`);
+
+      if (userBotDialogID <= 0) {
+        console.error("对话ID无效");
+        return;
+      }
+
+      await sendMessage({
+        dialog_id: userBotDialogID,
+        text: "/token",
+      });
+      console.log("消息发送成功");
+    } catch (error: unknown) {
+      console.error("创建或发送消息失败:", (error as Error).message);
+    }
   };
 
   // 获取机器人列表
@@ -160,36 +194,77 @@ export const ServiceConfig: React.FC = () => {
       });
       return;
     }
-    
+
     createProject({
       name: "智慧客服",
       flow: false,
-    }).then((response) => {
-      const projectId = response.data.id;
-      console.log(`项目ID: ${projectId}`);
-      
-      // 更新配置中的项目ID和机器人ID
-      setSystemConfig(prev => ({
-        ...prev,
-        dooTaskIntegration: {
-          ...prev.dooTaskIntegration,
-          botId: selectedUserBot.id,
-          projectId: projectId,
+    })
+      .then((response) => {
+        const projectId = response.data.id;
+        console.log(`项目ID: ${projectId}`);
+
+        // 更新配置中的项目ID和机器人ID
+        setSystemConfig((prev) => ({
+          ...prev,
+          dooTaskIntegration: {
+            ...prev.dooTaskIntegration,
+            botId: selectedUserBot.id,
+            projectId: projectId,
+          },
+        }));
+
+        setSaveMessage({
+          type: "success",
+          text: `项目创建成功，项目ID: ${projectId}`,
+        });
+      })
+      .catch((error) => {
+        console.error("创建项目失败:", error.message);
+        setSaveMessage({
+          type: "error",
+          text: `创建项目失败: ${error.message}`,
+        });
+      });
+  };
+
+  const onCreateAndGetUserBotToken = async (botId: number) => {
+    try {
+      // 创建成功后发送消息去生成Token
+      const openUserDialogResponse = await openUserDialog(botId);
+      const userBotDialogID = openUserDialogResponse.data.id;
+      console.log(`对话ID: ${userBotDialogID}`);
+      await sendMessage({
+        dialog_id: userBotDialogID,
+        text: "/token",
+      });
+      // 延迟2秒查询
+      setTimeout(async () => {
+        const dialogList = await getUserDialogList(userBotDialogID);
+        console.log("对话列表:", dialogList);
+        for (const dialog of dialogList.data.list) {
+          // 打印消息
+          console.log("消息内容 ", dialog);
+
+          if (dialog.msg.type == "/token") {
+            const botToken = dialog.msg.data.token;
+            console.log("Token", botToken);
+            // 更新配置中的项目ID和机器人ID
+            setSystemConfig((prev) => ({
+              ...prev,
+              dooTaskIntegration: {
+                ...prev.dooTaskIntegration,
+                botId: botId,
+                botToken: botToken,
+              },
+            }));
+            break;
+          }
         }
-      }));
-      
-      setSaveMessage({
-        type: "success",
-        text: `项目创建成功，项目ID: ${projectId}`,
-      });
-    }).catch((error) => {
-      console.error("创建项目失败:", error.message);
-      setSaveMessage({
-        type: "error",
-        text: `创建项目失败: ${error.message}`,
-      });
-    });
-  }
+      }, 2000);
+    } catch (error) {
+      console.error("获取对话列表失败:", error);
+    }
+  };
 
   // 创建新的客服来源
   const onCreateSource = async () => {
@@ -222,14 +297,14 @@ export const ServiceConfig: React.FC = () => {
     try {
       // 生成任务名称：智能客服-{来源名}
       const taskName = `智能客服-${newSourceName.trim()}`;
-      
+
       // 创建任务
       const taskResponse = await createTask({
         project_id: systemConfig.dooTaskIntegration.projectId,
         name: taskName,
-        content: `客服来源：${newSourceName.trim()}`
+        content: `客服来源：${newSourceName.trim()}`,
       });
-      
+
       const taskId = taskResponse.data.id;
       console.log(`任务ID: ${taskId}`);
 
@@ -237,13 +312,13 @@ export const ServiceConfig: React.FC = () => {
       const dialogResponse = await getTaskDialog(taskId);
       const dialogId = dialogResponse.data.dialog_id;
       console.log(`任务对话: ${dialogId}`);
-      
+
       // 发送初始化消息
       await sendMessage({
         dialog_id: dialogId,
         text: generateMentionMessage(selectedUserBot.id, "智慧客服", "初始化"),
       });
-      
+
       // 调用后端API创建来源记录
       const sourceResponse = await createSource({
         name: newSourceName.trim(),
@@ -254,7 +329,7 @@ export const ServiceConfig: React.FC = () => {
       });
       // console.log(`来源I: ${sourceResponse}`);
       // console.log(`来源创建成功，来源ID: ${sourceResponse.id}`);
-      
+
       // 创建新的来源对象，使用系统默认配置
       const newSource: CustomerServiceSource = {
         id: sourceResponse.id,
@@ -264,11 +339,11 @@ export const ServiceConfig: React.FC = () => {
         dialogId: dialogId,
         ...systemConfig.defaultSourceConfig,
       };
-      
+
       // 更新来源列表
-      setSources(prev => [...prev, newSource]);
+      setSources((prev) => [...prev, newSource]);
       setNewSourceName("");
-      
+
       setSaveMessage({
         type: "success",
         text: `来源创建成功！来源key: ${sourceResponse.sourceKey}`,
@@ -277,24 +352,26 @@ export const ServiceConfig: React.FC = () => {
       console.error("创建来源失败:", error);
       setSaveMessage({
         type: "error",
-        text: `创建来源失败: ${error instanceof Error ? error.message : '未知错误'}`,
+        text: `创建来源失败: ${
+          error instanceof Error ? error.message : "未知错误"
+        }`,
       });
     } finally {
       setIsCreatingSource(false);
     }
   };
-  
+
   // 删除来源
   const onDeleteSource = async (source: CustomerServiceSource) => {
     if (!window.confirm(`确定要删除来源 "${source.name}" 吗？`)) {
       return;
     }
-    
+
     try {
       if (source.id) {
         await deleteSource(source.id);
       }
-      setSources(prev => prev.filter(s => s.id !== source.id));
+      setSources((prev) => prev.filter((s) => s.id !== source.id));
       setSaveMessage({
         type: "success",
         text: "来源删除成功",
@@ -303,11 +380,13 @@ export const ServiceConfig: React.FC = () => {
       console.error("删除来源失败:", error);
       setSaveMessage({
         type: "error",
-        text: `删除来源失败: ${error instanceof Error ? error.message : '未知错误'}`,
+        text: `删除来源失败: ${
+          error instanceof Error ? error.message : "未知错误"
+        }`,
       });
     }
   };
-  
+
   // 加载来源列表
   const loadSources = async () => {
     try {
@@ -320,12 +399,12 @@ export const ServiceConfig: React.FC = () => {
 
   // 重置系统配置
   const onResetSystemConfig = () => {
-    setSystemConfig(prev => ({
+    setSystemConfig((prev) => ({
       ...prev,
       dooTaskIntegration: {
         botId: null,
         projectId: null,
-      }
+      },
     }));
     setSelectedUserBot(null);
     setSaveMessage({
@@ -341,39 +420,43 @@ export const ServiceConfig: React.FC = () => {
       setIsRunInMicroApp(true);
       onGetUserBotList();
     }
-    
+
     const loadConfig = async () => {
       try {
         // 尝试从后端加载配置
-        const configData = await getConfig('customer_service_system_config');
+        const configData = await getConfig("customer_service_system_config");
         if (configData) {
           setSystemConfig(configData);
           // 如果有机器人ID，尝试设置选中的机器人
           if (configData.dooTaskIntegration?.botId) {
             // 获取机器人列表并设置选中的机器人
             if (isRunInMicroApp) {
-              getBotList().then((response) => {
-                const bots = response.data.list;
-                const selectedBot = bots.find(bot => bot.id === configData.dooTaskIntegration.botId);
-                if (selectedBot) {
-                  setSelectedUserBot(selectedBot);
-                }
-                setUserBots(bots);
-              }).catch((error) => {
-                console.error("获取机器人列表失败:", error.message);
-              });
+              getBotList()
+                .then((response) => {
+                  const bots = response.data.list;
+                  const selectedBot = bots.find(
+                    (bot) => bot.id === configData.dooTaskIntegration.botId
+                  );
+                  if (selectedBot) {
+                    setSelectedUserBot(selectedBot);
+                  }
+                  setUserBots(bots);
+                })
+                .catch((error) => {
+                  console.error("获取机器人列表失败:", error.message);
+                });
             }
           }
         } else {
           // 如果没有配置，使用默认配置
           setSystemConfig(defaultSystemConfig);
         }
-        
+
         // 加载来源列表
         if (isRunInMicroApp) {
           loadSources();
         }
-        
+
         setIsLoading(false);
       } catch (error) {
         console.error("加载配置失败:", error);
@@ -394,7 +477,7 @@ export const ServiceConfig: React.FC = () => {
 
     try {
       // 调用后端API保存系统配置
-      await saveConfig('customer_service_system_config', systemConfig);
+      await saveConfig("customer_service_system_config", systemConfig);
       console.log("保存系统配置:", systemConfig);
 
       setSaveMessage({
@@ -405,7 +488,9 @@ export const ServiceConfig: React.FC = () => {
       console.error("保存系统配置失败:", error);
       setSaveMessage({
         type: "error",
-        text: `保存系统配置失败: ${error instanceof Error ? error.message : '未知错误'}`,
+        text: `保存系统配置失败: ${
+          error instanceof Error ? error.message : "未知错误"
+        }`,
       });
     } finally {
       setIsSaving(false);
@@ -422,12 +507,9 @@ export const ServiceConfig: React.FC = () => {
       [field]: value,
     }));
   };
-  
+
   // 处理默认来源配置字段变化
-  const handleDefaultSourceConfigChange = (
-    field: string,
-    value: any
-  ) => {
+  const handleDefaultSourceConfigChange = (field: string, value: any) => {
     setSystemConfig((prev) => ({
       ...prev,
       defaultSourceConfig: {
@@ -436,8 +518,6 @@ export const ServiceConfig: React.FC = () => {
       },
     }));
   };
-
-
 
   if (isLoading) {
     return (
@@ -485,23 +565,35 @@ export const ServiceConfig: React.FC = () => {
           <div className="space-y-4">
             {/* 显示当前配置状态 */}
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">当前配置状态</h3>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                当前配置状态
+              </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">机器人ID:</span>
-                  <span className="ml-2 font-mono">{systemConfig.dooTaskIntegration.botId || '未设置'}</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    机器人ID:
+                  </span>
+                  <span className="ml-2 font-mono">
+                    {systemConfig.dooTaskIntegration.botId || "未设置"}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">项目ID:</span>
-                  <span className="ml-2 font-mono">{systemConfig.dooTaskIntegration.projectId || '未设置'}</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    项目ID:
+                  </span>
+                  <span className="ml-2 font-mono">
+                    {systemConfig.dooTaskIntegration.projectId || "未设置"}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">来源数量:</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    来源数量:
+                  </span>
                   <span className="ml-2 font-mono">{sources.length}</span>
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-wrap gap-4">
               <Button
                 type="button"
@@ -513,7 +605,15 @@ export const ServiceConfig: React.FC = () => {
               </Button>
 
               <div className="relative">
-                <Listbox value={selectedUserBot} onChange={setSelectedUserBot}>
+                <Listbox
+                  value={selectedUserBot}
+                  onChange={(bot) => {
+                    if (bot) {
+                      onCreateAndGetUserBotToken(bot.id);
+                    }
+                    setSelectedUserBot(bot);
+                  }}
+                >
                   <ListboxButton className="relative w-48 cursor-default rounded-md bg-white dark:bg-gray-700 py-2 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm">
                     <span className="block truncate text-gray-900 dark:text-white">
                       {selectedUserBot?.name || "未选择机器人"}
@@ -567,28 +667,43 @@ export const ServiceConfig: React.FC = () => {
           <div className="space-y-4">
             {/* 显示当前配置状态 */}
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">当前配置状态</h3>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                当前配置状态
+              </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">机器人ID:</span>
-                  <span className="ml-2 font-mono">{systemConfig.dooTaskIntegration.botId || '未设置'}</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    机器人ID:
+                  </span>
+                  <span className="ml-2 font-mono">
+                    {systemConfig.dooTaskIntegration.botId || "未设置"}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">项目ID:</span>
-                  <span className="ml-2 font-mono">{systemConfig.dooTaskIntegration.projectId || '未设置'}</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    项目ID:
+                  </span>
+                  <span className="ml-2 font-mono">
+                    {systemConfig.dooTaskIntegration.projectId || "未设置"}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">来源数量:</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    来源数量:
+                  </span>
                   <span className="ml-2 font-mono">{sources.length}</span>
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-wrap gap-4">
               <Button
                 type="button"
                 onClick={onCreateProject}
-                disabled={!selectedUserBot || !!systemConfig.dooTaskIntegration.projectId}
+                disabled={
+                  !selectedUserBot ||
+                  !!systemConfig.dooTaskIntegration.projectId
+                }
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <SparklesIcon className="h-4 w-4" />
@@ -604,11 +719,13 @@ export const ServiceConfig: React.FC = () => {
                 重置系统配置
               </Button>
             </div>
-            
+
             {/* 来源管理 */}
             <div className="mt-6">
-              <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-4">客服来源管理</h3>
-              
+              <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-4">
+                客服来源管理
+              </h3>
+
               {/* 创建新来源 */}
               <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md mb-4">
                 <div className="flex gap-4 items-end">
@@ -627,7 +744,12 @@ export const ServiceConfig: React.FC = () => {
                   <Button
                     type="button"
                     onClick={onCreateSource}
-                    disabled={isCreatingSource || !selectedUserBot || !systemConfig.dooTaskIntegration.projectId || !newSourceName.trim()}
+                    disabled={
+                      isCreatingSource ||
+                      !selectedUserBot ||
+                      !systemConfig.dooTaskIntegration.projectId ||
+                      !newSourceName.trim()
+                    }
                     className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isCreatingSource ? (
@@ -635,22 +757,29 @@ export const ServiceConfig: React.FC = () => {
                     ) : (
                       <PlusIcon className="h-4 w-4" />
                     )}
-                    {isCreatingSource ? '创建中...' : '创建来源'}
+                    {isCreatingSource ? "创建中..." : "创建来源"}
                   </Button>
                 </div>
               </div>
-              
+
               {/* 来源列表 */}
               {sources.length > 0 && (
                 <div className="space-y-3">
                   {sources.map((source) => (
-                    <div key={source.id} className="bg-white dark:bg-gray-600 p-4 rounded-md border border-gray-200 dark:border-gray-500">
+                    <div
+                      key={source.id}
+                      className="bg-white dark:bg-gray-600 p-4 rounded-md border border-gray-200 dark:border-gray-500"
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <h4 className="font-medium text-gray-800 dark:text-white">{source.name}</h4>
+                          <h4 className="font-medium text-gray-800 dark:text-white">
+                            {source.name}
+                          </h4>
                           <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             <span>来源Key: </span>
-                            <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">{source.sourceKey}</code>
+                            <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
+                              {source.sourceKey}
+                            </code>
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
                             任务ID: {source.taskId} | 对话ID: {source.dialogId}
@@ -679,7 +808,7 @@ export const ServiceConfig: React.FC = () => {
                   ))}
                 </div>
               )}
-              
+
               {sources.length === 0 && (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <DocumentDuplicateIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -714,7 +843,7 @@ export const ServiceConfig: React.FC = () => {
             </Field>
           </div>
         </section>
-        
+
         {/* 默认来源配置 */}
         <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center gap-2 mb-4">
@@ -722,7 +851,9 @@ export const ServiceConfig: React.FC = () => {
             <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
               默认来源配置
             </h2>
-            <span className="text-sm text-gray-500 dark:text-gray-400">(新创建的来源将使用这些默认值)</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              (新创建的来源将使用这些默认值)
+            </span>
           </div>
           <div className="space-y-4">
             <Field>
@@ -732,7 +863,10 @@ export const ServiceConfig: React.FC = () => {
               <Textarea
                 value={systemConfig.defaultSourceConfig.welcomeMessage}
                 onChange={(e) =>
-                  handleDefaultSourceConfigChange("welcomeMessage", e.target.value)
+                  handleDefaultSourceConfigChange(
+                    "welcomeMessage",
+                    e.target.value
+                  )
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 resize-none"
                 rows={3}
@@ -747,7 +881,10 @@ export const ServiceConfig: React.FC = () => {
               <Textarea
                 value={systemConfig.defaultSourceConfig.offlineMessage}
                 onChange={(e) =>
-                  handleDefaultSourceConfigChange("offlineMessage", e.target.value)
+                  handleDefaultSourceConfigChange(
+                    "offlineMessage",
+                    e.target.value
+                  )
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 resize-none"
                 rows={3}
@@ -757,12 +894,12 @@ export const ServiceConfig: React.FC = () => {
           </div>
         </section>
 
-            {/* 默认工作时间设置 */}
-            <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+        {/* 默认工作时间设置 */}
+        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center gap-2 mb-4">
             <CogIcon className="h-6 w-6 text-blue-500" />
             <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-            默认工作时间设置
+              默认工作时间设置
             </h2>
           </div>
           <div className="space-y-4">
@@ -772,7 +909,7 @@ export const ServiceConfig: React.FC = () => {
                 onChange={(checked) =>
                   handleDefaultSourceConfigChange("workingHours", {
                     ...systemConfig.defaultSourceConfig.workingHours,
-                    enabled: checked
+                    enabled: checked,
                   })
                 }
                 className="group relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 data-[checked]:bg-blue-600"
@@ -791,15 +928,19 @@ export const ServiceConfig: React.FC = () => {
                 </Label>
                 <Input
                   type="time"
-                  value={systemConfig.defaultSourceConfig.workingHours.startTime}
+                  value={
+                    systemConfig.defaultSourceConfig.workingHours.startTime
+                  }
                   onChange={(e) =>
                     handleDefaultSourceConfigChange("workingHours", {
                       ...systemConfig.defaultSourceConfig.workingHours,
-                      startTime: e.target.value
+                      startTime: e.target.value,
                     })
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!systemConfig.defaultSourceConfig.workingHours.enabled}
+                  disabled={
+                    !systemConfig.defaultSourceConfig.workingHours.enabled
+                  }
                 />
               </Field>
 
@@ -813,11 +954,13 @@ export const ServiceConfig: React.FC = () => {
                   onChange={(e) =>
                     handleDefaultSourceConfigChange("workingHours", {
                       ...systemConfig.defaultSourceConfig.workingHours,
-                      endTime: e.target.value
+                      endTime: e.target.value,
                     })
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!systemConfig.defaultSourceConfig.workingHours.enabled}
+                  disabled={
+                    !systemConfig.defaultSourceConfig.workingHours.enabled
+                  }
                 />
               </Field>
             </div>
@@ -831,19 +974,27 @@ export const ServiceConfig: React.FC = () => {
                   (day, index) => (
                     <Field key={index} className="flex items-center">
                       <Switch
-                        checked={systemConfig.defaultSourceConfig.workingHours.workDays.includes(index)}
+                        checked={systemConfig.defaultSourceConfig.workingHours.workDays.includes(
+                          index
+                        )}
                         onChange={(checked) => {
                           const newWorkDays = checked
-                            ? [...systemConfig.defaultSourceConfig.workingHours.workDays, index]
+                            ? [
+                                ...systemConfig.defaultSourceConfig.workingHours
+                                  .workDays,
+                                index,
+                              ]
                             : systemConfig.defaultSourceConfig.workingHours.workDays.filter(
                                 (d) => d !== index
                               );
                           handleDefaultSourceConfigChange("workingHours", {
                             ...systemConfig.defaultSourceConfig.workingHours,
-                            workDays: newWorkDays
+                            workDays: newWorkDays,
                           });
                         }}
-                        disabled={!systemConfig.defaultSourceConfig.workingHours.enabled}
+                        disabled={
+                          !systemConfig.defaultSourceConfig.workingHours.enabled
+                        }
                         className="group relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 data-[checked]:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <span className="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out group-data-[checked]:translate-x-4" />
@@ -874,7 +1025,7 @@ export const ServiceConfig: React.FC = () => {
                 onChange={(checked) =>
                   handleDefaultSourceConfigChange("autoReply", {
                     ...systemConfig.defaultSourceConfig.autoReply,
-                    enabled: checked
+                    enabled: checked,
                   })
                 }
                 className="group relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 data-[checked]:bg-blue-600"
@@ -897,7 +1048,7 @@ export const ServiceConfig: React.FC = () => {
                 onChange={(e) =>
                   handleDefaultSourceConfigChange("autoReply", {
                     ...systemConfig.defaultSourceConfig.autoReply,
-                    delay: parseInt(e.target.value)
+                    delay: parseInt(e.target.value),
                   })
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -914,7 +1065,7 @@ export const ServiceConfig: React.FC = () => {
                 onChange={(e) =>
                   handleDefaultSourceConfigChange("autoReply", {
                     ...systemConfig.defaultSourceConfig.autoReply,
-                    message: e.target.value
+                    message: e.target.value,
                   })
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
@@ -930,11 +1081,13 @@ export const ServiceConfig: React.FC = () => {
               </Label>
               <div className="relative">
                 <Select
-                  value={systemConfig.defaultSourceConfig.agentAssignment.method}
+                  value={
+                    systemConfig.defaultSourceConfig.agentAssignment.method
+                  }
                   onChange={(value) =>
                     handleDefaultSourceConfigChange("agentAssignment", {
                       ...systemConfig.defaultSourceConfig.agentAssignment,
-                      method: value as "round-robin" | "least-busy" | "manual"
+                      method: value as "round-robin" | "least-busy" | "manual",
                     })
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 appearance-none pr-10"
@@ -958,7 +1111,7 @@ export const ServiceConfig: React.FC = () => {
                 onChange={(e) =>
                   handleDefaultSourceConfigChange("agentAssignment", {
                     ...systemConfig.defaultSourceConfig.agentAssignment,
-                    timeout: parseInt(e.target.value)
+                    timeout: parseInt(e.target.value),
                   })
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
@@ -972,12 +1125,16 @@ export const ServiceConfig: React.FC = () => {
               <Input
                 type="number"
                 min="0"
-                value={systemConfig.defaultSourceConfig.agentAssignment.fallbackAgentId || ""}
+                value={
+                  systemConfig.defaultSourceConfig.agentAssignment
+                    .fallbackAgentId || ""
+                }
                 onChange={(e) => {
-                  const value = e.target.value === "" ? null : parseInt(e.target.value);
+                  const value =
+                    e.target.value === "" ? null : parseInt(e.target.value);
                   handleDefaultSourceConfigChange("agentAssignment", {
                     ...systemConfig.defaultSourceConfig.agentAssignment,
-                    fallbackAgentId: value
+                    fallbackAgentId: value,
                   });
                 }}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
@@ -997,7 +1154,7 @@ export const ServiceConfig: React.FC = () => {
                   onChange={(e) =>
                     handleDefaultSourceConfigChange("ui", {
                       ...systemConfig.defaultSourceConfig.ui,
-                      primaryColor: e.target.value
+                      primaryColor: e.target.value,
                     })
                   }
                   className="h-10 w-10 border-0 p-0 data-[focus]:ring-2 data-[focus]:ring-blue-500"
@@ -1008,7 +1165,7 @@ export const ServiceConfig: React.FC = () => {
                   onChange={(e) =>
                     handleDefaultSourceConfigChange("ui", {
                       ...systemConfig.defaultSourceConfig.ui,
-                      primaryColor: e.target.value
+                      primaryColor: e.target.value,
                     })
                   }
                   className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
@@ -1028,7 +1185,7 @@ export const ServiceConfig: React.FC = () => {
                 onChange={(e) =>
                   handleDefaultSourceConfigChange("ui", {
                     ...systemConfig.defaultSourceConfig.ui,
-                    logoUrl: e.target.value
+                    logoUrl: e.target.value,
                   })
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
@@ -1045,7 +1202,7 @@ export const ServiceConfig: React.FC = () => {
                 onChange={(value) =>
                   handleDefaultSourceConfigChange("ui", {
                     ...systemConfig.defaultSourceConfig.ui,
-                    chatBubblePosition: value
+                    chatBubblePosition: value,
                   })
                 }
                 className="flex gap-4"

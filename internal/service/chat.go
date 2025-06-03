@@ -47,7 +47,7 @@ func (s *ChatService) CreateConversationWithDetails(agentID, customerID uint, ti
 		CustomerID: customerID,
 		Title:      title,
 		Source:     csSource.Name,
-		SourceKey: csSource.SourceKey,
+		SourceKey:  csSource.SourceKey,
 		Status:     "open",
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
@@ -77,6 +77,16 @@ func (s *ChatService) SendMessageWithDetails(conversationUUID, content, sender, 
 	result := database.DB.Where("uuid = ?", conversationUUID).First(&conversation)
 	if result.Error != nil {
 		return nil, errors.New("对话不存在")
+	}
+	// 查找来源
+	var csSource models.CustomerServiceSource
+	result = database.DB.Where("source_key =?", conversation.SourceKey).First(&csSource)
+	if result.Error!= nil {
+		return nil, errors.New("来源不存在")
+	}
+	dialogID := ""
+	if csSource.DialogID != nil {
+		dialogID = fmt.Sprintf("%d", *csSource.DialogID)
 	}
 
 	// 如果消息类型为空，设置默认值
@@ -110,25 +120,36 @@ func (s *ChatService) SendMessageWithDetails(conversationUUID, content, sender, 
 	})
 
 	fmt.Println("发送消息到机器人", sender)
+
 	if sender == "customer" {
 		// 通过WebSocket广播消息
 		go websocket.BroadcastToAllAgents(conversationUUID, websocket.MessageTypeNewMessage, content, sender)
-		go func(content string) {
+		go func(content, dialogID string) {
+			CustomerServiceConfigData, err := models.LoadConfig[models.CustomerServiceConfigData](database.DB, models.CSConfigKeySystem)
+			if err != nil {
+				return
+			}
 			fmt.Println("发送消息到机器人")
 			robot := dootask.DootaskRobot{
 				Webhook: config.Cfg.DooTask.WebHook,
-				Token:   config.Cfg.DooTask.Token,
+				Token:   CustomerServiceConfigData.DooTaskIntegration.BotToken,
 				Version: config.Cfg.DooTask.Version,
 			}
+			// robot := dootask.DootaskRobot{
+			// 	Webhook: config.Cfg.DooTask.WebHook,
+			// 	Token:   config.Cfg.DooTask.Token,
+			// 	Version: config.Cfg.DooTask.Version,
+			// }
+
 			robot.Message = &dootask.DootaskMessage{
 				Text:     fmt.Sprintf("[%s]有一条新消息:\n%s", conversation.Title, content),
-				DialogId: "29",
-				Token:    config.Cfg.DooTask.Token,
+				DialogId: dialogID,
+				Token:    CustomerServiceConfigData.DooTaskIntegration.BotToken,
 				Version:  config.Cfg.DooTask.Version,
 			}
 			result, err := robot.SendMsg()
 			fmt.Println("发送消息到机器人", result, err)
-		}(content)
+		}(content, dialogID)
 	}
 
 	if sender == "agent" {

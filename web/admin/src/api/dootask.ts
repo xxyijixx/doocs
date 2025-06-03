@@ -256,6 +256,24 @@ export async function sendMessage(data: {
   });
 }
 
+// 开启用户会话
+export async function openUserDialog(user_id: number): Promise<responseSuccess> {
+  return dooTaskAPI({
+    url: `/api/dialog/open/user?userid=${user_id}`,
+    method: "GET",
+  });
+}
+
+// 获取用户会话列表
+export async function getUserDialogList(dialog_id: number): Promise<responseSuccess> {
+  return dooTaskAPI({
+    url: `/api/dialog/msg/list?dialog_id=${dialog_id}&msg_id=0`,
+    method: "GET",
+  });
+}
+
+// 辅助方法分隔
+
 /**
  * 生成mention类型的消息HTML字符串
  * @param id data-id的值

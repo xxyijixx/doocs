@@ -14,6 +14,7 @@ const (
 	CSConfigKeyAuth            = "auth_config"
 	CSConfigKeyOther           = "other_config"
 	CSConfigKeyCustomerService = "customer_service_config"
+	CSConfigKeySystem          = "customer_service_system_config"
 	// 后续扩展可统一添加
 )
 
@@ -79,10 +80,11 @@ type CustomerServiceConfigData struct {
 
 // DooTask集成设置子结构
 type DooTaskIntegrationData struct {
-	BotId     *int `json:"botId"`
-	ProjectId *int `json:"projectId"`
-	TaskId    *int `json:"taskId"`
-	DialogId  *int `json:"dialogId"`
+	BotId     *int   `json:"botId"`
+	BotToken  string `json:"botToken"`
+	ProjectId *int   `json:"projectId"`
+	TaskId    *int   `json:"taskId"`
+	DialogId  *int   `json:"dialogId"`
 }
 
 // 工作时间设置子结构
@@ -119,6 +121,7 @@ var ConfigTypeRegistry = map[string]func() interface{}{
 	CSConfigKeyDooTask:         func() interface{} { return &DooTaskConfig{} },
 	CSConfigKeyAuth:            func() interface{} { return &AuthConfig{} },
 	CSConfigKeyCustomerService: func() interface{} { return &CustomerServiceConfigData{} },
+	CSConfigKeySystem:          func() interface{} { return &CustomerServiceConfigData{} },
 }
 
 func LoadConfig[T any](db *gorm.DB, key string) (*T, error) {
