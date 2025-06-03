@@ -283,6 +283,7 @@ export const ServiceConfig: React.FC = () => {
     if (isMicroApp()) {
       console.log("当前是微应用");
       setIsRunInMicroApp(true);
+      onGetUserBotList();
     }
     
     const loadConfig = async () => {
