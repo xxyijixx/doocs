@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Chat } from './pages/Chat';
-import { ServiceConfig } from './pages/ServiceConfig';
+import ServiceConfig from './pages/ServiceConfig';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { webSocketService } from './services/websocket';
 import { useConversationStore } from './store/conversationStore';
@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [currentConversationUuid, setCurrentConversationUuid] = useState<string | null>(null);
 
   // 预留更新左侧会话列表最近聊天内容的方法
-  const updateConversationLastMessage = (convUuid: string, message: any) => {
+  const updateConversationLastMessage = (convUuid: string, message: unknown) => {
     // TODO: 实现更新左侧会话列表最近聊天内容的逻辑
     console.log('更新会话最近消息:', convUuid, message);
     // 这里可以通过 Zustand store 来更新会话列表中特定会话的最近消息
