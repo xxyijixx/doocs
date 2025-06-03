@@ -291,6 +291,6 @@ async function initializeChatWidget(options) {
 // If the script is loaded asynchronously, initialize it when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
     // Always initialize the chat widget when DOM is ready with default values
-    initializeChatWidget({ baseUrl: 'http://localhost:8888', source: 'widget' });
+    initializeChatWidget({ baseUrl: 'http://localhost:8888', source: 'CS-YqO4ksAQ6euwM2aqyOck' });
 
 });

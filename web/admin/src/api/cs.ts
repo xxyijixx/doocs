@@ -44,7 +44,7 @@ async function configRequest<T = any>(
  * @returns 配置数据
  */
 export async function getConfig(configKey: string): Promise<any> {
-  return configRequest(`/config/${configKey}`, {
+  return configRequest(`/configs/${configKey}`, {
     method: 'GET',
   });
 }
@@ -55,7 +55,7 @@ export async function getConfig(configKey: string): Promise<any> {
  * @param configData 配置数据
  */
 export async function saveConfig(configKey: string, configData: any): Promise<void> {
-  return configRequest(`/config/${configKey}`, {
+  return configRequest(`/configs/${configKey}`, {
     method: 'POST',
     body: JSON.stringify(configData),
   });
@@ -66,7 +66,7 @@ export async function saveConfig(configKey: string, configData: any): Promise<vo
  * @returns 配置列表
  */
 export async function getAllConfigs(): Promise<any[]> {
-  return configRequest('/config', {
+  return configRequest('/configs', {
     method: 'GET',
   });
 }
@@ -76,7 +76,7 @@ export async function getAllConfigs(): Promise<any[]> {
  * @param configKey 配置键名
  */
 export async function deleteConfig(configKey: string): Promise<void> {
-  return configRequest(`/config/${configKey}`, {
+  return configRequest(`/configs/${configKey}`, {
     method: 'DELETE',
   });
 }

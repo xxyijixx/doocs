@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import type { CustomerServiceConfig } from "../types/config";
+import type { SystemConfig } from "../types/config";
+import type { CustomerServiceSource } from "../types/source";
 import { appReady, isMicroApp } from "@dootask/tools";
 import { createBot, getBotList, createProject, createTask, getTaskDialog, sendMessage, generateMentionMessage } from "../api/dootask";
 import { getConfig, saveConfig } from "../api/cs";
+import { createSource, getSourceList, updateSource, deleteSource } from "../api/source";
 import type { UserBot } from "../types/dootask";
 import {
   Listbox,
@@ -34,52 +36,58 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   SparklesIcon,
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  DocumentDuplicateIcon,
 } from "@heroicons/react/20/solid";
 
 export const ServiceConfig: React.FC = () => {
-  // 默认配置
-  const defaultConfig: CustomerServiceConfig = {
+  // 默认系统配置
+  const defaultSystemConfig: SystemConfig = {
     serviceName: "客服中心",
-    welcomeMessage: "欢迎来到客服中心，请问有什么可以帮助您的？",
-    offlineMessage: "当前客服不在线，请留言，我们会尽快回复您。",
 
     dooTaskIntegration: {
       botId: null,
       projectId: null,
-      taskId: null,
-      dialogId: null,
     },
 
-    workingHours: {
-      enabled: true,
-      startTime: "09:00",
-      endTime: "18:00",
-      workDays: [1, 2, 3, 4, 5], // 周一到周五
-    },
+    defaultSourceConfig: {
+      welcomeMessage: "欢迎来到客服中心，请问有什么可以帮助您的？",
+      offlineMessage: "当前客服不在线，请留言，我们会尽快回复您。",
 
-    autoReply: {
-      enabled: true,
-      delay: 30,
-      message: "您好，客服正在处理其他问题，请稍等片刻。",
-    },
+      workingHours: {
+        enabled: true,
+        startTime: "09:00",
+        endTime: "18:00",
+        workDays: [1, 2, 3, 4, 5], // 周一到周五
+      },
 
-    agentAssignment: {
-      method: "round-robin",
-      timeout: 60,
-      fallbackAgentId: null,
-    },
+      autoReply: {
+        enabled: true,
+        delay: 30,
+        message: "您好，客服正在处理其他问题，请稍等片刻。",
+      },
 
-    ui: {
-      primaryColor: "#3B82F6",
-      logoUrl: "",
-      chatBubblePosition: "right",
+      agentAssignment: {
+        method: "round-robin",
+        timeout: 60,
+        fallbackAgentId: null,
+      },
+
+      ui: {
+        primaryColor: "#3B82F6",
+        logoUrl: "",
+        chatBubblePosition: "right",
+      },
     },
     reserved1: "",
     reserved2: "",
   };
 
   // 状态管理
-  const [config, setConfig] = useState<CustomerServiceConfig>(defaultConfig);
+  const [systemConfig, setSystemConfig] = useState<SystemConfig>(defaultSystemConfig);
+  const [sources, setSources] = useState<CustomerServiceSource[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveMessage, setSaveMessage] = useState<{
@@ -89,6 +97,11 @@ export const ServiceConfig: React.FC = () => {
   const [isRunInMicroApp, setIsRunInMicroApp] = useState<boolean>(isMicroApp());
   const [userBots, setUserBots] = useState<UserBot[]>([]);
   const [selectedUserBot, setSelectedUserBot] = useState<UserBot | null>(null);
+  
+  // 来源管理相关状态
+  const [newSourceName, setNewSourceName] = useState<string>("");
+  const [isCreatingSource, setIsCreatingSource] = useState<boolean>(false);
+  const [editingSource, setEditingSource] = useState<CustomerServiceSource | null>(null);
 
   appReady().then(() => {
     console.log("微应用初始化完成");
@@ -140,7 +153,7 @@ export const ServiceConfig: React.FC = () => {
       });
       return;
     }
-    if (config.dooTaskIntegration.projectId) {
+    if (systemConfig.dooTaskIntegration.projectId) {
       setSaveMessage({
         type: "error",
         text: "项目已存在，请先重置后再创建",
@@ -156,7 +169,7 @@ export const ServiceConfig: React.FC = () => {
       console.log(`项目ID: ${projectId}`);
       
       // 更新配置中的项目ID和机器人ID
-      setConfig(prev => ({
+      setSystemConfig(prev => ({
         ...prev,
         dooTaskIntegration: {
           ...prev.dooTaskIntegration,
@@ -178,7 +191,8 @@ export const ServiceConfig: React.FC = () => {
     });
   }
 
-  const onCreateTask = () => {
+  // 创建新的客服来源
+  const onCreateSource = async () => {
     if (!isRunInMicroApp) {
       return;
     }
@@ -189,92 +203,134 @@ export const ServiceConfig: React.FC = () => {
       });
       return;
     }
-    if (!config.dooTaskIntegration.projectId) {
+    if (!systemConfig.dooTaskIntegration.projectId) {
       setSaveMessage({
         type: "error",
         text: "请先创建项目",
       });
       return;
     }
-    if (config.dooTaskIntegration.taskId) {
+    if (!newSourceName.trim()) {
       setSaveMessage({
         type: "error",
-        text: "任务已存在，请先重置后再创建",
+        text: "请输入来源名称",
       });
       return;
     }
 
-    createTask({
-      project_id: config.dooTaskIntegration.projectId,
-      name: "智能客服任务1",
-      content: "kefu 1"
-    }).then((response) => {
-      const taskID = response.data.id;
-      console.log(`任务ID: ${taskID}`);
-
-      // 创建任务成功后，获取任务对话并发送消息
-      getTaskDialog(taskID).then((response) => {
-        const dialogID = response.data.dialog_id;
-        console.log(`任务对话: ${dialogID}`);
-        
-        // 更新配置中的任务ID和对话ID
-        setConfig(prev => ({
-          ...prev,
-          dooTaskIntegration: {
-            ...prev.dooTaskIntegration,
-            taskId: taskID,
-            dialogId: dialogID,
-          }
-        }));
-        
-        sendMessage({
-          dialog_id: dialogID,
-          text: generateMentionMessage(selectedUserBot.id, "智慧客服", "初始化"),
-        }).then((response) => {
-          console.log("发送消息成功", response);
-          setSaveMessage({
-            type: "success",
-            text: `任务创建成功，任务ID: ${taskID}, 对话ID: ${dialogID}`,
-          });
-        }).catch((error) => {
-          console.error("发送消息失败:", error.message);
-          setSaveMessage({
-            type: "error",
-            text: `发送消息失败: ${error.message}`,
-          });
-        });
-      }).catch((error) => {
-        console.error("获取任务对话失败:", error.message);
-        setSaveMessage({
-          type: "error",
-          text: `获取任务对话失败: ${error.message}`,
-        });
+    setIsCreatingSource(true);
+    try {
+      // 生成任务名称：智能客服-{来源名}
+      const taskName = `智能客服-${newSourceName.trim()}`;
+      
+      // 创建任务
+      const taskResponse = await createTask({
+        project_id: systemConfig.dooTaskIntegration.projectId,
+        name: taskName,
+        content: `客服来源：${newSourceName.trim()}`
       });
+      
+      const taskId = taskResponse.data.id;
+      console.log(`任务ID: ${taskId}`);
 
-    }).catch((error) => {
-      console.error("创建任务失败:", error.message);
+      // 获取任务对话
+      const dialogResponse = await getTaskDialog(taskId);
+      const dialogId = dialogResponse.data.dialog_id;
+      console.log(`任务对话: ${dialogId}`);
+      
+      // 发送初始化消息
+      await sendMessage({
+        dialog_id: dialogId,
+        text: generateMentionMessage(selectedUserBot.id, "智慧客服", "初始化"),
+      });
+      
+      // 调用后端API创建来源记录
+      const sourceResponse = await createSource({
+        name: newSourceName.trim(),
+        taskId: taskId,
+        dialogId: dialogId,
+        projectId: systemConfig.dooTaskIntegration.projectId,
+        botId: selectedUserBot.id,
+      });
+      // console.log(`来源I: ${sourceResponse}`);
+      // console.log(`来源创建成功，来源ID: ${sourceResponse.id}`);
+      
+      // 创建新的来源对象，使用系统默认配置
+      const newSource: CustomerServiceSource = {
+        id: sourceResponse.id,
+        sourceKey: sourceResponse.sourceKey,
+        name: newSourceName.trim(),
+        taskId: taskId,
+        dialogId: dialogId,
+        ...systemConfig.defaultSourceConfig,
+      };
+      
+      // 更新来源列表
+      setSources(prev => [...prev, newSource]);
+      setNewSourceName("");
+      
+      setSaveMessage({
+        type: "success",
+        text: `来源创建成功！来源key: ${sourceResponse.sourceKey}`,
+      });
+    } catch (error) {
+      console.error("创建来源失败:", error);
       setSaveMessage({
         type: "error",
-        text: `创建任务失败: ${error.message}`,
+        text: `创建来源失败: ${error instanceof Error ? error.message : '未知错误'}`,
       });
-    });
-  }
+    } finally {
+      setIsCreatingSource(false);
+    }
+  };
+  
+  // 删除来源
+  const onDeleteSource = async (source: CustomerServiceSource) => {
+    if (!window.confirm(`确定要删除来源 "${source.name}" 吗？`)) {
+      return;
+    }
+    
+    try {
+      if (source.id) {
+        await deleteSource(source.id);
+      }
+      setSources(prev => prev.filter(s => s.id !== source.id));
+      setSaveMessage({
+        type: "success",
+        text: "来源删除成功",
+      });
+    } catch (error) {
+      console.error("删除来源失败:", error);
+      setSaveMessage({
+        type: "error",
+        text: `删除来源失败: ${error instanceof Error ? error.message : '未知错误'}`,
+      });
+    }
+  };
+  
+  // 加载来源列表
+  const loadSources = async () => {
+    try {
+      const sourceList = await getSourceList();
+      setSources(sourceList);
+    } catch (error) {
+      console.error("加载来源列表失败:", error);
+    }
+  };
 
-  // 重置配置
-  const onResetConfig = () => {
-    setConfig(prev => ({
+  // 重置系统配置
+  const onResetSystemConfig = () => {
+    setSystemConfig(prev => ({
       ...prev,
       dooTaskIntegration: {
         botId: null,
         projectId: null,
-        taskId: null,
-        dialogId: null,
       }
     }));
     setSelectedUserBot(null);
     setSaveMessage({
       type: "success",
-      text: "配置已重置",
+      text: "系统配置已重置",
     });
   };
 
@@ -289,9 +345,9 @@ export const ServiceConfig: React.FC = () => {
     const loadConfig = async () => {
       try {
         // 尝试从后端加载配置
-        const configData = await getConfig('customer_service_config');
+        const configData = await getConfig('customer_service_system_config');
         if (configData) {
-          setConfig(configData);
+          setSystemConfig(configData);
           // 如果有机器人ID，尝试设置选中的机器人
           if (configData.dooTaskIntegration?.botId) {
             // 获取机器人列表并设置选中的机器人
@@ -310,13 +366,19 @@ export const ServiceConfig: React.FC = () => {
           }
         } else {
           // 如果没有配置，使用默认配置
-          setConfig(defaultConfig);
+          setSystemConfig(defaultSystemConfig);
         }
+        
+        // 加载来源列表
+        if (isRunInMicroApp) {
+          loadSources();
+        }
+        
         setIsLoading(false);
       } catch (error) {
         console.error("加载配置失败:", error);
         // 加载失败时使用默认配置
-        setConfig(defaultConfig);
+        setSystemConfig(defaultSystemConfig);
         setIsLoading(false);
       }
     };
@@ -324,63 +386,58 @@ export const ServiceConfig: React.FC = () => {
     loadConfig();
   }, [isRunInMicroApp]);
 
-  // 处理表单提交
-  const handleSubmit = async (e: React.FormEvent) => {
+  // 处理系统配置表单提交
+  const handleSystemConfigSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     setSaveMessage(null);
 
     try {
-      // 调用后端API保存配置
-      await saveConfig('customer_service_config', config);
-      console.log("保存配置:", config);
+      // 调用后端API保存系统配置
+      await saveConfig('customer_service_system_config', systemConfig);
+      console.log("保存系统配置:", systemConfig);
 
       setSaveMessage({
         type: "success",
-        text: "配置已成功保存！",
+        text: "系统配置已成功保存！",
       });
     } catch (error) {
-      console.error("保存配置失败:", error);
+      console.error("保存系统配置失败:", error);
       setSaveMessage({
         type: "error",
-        text: `保存配置失败: ${error instanceof Error ? error.message : '未知错误'}`,
+        text: `保存系统配置失败: ${error instanceof Error ? error.message : '未知错误'}`,
       });
     } finally {
       setIsSaving(false);
     }
   };
 
-  // 处理基本字段变化
-  const handleBasicChange = (
-    field: keyof CustomerServiceConfig,
+  // 处理系统配置基本字段变化
+  const handleSystemConfigChange = (
+    field: keyof SystemConfig,
     value: string
   ) => {
-    setConfig((prev) => ({
+    setSystemConfig((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
-
-  // 处理嵌套对象字段变化
-  const handleNestedChange = (
-    section: keyof CustomerServiceConfig,
+  
+  // 处理默认来源配置字段变化
+  const handleDefaultSourceConfigChange = (
     field: string,
     value: any
   ) => {
-    setConfig((prev) => {
-      const sectionData = prev[section];
-      if (typeof sectionData === "object" && sectionData !== null) {
-        return {
-          ...prev,
-          [section]: {
-            ...sectionData,
-            [field]: value,
-          },
-        };
-      }
-      return prev;
-    });
+    setSystemConfig((prev) => ({
+      ...prev,
+      defaultSourceConfig: {
+        ...prev.defaultSourceConfig,
+        [field]: value,
+      },
+    }));
   };
+
+
 
   if (isLoading) {
     return (
@@ -416,7 +473,7 @@ export const ServiceConfig: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSystemConfigSubmit} className="space-y-8">
         {/* 机器人配置 */}
         <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center gap-2 mb-4">
@@ -432,19 +489,15 @@ export const ServiceConfig: React.FC = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-gray-500 dark:text-gray-400">机器人ID:</span>
-                  <span className="ml-2 font-mono">{config.dooTaskIntegration.botId || '未设置'}</span>
+                  <span className="ml-2 font-mono">{systemConfig.dooTaskIntegration.botId || '未设置'}</span>
                 </div>
                 <div>
                   <span className="text-gray-500 dark:text-gray-400">项目ID:</span>
-                  <span className="ml-2 font-mono">{config.dooTaskIntegration.projectId || '未设置'}</span>
+                  <span className="ml-2 font-mono">{systemConfig.dooTaskIntegration.projectId || '未设置'}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">任务ID:</span>
-                  <span className="ml-2 font-mono">{config.dooTaskIntegration.taskId || '未设置'}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">对话ID:</span>
-                  <span className="ml-2 font-mono">{config.dooTaskIntegration.dialogId || '未设置'}</span>
+                  <span className="text-gray-500 dark:text-gray-400">来源数量:</span>
+                  <span className="ml-2 font-mono">{sources.length}</span>
                 </div>
               </div>
             </div>
@@ -518,19 +571,15 @@ export const ServiceConfig: React.FC = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-gray-500 dark:text-gray-400">机器人ID:</span>
-                  <span className="ml-2 font-mono">{config.dooTaskIntegration.botId || '未设置'}</span>
+                  <span className="ml-2 font-mono">{systemConfig.dooTaskIntegration.botId || '未设置'}</span>
                 </div>
                 <div>
                   <span className="text-gray-500 dark:text-gray-400">项目ID:</span>
-                  <span className="ml-2 font-mono">{config.dooTaskIntegration.projectId || '未设置'}</span>
+                  <span className="ml-2 font-mono">{systemConfig.dooTaskIntegration.projectId || '未设置'}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">任务ID:</span>
-                  <span className="ml-2 font-mono">{config.dooTaskIntegration.taskId || '未设置'}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">对话ID:</span>
-                  <span className="ml-2 font-mono">{config.dooTaskIntegration.dialogId || '未设置'}</span>
+                  <span className="text-gray-500 dark:text-gray-400">来源数量:</span>
+                  <span className="ml-2 font-mono">{sources.length}</span>
                 </div>
               </div>
             </div>
@@ -539,7 +588,7 @@ export const ServiceConfig: React.FC = () => {
               <Button
                 type="button"
                 onClick={onCreateProject}
-                disabled={!selectedUserBot || !!config.dooTaskIntegration.projectId}
+                disabled={!selectedUserBot || !!systemConfig.dooTaskIntegration.projectId}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <SparklesIcon className="h-4 w-4" />
@@ -548,31 +597,104 @@ export const ServiceConfig: React.FC = () => {
 
               <Button
                 type="button"
-                onClick={onCreateTask}
-                disabled={!selectedUserBot || !config.dooTaskIntegration.projectId || !!config.dooTaskIntegration.taskId}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition data-[hover]:bg-green-600 data-[focus]:ring-2 data-[focus]:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <BoltIcon className="h-4 w-4" />
-                创建任务
-              </Button>
-
-              <Button
-                type="button"
-                onClick={onResetConfig}
+                onClick={onResetSystemConfig}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition data-[hover]:bg-red-600 data-[focus]:ring-2 data-[focus]:ring-red-500"
               >
                 <ExclamationTriangleIcon className="h-4 w-4" />
-                重置配置
+                重置系统配置
               </Button>
+            </div>
+            
+            {/* 来源管理 */}
+            <div className="mt-6">
+              <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-4">客服来源管理</h3>
+              
+              {/* 创建新来源 */}
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md mb-4">
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    {/* <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      来源名称
+                    </Label> */}
+                    <Input
+                      type="text"
+                      value={newSourceName}
+                      onChange={(e) => setNewSourceName(e.target.value)}
+                      placeholder="请输入来源名称"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-white"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={onCreateSource}
+                    disabled={isCreatingSource || !selectedUserBot || !systemConfig.dooTaskIntegration.projectId || !newSourceName.trim()}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isCreatingSource ? (
+                      <CogIcon className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <PlusIcon className="h-4 w-4" />
+                    )}
+                    {isCreatingSource ? '创建中...' : '创建来源'}
+                  </Button>
+                </div>
+              </div>
+              
+              {/* 来源列表 */}
+              {sources.length > 0 && (
+                <div className="space-y-3">
+                  {sources.map((source) => (
+                    <div key={source.id} className="bg-white dark:bg-gray-600 p-4 rounded-md border border-gray-200 dark:border-gray-500">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-800 dark:text-white">{source.name}</h4>
+                          <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            <span>来源Key: </span>
+                            <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">{source.sourceKey}</code>
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            任务ID: {source.taskId} | 对话ID: {source.dialogId}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            onClick={() => setEditingSource(source)}
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+                          >
+                            <PencilIcon className="h-3 w-3" />
+                            编辑
+                          </Button>
+                          <Button
+                            type="button"
+                            onClick={() => onDeleteSource(source)}
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
+                          >
+                            <TrashIcon className="h-3 w-3" />
+                            删除
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {sources.length === 0 && (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <DocumentDuplicateIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>暂无客服来源，请创建第一个来源</p>
+                </div>
+              )}
             </div>
           </div>
         </section>
-        {/* 基本设置 */}
+        {/* 系统基本设置 */}
         <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center gap-2 mb-4">
             <CogIcon className="h-6 w-6 text-blue-500" />
             <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-              基本设置
+              系统基本设置
             </h2>
           </div>
           <div className="space-y-4">
@@ -582,23 +704,35 @@ export const ServiceConfig: React.FC = () => {
               </Label>
               <Input
                 type="text"
-                value={config.serviceName}
+                value={systemConfig.serviceName}
                 onChange={(e) =>
-                  handleBasicChange("serviceName", e.target.value)
+                  handleSystemConfigChange("serviceName", e.target.value)
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
                 required
               />
             </Field>
-
+          </div>
+        </section>
+        
+        {/* 默认来源配置 */}
+        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <CogIcon className="h-6 w-6 text-green-500" />
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+              默认来源配置
+            </h2>
+            <span className="text-sm text-gray-500 dark:text-gray-400">(新创建的来源将使用这些默认值)</span>
+          </div>
+          <div className="space-y-4">
             <Field>
               <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 欢迎消息
               </Label>
               <Textarea
-                value={config.welcomeMessage}
+                value={systemConfig.defaultSourceConfig.welcomeMessage}
                 onChange={(e) =>
-                  handleBasicChange("welcomeMessage", e.target.value)
+                  handleDefaultSourceConfigChange("welcomeMessage", e.target.value)
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 resize-none"
                 rows={3}
@@ -611,9 +745,9 @@ export const ServiceConfig: React.FC = () => {
                 离线消息
               </Label>
               <Textarea
-                value={config.offlineMessage}
+                value={systemConfig.defaultSourceConfig.offlineMessage}
                 onChange={(e) =>
-                  handleBasicChange("offlineMessage", e.target.value)
+                  handleDefaultSourceConfigChange("offlineMessage", e.target.value)
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 resize-none"
                 rows={3}
@@ -623,20 +757,23 @@ export const ServiceConfig: React.FC = () => {
           </div>
         </section>
 
-        {/* 工作时间设置 */}
-        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            {/* 默认工作时间设置 */}
+            <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center gap-2 mb-4">
-            <ClockIcon className="h-6 w-6 text-blue-500" />
+            <CogIcon className="h-6 w-6 text-blue-500" />
             <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-              工作时间设置
+            默认工作时间设置
             </h2>
           </div>
           <div className="space-y-4">
             <Field className="flex items-center gap-3">
               <Switch
-                checked={config.workingHours.enabled}
+                checked={systemConfig.defaultSourceConfig.workingHours.enabled}
                 onChange={(checked) =>
-                  handleNestedChange("workingHours", "enabled", checked)
+                  handleDefaultSourceConfigChange("workingHours", {
+                    ...systemConfig.defaultSourceConfig.workingHours,
+                    enabled: checked
+                  })
                 }
                 className="group relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 data-[checked]:bg-blue-600"
               >
@@ -654,16 +791,15 @@ export const ServiceConfig: React.FC = () => {
                 </Label>
                 <Input
                   type="time"
-                  value={config.workingHours.startTime}
+                  value={systemConfig.defaultSourceConfig.workingHours.startTime}
                   onChange={(e) =>
-                    handleNestedChange(
-                      "workingHours",
-                      "startTime",
-                      e.target.value
-                    )
+                    handleDefaultSourceConfigChange("workingHours", {
+                      ...systemConfig.defaultSourceConfig.workingHours,
+                      startTime: e.target.value
+                    })
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!config.workingHours.enabled}
+                  disabled={!systemConfig.defaultSourceConfig.workingHours.enabled}
                 />
               </Field>
 
@@ -673,16 +809,15 @@ export const ServiceConfig: React.FC = () => {
                 </Label>
                 <Input
                   type="time"
-                  value={config.workingHours.endTime}
+                  value={systemConfig.defaultSourceConfig.workingHours.endTime}
                   onChange={(e) =>
-                    handleNestedChange(
-                      "workingHours",
-                      "endTime",
-                      e.target.value
-                    )
+                    handleDefaultSourceConfigChange("workingHours", {
+                      ...systemConfig.defaultSourceConfig.workingHours,
+                      endTime: e.target.value
+                    })
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!config.workingHours.enabled}
+                  disabled={!systemConfig.defaultSourceConfig.workingHours.enabled}
                 />
               </Field>
             </div>
@@ -696,20 +831,19 @@ export const ServiceConfig: React.FC = () => {
                   (day, index) => (
                     <Field key={index} className="flex items-center">
                       <Switch
-                        checked={config.workingHours.workDays.includes(index)}
+                        checked={systemConfig.defaultSourceConfig.workingHours.workDays.includes(index)}
                         onChange={(checked) => {
                           const newWorkDays = checked
-                            ? [...config.workingHours.workDays, index]
-                            : config.workingHours.workDays.filter(
+                            ? [...systemConfig.defaultSourceConfig.workingHours.workDays, index]
+                            : systemConfig.defaultSourceConfig.workingHours.workDays.filter(
                                 (d) => d !== index
                               );
-                          handleNestedChange(
-                            "workingHours",
-                            "workDays",
-                            newWorkDays
-                          );
+                          handleDefaultSourceConfigChange("workingHours", {
+                            ...systemConfig.defaultSourceConfig.workingHours,
+                            workDays: newWorkDays
+                          });
                         }}
-                        disabled={!config.workingHours.enabled}
+                        disabled={!systemConfig.defaultSourceConfig.workingHours.enabled}
                         className="group relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 data-[checked]:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <span className="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out group-data-[checked]:translate-x-4" />
@@ -725,20 +859,23 @@ export const ServiceConfig: React.FC = () => {
           </div>
         </section>
 
-        {/* 自动回复设置 */}
+        {/* 默认自动回复设置 */}
         <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center gap-2 mb-4">
-            <ChatBubbleLeftRightIcon className="h-6 w-6 text-blue-500" />
+            <ClockIcon className="h-6 w-6 text-orange-500" />
             <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-              自动回复设置
+              默认自动回复设置
             </h2>
           </div>
           <div className="space-y-4">
             <Field className="flex items-center gap-3">
               <Switch
-                checked={config.autoReply.enabled}
+                checked={systemConfig.defaultSourceConfig.autoReply.enabled}
                 onChange={(checked) =>
-                  handleNestedChange("autoReply", "enabled", checked)
+                  handleDefaultSourceConfigChange("autoReply", {
+                    ...systemConfig.defaultSourceConfig.autoReply,
+                    enabled: checked
+                  })
                 }
                 className="group relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 data-[checked]:bg-blue-600"
               >
@@ -756,16 +893,15 @@ export const ServiceConfig: React.FC = () => {
               <Input
                 type="number"
                 min="0"
-                value={config.autoReply.delay}
+                value={systemConfig.defaultSourceConfig.autoReply.delay}
                 onChange={(e) =>
-                  handleNestedChange(
-                    "autoReply",
-                    "delay",
-                    parseInt(e.target.value)
-                  )
+                  handleDefaultSourceConfigChange("autoReply", {
+                    ...systemConfig.defaultSourceConfig.autoReply,
+                    delay: parseInt(e.target.value)
+                  })
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!config.autoReply.enabled}
+                disabled={!systemConfig.defaultSourceConfig.autoReply.enabled}
               />
             </Field>
 
@@ -774,43 +910,32 @@ export const ServiceConfig: React.FC = () => {
                 自动回复消息
               </Label>
               <Textarea
-                value={config.autoReply.message}
+                value={systemConfig.defaultSourceConfig.autoReply.message}
                 onChange={(e) =>
-                  handleNestedChange("autoReply", "message", e.target.value)
+                  handleDefaultSourceConfigChange("autoReply", {
+                    ...systemConfig.defaultSourceConfig.autoReply,
+                    message: e.target.value
+                  })
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                 rows={3}
-                disabled={!config.autoReply.enabled}
+                disabled={!systemConfig.defaultSourceConfig.autoReply.enabled}
               />
             </Field>
-          </div>
-        </section>
 
-        {/* 客服分配设置 */}
-        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <div className="flex items-center gap-2 mb-4">
-            <UserGroupIcon className="h-6 w-6 text-blue-500" />
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-              客服分配设置
-            </h2>
-          </div>
-          <div className="space-y-4">
+            {/* 默认客服分配设置 */}
             <Field>
               <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 分配方式
               </Label>
               <div className="relative">
                 <Select
-                  value={config.agentAssignment.method}
+                  value={systemConfig.defaultSourceConfig.agentAssignment.method}
                   onChange={(value) =>
-                    handleNestedChange(
-                      "agentAssignment",
-                      "method",
-                      value as unknown as
-                        | "round-robin"
-                        | "least-busy"
-                        | "manual"
-                    )
+                    handleDefaultSourceConfigChange("agentAssignment", {
+                      ...systemConfig.defaultSourceConfig.agentAssignment,
+                      method: value as "round-robin" | "least-busy" | "manual"
+                    })
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 appearance-none pr-10"
                 >
@@ -829,13 +954,12 @@ export const ServiceConfig: React.FC = () => {
               <Input
                 type="number"
                 min="0"
-                value={config.agentAssignment.timeout}
+                value={systemConfig.defaultSourceConfig.agentAssignment.timeout}
                 onChange={(e) =>
-                  handleNestedChange(
-                    "agentAssignment",
-                    "timeout",
-                    parseInt(e.target.value)
-                  )
+                  handleDefaultSourceConfigChange("agentAssignment", {
+                    ...systemConfig.defaultSourceConfig.agentAssignment,
+                    timeout: parseInt(e.target.value)
+                  })
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
               />
@@ -848,72 +972,20 @@ export const ServiceConfig: React.FC = () => {
               <Input
                 type="number"
                 min="0"
-                value={config.agentAssignment.fallbackAgentId || ""}
+                value={systemConfig.defaultSourceConfig.agentAssignment.fallbackAgentId || ""}
                 onChange={(e) => {
-                  const value =
-                    e.target.value === "" ? null : parseInt(e.target.value);
-                  handleNestedChange(
-                    "agentAssignment",
-                    "fallbackAgentId",
-                    value
-                  );
+                  const value = e.target.value === "" ? null : parseInt(e.target.value);
+                  handleDefaultSourceConfigChange("agentAssignment", {
+                    ...systemConfig.defaultSourceConfig.agentAssignment,
+                    fallbackAgentId: value
+                  });
                 }}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
                 placeholder="可选"
               />
             </Field>
-          </div>
-        </section>
 
-        {/* 预留配置 */}
-        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <div className="flex items-center gap-2 mb-4">
-            <PaintBrushIcon className="h-6 w-6 text-purple-500" />
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-              预留配置
-            </h2>
-          </div>
-          <div className="space-y-4">
-            <Field>
-              <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                预留字段1
-              </Label>
-              <Input
-                type="text"
-                value={config.reserved1 || ""}
-                onChange={(e) =>
-                  setConfig({ ...config, reserved1: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
-                placeholder="预留字段1"
-              />
-            </Field>
-            <Field>
-              <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                预留字段2
-              </Label>
-              <Textarea
-                value={config.reserved2 || ""}
-                onChange={(e) =>
-                  setConfig({ ...config, reserved2: e.target.value })
-                }
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
-                placeholder="预留字段2"
-              />
-            </Field>
-          </div>
-        </section>
-
-        {/* 界面设置 */}
-        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <div className="flex items-center gap-2 mb-4">
-            <PaintBrushIcon className="h-6 w-6 text-pink-500" />
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-              界面设置
-            </h2>
-          </div>
-          <div className="space-y-4">
+            {/* 默认界面设置 */}
             <Field>
               <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 主题颜色
@@ -921,17 +993,23 @@ export const ServiceConfig: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Input
                   type="color"
-                  value={config.ui.primaryColor}
+                  value={systemConfig.defaultSourceConfig.ui.primaryColor}
                   onChange={(e) =>
-                    handleNestedChange("ui", "primaryColor", e.target.value)
+                    handleDefaultSourceConfigChange("ui", {
+                      ...systemConfig.defaultSourceConfig.ui,
+                      primaryColor: e.target.value
+                    })
                   }
                   className="h-10 w-10 border-0 p-0 data-[focus]:ring-2 data-[focus]:ring-blue-500"
                 />
                 <Input
                   type="text"
-                  value={config.ui.primaryColor}
+                  value={systemConfig.defaultSourceConfig.ui.primaryColor}
                   onChange={(e) =>
-                    handleNestedChange("ui", "primaryColor", e.target.value)
+                    handleDefaultSourceConfigChange("ui", {
+                      ...systemConfig.defaultSourceConfig.ui,
+                      primaryColor: e.target.value
+                    })
                   }
                   className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
                   pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
@@ -946,9 +1024,12 @@ export const ServiceConfig: React.FC = () => {
               </Label>
               <Input
                 type="url"
-                value={config.ui.logoUrl}
+                value={systemConfig.defaultSourceConfig.ui.logoUrl}
                 onChange={(e) =>
-                  handleNestedChange("ui", "logoUrl", e.target.value)
+                  handleDefaultSourceConfigChange("ui", {
+                    ...systemConfig.defaultSourceConfig.ui,
+                    logoUrl: e.target.value
+                  })
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
                 placeholder="https://example.com/logo.png"
@@ -960,9 +1041,12 @@ export const ServiceConfig: React.FC = () => {
                 聊天气泡位置
               </Legend>
               <RadioGroup
-                value={config.ui.chatBubblePosition}
+                value={systemConfig.defaultSourceConfig.ui.chatBubblePosition}
                 onChange={(value) =>
-                  handleNestedChange("ui", "chatBubblePosition", value)
+                  handleDefaultSourceConfigChange("ui", {
+                    ...systemConfig.defaultSourceConfig.ui,
+                    chatBubblePosition: value
+                  })
                 }
                 className="flex gap-4"
               >
@@ -993,6 +1077,46 @@ export const ServiceConfig: React.FC = () => {
           </div>
         </section>
 
+        {/* 预留配置 */}
+        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <PaintBrushIcon className="h-6 w-6 text-purple-500" />
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+              预留配置
+            </h2>
+          </div>
+          <div className="space-y-4">
+            <Field>
+              <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                预留字段1
+              </Label>
+              <Input
+                type="text"
+                value={systemConfig.reserved1 || ""}
+                onChange={(e) =>
+                  handleSystemConfigChange("reserved1", e.target.value)
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
+                placeholder="预留字段1"
+              />
+            </Field>
+            <Field>
+              <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                预留字段2
+              </Label>
+              <Textarea
+                value={systemConfig.reserved2 || ""}
+                onChange={(e) =>
+                  handleSystemConfigChange("reserved2", e.target.value)
+                }
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
+                placeholder="预留字段2"
+              />
+            </Field>
+          </div>
+        </section>
+
         {/* 提交按钮 */}
         <div className="flex justify-end">
           <Button
@@ -1008,7 +1132,7 @@ export const ServiceConfig: React.FC = () => {
             ) : (
               <>
                 <ScaleIcon className="h-4 w-4" />
-                保存配置
+                保存系统配置
               </>
             )}
           </Button>

@@ -44,7 +44,7 @@ func RegisterRoutes(r *gin.Engine) {
 		}
 
 		// 配置相关路由
-		configRoutes := v1.Group("/config")
+		configRoutes := v1.Group("/configs")
 		{
 			// 获取所有配置
 			configRoutes.GET("", headlers.Config.GetAllConfigs)
@@ -54,6 +54,21 @@ func RegisterRoutes(r *gin.Engine) {
 			configRoutes.POST("/:config_key", headlers.Config.SaveConfig)
 			// 删除配置
 			configRoutes.DELETE("/:config_key", headlers.Config.DeleteConfig)
+		}
+
+		// 客服来源相关路由
+		sourceRoutes := v1.Group("/sources")
+		{
+			// 创建来源
+			sourceRoutes.POST("", headlers.Source.CreateSource)
+			// 获取所有来源
+			sourceRoutes.GET("", headlers.Source.GetSourceList)
+			// 根据ID获取来源
+			sourceRoutes.GET("/:id", headlers.Source.GetSourceById)
+			// 更新来源
+			sourceRoutes.PUT("/:id", headlers.Source.UpdateSource)
+			// 删除来源
+			sourceRoutes.DELETE("/:id", headlers.Source.DeleteSource)
 		}
 
 		// 对话相关路由

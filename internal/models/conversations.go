@@ -66,15 +66,16 @@ func (m *Message) TableName() string {
 type Conversations struct {
 	ID            uint           `gorm:"primaryKey" json:"id"`
 	Uuid          string         `gorm:"column:uuid;uniqueIndex;not null" json:"uuid"`
-	AgentID       uint           `gorm:"column:agent_id;default:0" json:"agent_id"`       // 客服ID
-	CustomerID    uint           `gorm:"column:customer_id;default:0" json:"customer_id"` // 客户ID
-	Title         string         `gorm:"column:title" json:"title"`                       // 会话标题
-	Status        string         `gorm:"column:status;default:'open'" json:"status"`      // 状态：open, closed
-	Source        string         `gorm:"column:source;default:'widget'" json:"source"`    // 来源：widget, api, etc.
-	LastMessageAt *time.Time     `gorm:"column:last_message_at" json:"last_message_at"`   // 最后消息时间
-	CreatedAt     time.Time      `gorm:"column:created_at" json:"created_at"`             // 创建时间
-	UpdatedAt     time.Time      `gorm:"column:updated_at" json:"updated_at"`             // 更新时间
-	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at" json:"deleted_at"`             // 删除时间（软删除）
+	AgentID       uint           `gorm:"column:agent_id;default:0" json:"agent_id"`            // 客服ID
+	CustomerID    uint           `gorm:"column:customer_id;default:0" json:"customer_id"`      // 客户ID
+	Title         string         `gorm:"column:title" json:"title"`                            // 会话标题
+	Status        string         `gorm:"column:status;default:'open'" json:"status"`           // 状态：open, closed
+	Source        string         `gorm:"column:source;default:'widget'" json:"source"`         // 来源：widget, api, etc.
+	SourceKey     string         `gorm:"column:source_key;default:'widget'" json:"source_key"` // 来源：widget, api, etc.
+	LastMessageAt *time.Time     `gorm:"column:last_message_at" json:"last_message_at"`        // 最后消息时间
+	CreatedAt     time.Time      `gorm:"column:created_at" json:"created_at"`                  // 创建时间
+	UpdatedAt     time.Time      `gorm:"column:updated_at" json:"updated_at"`                  // 更新时间
+	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at" json:"deleted_at"`                  // 删除时间（软删除）
 }
 
 // TableName 指定表名

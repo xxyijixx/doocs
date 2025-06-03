@@ -6,11 +6,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 
 	"support-plugin/internal/config"
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/dootask"
+	"support-plugin/internal/pkg/logger"
 	"support-plugin/internal/pkg/websocket"
 )
 
@@ -27,10 +29,15 @@ func (s *ChatService) CreateConversation() (string, error) {
 func (s *ChatService) CreateConversationWithDetails(agentID, customerID uint, title, source string) (string, error) {
 	// 生成UUID
 	uuidStr := uuid.New().String()
+	csSource := models.CustomerServiceSource{}
 
 	// 如果没有提供来源，设置默认值
 	if source == "" {
 		source = "widget"
+	}
+	if err := database.DB.Model(&models.CustomerServiceSource{}).Where("source_key =?", source).First(&csSource).Error; err != nil {
+		logger.App.Error("来源不存在", zap.String("source", source), zap.Error(err))
+		return "", err
 	}
 
 	// 创建对话记录
@@ -39,7 +46,8 @@ func (s *ChatService) CreateConversationWithDetails(agentID, customerID uint, ti
 		AgentID:    agentID,
 		CustomerID: customerID,
 		Title:      title,
-		Source:     source,
+		Source:     csSource.Name,
+		SourceKey: csSource.SourceKey,
 		Status:     "open",
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
@@ -114,7 +122,7 @@ func (s *ChatService) SendMessageWithDetails(conversationUUID, content, sender, 
 			}
 			robot.Message = &dootask.DootaskMessage{
 				Text:     fmt.Sprintf("[%s]有一条新消息:\n%s", conversation.Title, content),
-				DialogId: "22",
+				DialogId: "29",
 				Token:    config.Cfg.DooTask.Token,
 				Version:  config.Cfg.DooTask.Version,
 			}
