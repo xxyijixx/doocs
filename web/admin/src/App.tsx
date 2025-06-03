@@ -149,9 +149,9 @@ const App: React.FC = () => {
       <Router>
         <div className="h-full flex flex-col p-[24px]">
           {/* 顶部导航栏 */}
-          <header className="bg-white dark:bg-gray-800 shadow-sm">
+          <header className="">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-              <h1 className="text-xl font-bold text-gray-800 dark:text-white">Doocs</h1>
+              <h1 className="text-[24px] font-bold text-gray-800 dark:text-white">Doocs</h1>
               <div className="flex items-center gap-4">
                 <nav className="hidden md:flex items-center gap-2">
                   <NavLink to="/">

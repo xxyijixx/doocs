@@ -69,8 +69,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedUuid, onSelect
               onClick={() => onSelectConversation(c.uuid)}
               className={`
                 group w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                shadow-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 focus:bg-blue-100 dark:focus:bg-blue-900/30 text-left relative
-                focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-transparent
+                shadow-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 focus:bg-blue-100 dark:focus:bg-blue-900/30 text-left relative   
                 ${selectedUuid === c.uuid ? 'bg-blue-50 dark:bg-blue-900/20 shadow-md' : 'bg-white dark:bg-gray-800 hover:shadow-md'}
               `}
             >

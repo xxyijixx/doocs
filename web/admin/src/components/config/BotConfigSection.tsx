@@ -10,7 +10,7 @@ import {
   CheckIcon,
   ChevronDownIcon,
   BoltIcon,
-  SparklesIcon,
+  // SparklesIcon,
 } from "@heroicons/react/20/solid";
 import type { UserBot } from "../../types/dootask";
 import type { SystemConfig } from "../../types/config";
@@ -32,7 +32,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
   userBots,
   selectedUserBot,
   sourcesCount,
-  onGetUserBotList,
+  // onGetUserBotList,
   onCreateUserBot,
   onSelectUserBot,
 }) => {
@@ -77,20 +77,29 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
         </div>
 
         <div className="flex flex-wrap gap-4">
-          <Button
+          {/* <Button
             type="button"
             onClick={onGetUserBotList}
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 data-[focus]:ring-blue-500"
           >
             <SparklesIcon className="h-4 w-4" />
             获取机器人列表
-          </Button>
+          </Button> */}
 
           <div className="relative">
             <Listbox value={selectedUserBot} onChange={onSelectUserBot}>
               <ListboxButton className="relative w-48 cursor-default rounded-md bg-white dark:bg-gray-700 py-2 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm">
-                <span className="block truncate text-gray-900 dark:text-white">
-                  {selectedUserBot?.name || "未选择机器人"}
+                <span className="flex items-center">
+                  {selectedUserBot?.avatar && (
+                    <img
+                      src={selectedUserBot.avatar}
+                      alt={selectedUserBot.name}
+                      className="h-6 w-6 flex-shrink-0 rounded-full mr-2"
+                    />
+                  )}
+                  <span className="block truncate text-gray-900 dark:text-white">
+                    {selectedUserBot?.name || "未选择机器人"}
+                  </span>
                 </span>
                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                   <ChevronDownIcon
@@ -104,11 +113,20 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
                   <ListboxOption
                     key={bot.id}
                     value={bot}
-                    className="group relative cursor-default select-none py-2 pl-10 pr-4 text-gray-900 dark:text-white data-[focus]:bg-blue-600 data-[focus]:text-white"
+                    className="group relative cursor-default select-none py-2 pl-10 pr-4 text-gray-900 dark:text-white data-[focus]:bg-blue-600 data-[focus]:text-white group-data-[selected]:bg-blue-100 group-data-[selected]:dark:bg-blue-900"
                   >
-                    <span className="block truncate font-normal group-data-[selected]:font-semibold">
-                      {bot.name}
-                    </span>
+                    <div className="flex items-center">
+                      {bot.avatar && (
+                        <img
+                          src={bot.avatar}
+                          alt={bot.name}
+                          className="h-6 w-6 flex-shrink-0 rounded-full mr-2"
+                        />
+                      )}
+                      <span className="block truncate font-normal group-data-[selected]:font-semibold">
+                        {bot.name}
+                      </span>
+                    </div>
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600 group-data-[focus]:text-white [.group:not([data-selected])_&]:hidden">
                       <CheckIcon className="h-5 w-5" aria-hidden="true" />
                     </span>

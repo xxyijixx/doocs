@@ -1,4 +1,3 @@
-import React from "react";
 import { useServiceConfig } from "../hooks/useServiceConfig";
 import { MessageAlert } from "../components/common/MessageAlert";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
@@ -42,7 +41,7 @@ export default function ServiceConfig() {
     <div className="min-h-screen py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">客服系统配置</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">客服系统配置</h1>
           <p className="mt-2 text-gray-600">
             配置您的客服系统设置，包括机器人集成、默认消息和界面设置。
           </p>
