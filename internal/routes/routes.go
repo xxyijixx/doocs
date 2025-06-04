@@ -76,13 +76,13 @@ func RegisterRoutes(r *gin.Engine) {
 		{
 			// 公共路由 - 客户可访问
 			// 创建对话
-			chatRoutes.POST("", headlers.Chat.CreateConversation)
+			chatRoutes.POST("", headlers.ChatPublic.CreateConversation)
 			// 发送消息
-			chatRoutes.POST("/messages", headlers.Chat.SendMessage)
+			chatRoutes.POST("/messages", headlers.ChatPublic.SendMessage)
 			// 获取对话消息列表
-			chatRoutes.GET("/:uuid/messages", headlers.Chat.GetMessages)
+			chatRoutes.GET("/:uuid/messages", headlers.ChatPublic.GetMessages)
 			// 获取对话信息
-			chatRoutes.GET("/:uuid", headlers.Chat.GetConversation)
+			chatRoutes.GET("/:uuid", headlers.ChatPublic.GetConversation)
 			// WebSocket连接
 			chatRoutes.GET("/ws", func(c *gin.Context) {
 				websocket.ServeWs(c)
@@ -91,12 +91,16 @@ func RegisterRoutes(r *gin.Engine) {
 			// 需要客服认证的路由
 			chatProtected := chatRoutes.Group("/agent", middleware.AgentAuthMiddleware())
 			{
+				// 发送消息
+				chatProtected.POST("/messages", headlers.ChatAgent.SendMessageByAgent)
 				// 获取客服的所有对话
-				chatProtected.GET("/conversations", headlers.Chat.GetAgentConversations)
+				chatProtected.GET("/conversations", headlers.ChatAgent.GetAgentConversations)
 				// 根据UUID获取对话信息
-				chatRoutes.GET("/conversations/:uuid", headlers.Chat.GetConversationByUUID)
+				chatProtected.GET("/conversations/:uuid", headlers.ChatAgent.GetConversationByUUID)
+				// 获取对话消息列表
+				chatProtected.GET("/:id/messages", headlers.ChatAgent.GetMessageListByConversationID)
 				// 关闭对话
-				chatProtected.PUT("/:uuid/close", headlers.Chat.CloseConversation)
+				chatProtected.PUT("/:uuid/close", headlers.ChatAgent.CloseConversation)
 			}
 		}
 	}

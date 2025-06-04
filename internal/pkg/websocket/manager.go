@@ -20,13 +20,14 @@ type Client struct {
 
 // Manager 管理所有WebSocket连接
 type Manager struct {
-	Clients      map[*Client]bool
-	ConvClients  map[string][]*Client // 按会话UUID组织的客户端
-	AgentClients []*Client            // 所有客服连接
-	Register     chan *Client
-	Unregister   chan *Client
-	Broadcast    chan *Message
-	mutex        sync.RWMutex
+	Clients        map[*Client]bool
+	ConvClients    map[string][]*Client // 按会话UUID组织的客户端
+	AgentClients   []*Client            // 所有客服连接
+	Register       chan *Client
+	Unregister     chan *Client
+	Broadcast      chan *Message
+	AgentBroadcast chan *Message
+	mutex          sync.RWMutex
 }
 
 // Message 表示通过WebSocket发送的消息
@@ -60,12 +61,13 @@ const (
 // NewManager 创建一个新的WebSocket管理器
 func NewManager() *Manager {
 	return &Manager{
-		Clients:      make(map[*Client]bool),
-		ConvClients:  make(map[string][]*Client),
-		AgentClients: make([]*Client, 0),
-		Register:     make(chan *Client, 1000),
-		Unregister:   make(chan *Client, 1000),  // 增加缓冲区大小
-		Broadcast:    make(chan *Message, 1000), // 增加缓冲区大小
+		Clients:        make(map[*Client]bool),
+		ConvClients:    make(map[string][]*Client),
+		AgentClients:   make([]*Client, 0),
+		Register:       make(chan *Client, 1000),
+		Unregister:     make(chan *Client, 1000),  // 增加缓冲区大小
+		Broadcast:      make(chan *Message, 1000), // 增加缓冲区大小
+		AgentBroadcast: make(chan *Message, 1000), // 增加缓冲区大小,
 	}
 }
 
@@ -87,7 +89,11 @@ func (m *Manager) Start() {
 
 		case message := <-m.Broadcast:
 			m.handleBroadcast(message)
+
+		case message := <-m.AgentBroadcast:
+			m.handleAgentBroadcast(message)
 		}
+
 	}
 }
 
@@ -111,8 +117,6 @@ func (m *Manager) handleRegister(client *Client) {
 			logger.App.Info("New customer conversation created",
 				zap.String("convUUID", client.ConvUUID),
 				zap.String("remoteAddr", client.Conn.RemoteAddr().String()))
-			// 在锁外异步通知，避免死锁
-			go m.notifyAgentsNewConversation(client.ConvUUID)
 		}
 	}
 
@@ -197,14 +201,6 @@ func (m *Manager) handleBroadcast(message *Message) {
 
 	// 向特定会话的所有客户端广播消息
 	if message.ConvUUID != "" {
-		// 如果是普通消息，并且是客户发送的，向所有客服推送新消息通知
-		if message.Type == MessageTypeMessage && message.Sender == "customer" {
-			logger.App.Info("向客服推送新消息",
-				zap.String("convUUID", message.ConvUUID),
-				zap.String("remoteAddr", message.ConvUUID))
-			// 异步通知，避免死锁
-			go m.notifyAgentsNewMessage(message.ConvUUID, message.Data)
-		}
 
 		// 向会话中的所有客户端发送消息
 		if clients, ok := m.ConvClients[message.ConvUUID]; ok {
@@ -228,6 +224,36 @@ func (m *Manager) handleBroadcast(message *Message) {
 				// 发送失败，记录需要移除的客户端
 				failedClients = append(failedClients, client)
 			}
+		}
+	}
+
+	// 异步处理失败的客户端，避免死锁
+	if len(failedClients) > 0 {
+		go m.cleanupFailedClients(failedClients)
+	}
+}
+
+// handleAgentBroadcast 处理客服端广播消息
+func (m *Manager) handleAgentBroadcast(message *Message) {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
+	// 收集需要移除的客户端
+	var failedClients []*Client
+
+	msgBytes, err := json.Marshal(message)
+	if err != nil {
+		return
+	}
+
+	// 向所有客服广播新会话或新消息通知
+	for _, client := range m.AgentClients {
+		select {
+		case client.Send <- msgBytes:
+			// 发送成功
+		default:
+			// 发送失败，记录需要移除的客户端
+			failedClients = append(failedClients, client)
 		}
 	}
 
@@ -333,106 +359,19 @@ func (m *Manager) GetAllClientsCount() int {
 // WebSocketManager 全局WebSocket管理器实例
 var WebSocketManager = NewManager()
 
-// notifyAgentsNewConversation 向所有客服推送新会话通知
-func (m *Manager) notifyAgentsNewConversation(convUUID string) {
-	// 创建新会话通知消息
-	// 使用messages.go中定义的新会话数据结构
-	dataContent := NewConversationData{
-		ConvUUID: convUUID,
-	}
+// SendToAllAgents 向所有客服发送消息
+func (m *Manager) SendToAllAgents(data interface{}, messasgeType MessageType) {
 
-	// 将匿名结构体序列化为json.RawMessage
-	dataBytes, err := json.Marshal(dataContent)
+	dataBytes, err := json.Marshal(data)
 	if err != nil {
 		logger.App.Error("Failed to marshal new conversation data content", zap.Error(err))
 		return
 	}
-
-	// 创建新会话通知消息
 	message := &Message{
-		ConvUUID: convUUID,
-		Data:     json.RawMessage(dataBytes),
-		Sender:   "system",
-		Type:     MessageTypeNewConversation,
+		Data: json.RawMessage(dataBytes),
+		Type: messasgeType,
 	}
-
-	// 将消息转换为JSON
-	messageJSON, err := json.Marshal(message)
-	if err != nil {
-		logger.App.Error("Failed to marshal new conversation message", zap.Error(err))
-		return
-	}
-
-	// 向所有客服推送通知
-	m.SendToAllAgents(messageJSON)
-}
-
-// notifyAgentsNewMessage 向所有客服推送新消息通知
-func (m *Manager) notifyAgentsNewMessage(convUUID string, content json.RawMessage) {
-	// 创建新消息通知
-	// 使用messages.go中定义的新消息数据结构
-	// dataContent := NewMessageData{
-	// 	ConvUUID: convUUID,
-	// 	Content:  content,
-	// }
-
-	// // 将匿名结构体序列化为json.RawMessage
-	// dataBytes, err := json.Marshal(dataContent)
-	// if err != nil {
-	// 	logger.App.Error("Failed to marshal new message data content", zap.Error(err))
-	// 	return
-	// }
-
-	// 创建新消息通知
-	message := &Message{
-		ConvUUID: convUUID,
-		Data:     content,
-		Sender:   "system",
-		Type:     MessageTypeNewMessage,
-	}
-
-	// 将消息转换为JSON
-	messageJSON, err := json.Marshal(message)
-	if err != nil {
-		logger.App.Error("Failed to marshal new message notification", zap.Error(err))
-		return
-	}
-
-	// 向所有客服推送通知
-	m.SendToAllAgents(messageJSON)
-}
-
-// SendToAllAgents 向所有客服发送消息
-func (m *Manager) SendToAllAgents(message []byte) {
-	m.mutex.RLock()
-	// 创建客服客户端副本
-	agentsCopy := make([]*Client, len(m.AgentClients))
-	copy(agentsCopy, m.AgentClients)
-	m.mutex.RUnlock()
-
-	var failedClients []*Client
-	logger.App.Info("准备向所有客服发送消息",
-		zap.Int("agentCount", len(agentsCopy)))
-	for _, client := range agentsCopy {
-		select {
-		case client.Send <- message:
-			// 发送成功
-			logger.App.Debug("向客服发送消息成功",
-				zap.String("clientAddr", client.Conn.RemoteAddr().String()),
-				zap.String("agentID", client.AgentID))
-		default:
-			// 发送失败
-			logger.App.Error("向客服发送消息失败",
-				zap.String("clientAddr", client.Conn.RemoteAddr().String()),
-				zap.String("agentID", client.AgentID))
-			failedClients = append(failedClients, client)
-		}
-	}
-
-	// 清理失败的客户端
-	if len(failedClients) > 0 {
-		go m.cleanupFailedClients(failedClients)
-	}
+	m.AgentBroadcast <- message
 }
 
 // GetAgentClientsCount 获取客服连接数量

@@ -1,0 +1,196 @@
+package service
+
+import (
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
+
+	"support-plugin/internal/config"
+	"support-plugin/internal/models"
+	"support-plugin/internal/pkg/database"
+	"support-plugin/internal/pkg/dootask"
+	"support-plugin/internal/pkg/logger"
+	"support-plugin/internal/pkg/websocket"
+)
+
+type ChatPublicService struct{}
+
+var ChatPublic = ChatPublicService{}
+
+// CreateConversation 创建新对话
+func (s *ChatPublicService) CreateConversation(agentID, customerID uint, title, source string) (string, error) {
+	// 生成UUID
+	uuidStr := uuid.New().String()
+	csSource := models.CustomerServiceSource{}
+
+	// 如果没有提供来源，设置默认值
+	if source == "" {
+		source = "widget"
+	}
+	if err := database.DB.Model(&models.CustomerServiceSource{}).Where("source_key =?", source).First(&csSource).Error; err != nil {
+		logger.App.Error("来源不存在", zap.String("source", source), zap.Error(err))
+		return "", err
+	}
+
+	// 创建对话记录
+	conversation := models.Conversations{
+		Uuid:       uuidStr,
+		AgentID:    agentID,
+		CustomerID: customerID,
+		Title:      title,
+		Source:     csSource.Name,
+		SourceKey:  csSource.SourceKey,
+		Status:     "open",
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+	}
+
+	// 保存到数据库
+	result := database.DB.Create(&conversation)
+	if result.Error != nil {
+		return "", result.Error
+	}
+	title = fmt.Sprintf("%s %d", "会话", conversation.ID)
+	database.DB.Model(&conversation).Updates(map[string]interface{}{
+		"title": title,
+	})
+	conversation.Title = title
+
+	// 广播新对话给所有客服
+	go websocket.BroadcastToAllAgents(conversation, websocket.MessageTypeNewConversation)
+
+	return uuidStr, nil
+}
+
+// SendMessage 发送消息
+func (s *ChatPublicService) SendMessage(conversationUUID, content, sender, msgType, metadata string) (*models.Message, error) {
+	// 查找对话
+	var conversation models.Conversations
+	result := database.DB.Where("uuid = ?", conversationUUID).First(&conversation)
+	if result.Error != nil {
+		return nil, errors.New("对话不存在")
+	}
+
+	// 查找来源
+	var csSource models.CustomerServiceSource
+	result = database.DB.Where("source_key =?", conversation.SourceKey).First(&csSource)
+	if result.Error != nil {
+		return nil, errors.New("来源不存在")
+	}
+
+	dialogID := ""
+	if csSource.DialogID != nil {
+		dialogID = fmt.Sprintf("%d", *csSource.DialogID)
+	}
+
+	// 如果消息类型为空，设置默认值
+	if msgType == "" {
+		msgType = "text"
+	}
+
+	// 获取当前时间
+	now := time.Now()
+
+	// 创建消息
+	message := models.Message{
+		ConversationID: conversation.ID,
+		Content:        content,
+		Sender:         sender,
+		Type:           msgType,
+		Metadata:       metadata,
+		CreatedAt:      now,
+	}
+
+	// 保存消息
+	result = database.DB.Create(&message)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	// 更新对话的最后更新时间和最后消息时间
+	database.DB.Model(&conversation).Updates(map[string]interface{}{
+		"updated_at":      now,
+		"last_message_at": now,
+	})
+
+	// 如果是客户发送的消息，需要通知客服和机器人
+	if sender == "customer" {
+		// 通过WebSocket广播消息给所有客服
+		go websocket.BroadcastToAllAgents(message, websocket.MessageTypeNewMessage)
+
+		// 发送消息到机器人
+		go s.sendToBot(content, dialogID, conversation.Title)
+	}
+
+	return &message, nil
+}
+
+// GetMessages 获取对话消息列表
+func (s *ChatPublicService) GetMessages(conversationUUID string, page, pageSize int) ([]models.Message, int64, error) {
+	// 查找对话
+	var conversation models.Conversations
+	result := database.DB.Where("uuid = ?", conversationUUID).First(&conversation)
+	if result.Error != nil {
+		return nil, 0, errors.New("对话不存在")
+	}
+
+	// 计算总数
+	var total int64
+	database.DB.Model(&models.Message{}).Where("conversation_id = ?", conversation.ID).Count(&total)
+
+	// 查询最新的消息
+	var messages []models.Message
+	result = database.DB.Where("conversation_id = ?", conversation.ID).
+		Order("created_at DESC"). // 降序排列，获取最新消息
+		Limit(pageSize).          // 限制返回数量
+		Find(&messages)
+
+	// 反转切片，使消息按时间正序排列
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
+
+	if result.Error != nil {
+		return nil, 0, result.Error
+	}
+
+	return messages, total, nil
+}
+
+// GetConversation 通过UUID获取对话
+func (s *ChatPublicService) GetConversation(uuid string) (*models.Conversations, error) {
+	var conversation models.Conversations
+	result := database.DB.Where("uuid = ?", uuid).First(&conversation)
+	if result.Error != nil {
+		return nil, errors.New("对话不存在")
+	}
+
+	return &conversation, nil
+}
+
+// sendToBot 发送消息到机器人
+func (s *ChatPublicService) sendToBot(content, dialogID, title string) {
+	CustomerServiceConfigData, err := models.LoadConfig[models.CustomerServiceConfigData](database.DB, models.CSConfigKeySystem)
+	if err != nil {
+		return
+	}
+
+	robot := dootask.DootaskRobot{
+		Webhook: config.Cfg.DooTask.WebHook,
+		Token:   CustomerServiceConfigData.DooTaskIntegration.BotToken,
+		Version: config.Cfg.DooTask.Version,
+	}
+
+	robot.Message = &dootask.DootaskMessage{
+		Text:     fmt.Sprintf("[%s]有一条新消息:\n%s", title, content),
+		DialogId: dialogID,
+		Token:    CustomerServiceConfigData.DooTaskIntegration.BotToken,
+		Version:  config.Cfg.DooTask.Version,
+	}
+
+	result, err := robot.SendMsg()
+	fmt.Println("发送消息到机器人", result, err)
+}

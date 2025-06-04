@@ -167,50 +167,39 @@ func (c *Client) writePump() {
 }
 
 // 向所以客服端广播消息
-func BroadcastToAllAgents(convUUID string, msgType MessageType, content string, sender string) {
+func BroadcastToAllAgents(data interface{}, msgType MessageType) {
 	// msgBytes, err := json.Marshal({"content":})
-	logger.App.Info("准备BroadcastToAllAgents广播消息", zap.String("ConvUUID", convUUID), zap.Any("msgType", msgType), zap.String("Sender", sender), zap.String("Content", content))
-	dataContent := NewMessageData{
-		ConvUUID: convUUID,
-		Content:  content,
-	}
+	logger.App.Info("准备BroadcastToAllAgents广播消息", zap.Any("ConvUUID", data), zap.Any("msgType", msgType))
 
 	// 将匿名结构体序列化为json.RawMessage
-	dataBytes, err := json.Marshal(dataContent)
-	if err != nil {
-		logger.App.Error("Failed to marshal new message data content", zap.Error(err))
-		return
-	}
+	// dataBytes, err := json.Marshal(data)
+	// if err != nil {
+	// 	logger.App.Error("Failed to marshal new message data content", zap.Error(err))
+	// 	return
+	// }
 
-	// 创建新消息通知
-	message := &Message{
-		ConvUUID: convUUID,
-		Data:     json.RawMessage(dataBytes),
-		Sender:   sender,
-		Type:     msgType,
-	}
+	// // 创建新消息通知
+	// message := &Message{
+	// 	Data:     json.RawMessage(dataBytes),
+	// 	Type:     msgType,
+	// }
 
-	// 将消息转换为JSON
-	msgBytes, err := json.Marshal(message)
-	if err != nil {
-		logger.App.Error("广播消息时出错 Failed to marshal new message notification", zap.Error(err))
-		return
-	}
+	// // 将消息转换为JSON
+	// msgBytes, err := json.Marshal(message)
+	// if err != nil {
+	// 	logger.App.Error("广播消息时出错 Failed to marshal new message notification", zap.Error(err))
+	// 	return
+	// }
 
-	WebSocketManager.SendToAllAgents(msgBytes)
+	WebSocketManager.SendToAllAgents(data, msgType)
 }
 
 // BroadcastMessage 向特定会话广播消息
-func BroadcastMessage(convUUID string, msgType MessageType, content string, sender string) error {
-	logger.App.Info("准备广播消息", zap.String("ConvUUID", convUUID), zap.Any("msgType", msgType), zap.String("Sender", sender), zap.String("Content", content))
+func BroadcastMessage(convUUID string, data interface{}, msgType MessageType) error {
+	logger.App.Info("准备广播消息", zap.String("ConvUUID", convUUID), zap.Any("msgType", msgType))
 	// msgBytes, err := json.Marshal({"content":})
-	dataContent := NewMessageData{
-		ConvUUID: convUUID,
-		Content:  content,
-	}
-
 	// 将匿名结构体序列化为json.RawMessage
-	dataBytes, err := json.Marshal(dataContent)
+	dataBytes, err := json.Marshal(data)
 	if err != nil {
 		logger.App.Error("Failed to marshal new message data content", zap.Error(err))
 		return err
@@ -220,7 +209,6 @@ func BroadcastMessage(convUUID string, msgType MessageType, content string, send
 	message := &Message{
 		ConvUUID: convUUID,
 		Data:     json.RawMessage(dataBytes),
-		Sender:   sender,
 		Type:     msgType,
 	}
 

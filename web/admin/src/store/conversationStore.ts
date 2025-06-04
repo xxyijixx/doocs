@@ -12,6 +12,8 @@ interface ConversationState {
   refreshTrigger: number;
   // 触发刷新
   triggerRefresh: () => void;
+  // 添加会话
+  addConversation: (conversation: Conversation) => void;
 }
 
 export const useConversationStore = create<ConversationState>((set) => ({
@@ -37,5 +39,9 @@ export const useConversationStore = create<ConversationState>((set) => ({
   
   triggerRefresh: () => {
     set(state => ({ refreshTrigger: state.refreshTrigger + 1 }));
+  },
+
+  addConversation: (conversation: Conversation) => {
+    set(state => ({ conversations: [conversation, ...state.conversations] }));
   }
 }));

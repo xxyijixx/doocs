@@ -15,6 +15,7 @@ export interface Conversation {
 export interface Message {
   id: number;
   conversation_uuid: string;
+  conversation_id: number;
   content: string;
   sender: 'agent' | 'customer';
   type: 'text' | 'image' | 'file' | 'system';
@@ -38,7 +39,8 @@ export interface ApiResponse<T> {
 }
 
 export interface SendMessageRequest {
-  uuid: string;
+  id: number;
+  uuid?: string;
   content: string;
   sender: 'agent' | 'customer';
   type?: 'text' | 'image' | 'file' | 'system';

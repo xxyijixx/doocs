@@ -32,8 +32,8 @@ export const chatApi = {
   },
 
   // 获取消息列表
-  getMessages: async (uuid: string, page = 1, pageSize = 20) => {
-    const response = await api.get<ApiResponse<PaginationData<Message>>>(`/chat/${uuid}/messages`, {
+  getMessages: async (id: number, page = 1, pageSize = 20) => {
+    const response = await api.get<ApiResponse<PaginationData<Message>>>(`/chat/agent/${id}/messages`, {
       params: { page, page_size: pageSize },
     });
     return response.data;
@@ -41,7 +41,7 @@ export const chatApi = {
 
   // 发送消息
   sendMessage: async (message: SendMessageRequest) => {
-    const response = await api.post<ApiResponse<null>>('/chat/messages', message);
+    const response = await api.post<ApiResponse<null>>('/chat/agent/messages', message);
     return response.data;
   },
 

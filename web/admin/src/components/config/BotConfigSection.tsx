@@ -113,7 +113,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
                   <ListboxOption
                     key={bot.id}
                     value={bot}
-                    className="group relative cursor-default select-none py-2 pl-10 pr-4 text-gray-900 dark:text-white data-[focus]:bg-blue-600 data-[focus]:text-white group-data-[selected]:bg-blue-100 group-data-[selected]:dark:bg-blue-900"
+                    className="group relative cursor-default select-none py-2 pl-10 pr-4 text-gray-900 dark:text-white data-[focus]:bg-blue-600 data-[focus]:text-white"
                   >
                     <div className="flex items-center">
                       {bot.avatar && (

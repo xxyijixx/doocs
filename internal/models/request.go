@@ -17,6 +17,15 @@ type SendMessageRequest struct {
 	Metadata string `json:"metadata"`                  // 元数据（JSON格式，可选）
 }
 
+// SendMessageRequest 发送消息请求结构体
+type SendMessageByAgentRequest struct {
+	ID       int `json:"id" binding:"required"`
+	Content  string `json:"content" binding:"required"`
+	Sender   string `json:"sender" binding:"required"` // "agent" 或 "customer"
+	Type     string `json:"type" default:"text"`       // 消息类型：text, image, file, system
+	Metadata string `json:"metadata"`                  // 元数据（JSON格式，可选）
+}
+
 // AgentLoginRequest 客服登录请求结构体
 type AgentLoginRequest struct {
 	Username string `json:"username" binding:"required"` // 用户名

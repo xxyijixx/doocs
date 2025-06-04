@@ -21,58 +21,43 @@ import {
   Transition,
 } from "@headlessui/react";
 import { useMessageStore } from "../store/messageStore";
+import { useConversationStore } from "../store/conversationStore";
 
 interface ChatWindowProps {
-  conversationUuid?: string | null;
+  conversationId?: number;
   onBackClick?: () => void; // 添加返回按钮回调
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
-  conversationUuid,
+  conversationId,
   onBackClick,
 }) => {
   const { messagesByConversation, loading, fetchMessages, refreshTrigger } =
     useMessageStore();
+  const { conversations } = useConversationStore();
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 获取当前会话的消息
-  const messages = conversationUuid
-    ? messagesByConversation[conversationUuid] || []
+  const messages = conversationId
+    ? messagesByConversation[conversationId] || []
     : [];
+    
 
   useEffect(() => {
-    if (!conversationUuid) return;
+    if (!conversationId) return;
 
     // 获取会话的消息
-    fetchMessages(conversationUuid);
+    fetchMessages(conversationId);
 
-    // 获取会话信息（可选，假如API有）
-    const fetchConversationInfo = async () => {
-      try {
-        // 这里只是模拟，实际应该调用 API 获取会话信息
-        setConversation({
-          id: 1,
-          uuid: conversationUuid,
-          agent_id: 0,
-          customer_id: 0,
-          title: "Personal Assistant",
-          status: "open",
-          source: "widget",
-          last_message_at: null,
-          created_at: "",
-          updated_at: "",
-          deleted_at: null,
-        });
-      } catch (error) {
-        console.error("获取会话信息失败:", error);
-      }
-    };
-
-    fetchConversationInfo();
-  }, [conversationUuid, fetchMessages]);
+    // 从store中获取会话信息
+    const currentConversation = conversations.find(conv => conv.id === conversationId);
+    if (currentConversation) {
+      setConversation(currentConversation);
+    }
+  }, [conversationId, fetchMessages, conversations]);
 
   // 当消息列表更新时，滚动到底部
   useEffect(() => {
@@ -81,19 +66,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   // 当刷新触发器更新时，重新获取消息
   useEffect(() => {
-    if (conversationUuid) {
-      fetchMessages(conversationUuid);
+    if (conversationId) {
+      fetchMessages(conversationId);
     }
-  }, [refreshTrigger, conversationUuid, fetchMessages]);
+  }, [refreshTrigger, conversationId, fetchMessages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !conversationUuid) return;
+    if (!newMessage.trim() || !conversationId) return;
 
     try {
       // 发送消息到服务器
       await chatApi.sendMessage({
-        uuid: conversationUuid,
+        id: conversationId,
         content: newMessage,
         sender: "agent",
         type: "text",
@@ -103,7 +88,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       setNewMessage("");
 
       // 重新获取消息列表
-      fetchMessages(conversationUuid);
+      fetchMessages(conversationId);
       setSending(false);
     } catch (error) {
       console.error("发送消息失败:", error);
@@ -111,7 +96,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
-  if (!conversationUuid) {
+  if (!conversationId) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-lg h-full space-y-4">
         <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 dark:text-gray-600" />

@@ -6,11 +6,11 @@ import { DevicePhoneMobileIcon, ComputerDesktopIcon } from '@heroicons/react/24/
 
 interface ChatProps {
   onRefreshConversations?: () => void; // 保留属性但设为可选，以便向后兼容
-  onCurrentConversationChange?: (conversationUuid: string | null) => void; // 添加新属性，用于通知当前选中的会话
+  onCurrentConversationChange?: (conversationId: number) => void; // 添加新属性，用于通知当前选中的会话
 }
 
 export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentConversationChange }) => {
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<number>(0);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [showSidebar, setShowSidebar] = useState<boolean>(true);
 
@@ -43,8 +43,8 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentCon
   }, [selectedConversation, onCurrentConversationChange]);
 
   // 自定义的设置选中会话的函数，同时调用原始的 setState 和回调函数
-  const handleSelectConversation = (uuid: string) => {
-    setSelectedConversation(uuid);
+  const handleSelectConversation = (id: number) => {
+    setSelectedConversation(id);
   };
 
   // 返回会话列表（仅在移动端使用）
@@ -79,7 +79,7 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentCon
         className={isMobile ? "absolute inset-0 z-20" : "relative"}
       >
         <ChatSidebar
-          selectedUuid={selectedConversation}
+          selectedId={selectedConversation}
           onSelectConversation={handleSelectConversation}
           onRefresh={onRefreshConversations}
           isMobile={isMobile}
@@ -98,7 +98,7 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentCon
         as="div" className="flex-1 h-full"
       >
         <ChatWindow 
-          conversationUuid={selectedConversation} 
+          conversationId={selectedConversation} 
           onBackClick={isMobile ? handleBackToList : undefined}
         />
       </Transition>

@@ -6,13 +6,13 @@ import { Button, Field, Input } from '@headlessui/react';
 import { useConversationStore } from '../store/conversationStore';
 
 interface ChatSidebarProps {
-  selectedUuid: string | null;
-  onSelectConversation: (uuid: string) => void;
+  selectedId: number;
+  onSelectConversation: (id: number) => void;
   onRefresh?: () => void; // 设为可选，因为现在主要依赖 Zustand store
   isMobile?: boolean; // 添加移动端标识
 }
 
-export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedUuid, onSelectConversation, onRefresh, isMobile = false }) => {
+export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedId, onSelectConversation, onRefresh, isMobile = false }) => {
   const { conversations, loading, fetchConversations, refreshTrigger } = useConversationStore();
   const [search, setSearch] = useState('');
 
@@ -65,16 +65,16 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedUuid, onSelect
         ) : (
           filtered.map((c, idx) => (
             <Button
-              key={c.uuid}
-              onClick={() => onSelectConversation(c.uuid)}
+              key={c.id}
+              onClick={() => onSelectConversation(c.id)}
               className={`
                 group w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
                 shadow-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 focus:bg-blue-100 dark:focus:bg-blue-900/30 text-left relative   
-                ${selectedUuid === c.uuid ? 'bg-blue-50 dark:bg-blue-900/20 shadow-md' : 'bg-white dark:bg-gray-800 hover:shadow-md'}
+                ${selectedId === c.id ? 'bg-blue-50 dark:bg-blue-900/20 shadow-md' : 'bg-white dark:bg-gray-800 hover:shadow-md'}
               `}
             >
               {/* 选中竖条 */}
-              {selectedUuid === c.uuid && (
+              {selectedId === c.id && (
                 <span className="absolute left-0 top-2 bottom-2 w-1 rounded bg-blue-500" />
               )}
               {/* 彩色圆头像 */}
@@ -83,7 +83,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedUuid, onSelect
               </div>
               {/* 标题和副标题 */}
               <div className="flex-1 min-w-0">
-                <div className={`truncate font-medium ${selectedUuid === c.uuid ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}>
+                <div className={`truncate font-medium ${selectedId === c.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}>
                   {c.title || `会话 ${c.id}`}
                 </div>
                 <div className="truncate text-xs text-gray-400 dark:text-gray-500">来源: {c.source}</div>

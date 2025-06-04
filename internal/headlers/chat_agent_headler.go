@@ -2,15 +2,47 @@ package headlers
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"support-plugin/internal/middleware"
 	"support-plugin/internal/models"
-	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/response"
+	"support-plugin/internal/service"
 )
+
+type ChatAgentHeadler struct {
+}
+
+var ChatAgent = ChatAgentHeadler{}
+
+// @Summary 发送消息
+// @Description 在指定对话中发送新消息
+// @Accept json
+// @Produce json
+// @Param request body models.SendMessageByAgentRequest true "发送消息请求参数"
+// @Success 200 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 500 {object} models.Response
+// @Router /chat/agent/messages [post]
+func (h ChatAgentHeadler) SendMessageByAgent(c *gin.Context) {
+	// 解析请求参数
+	var req models.SendMessageByAgentRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "参数错误", err)
+		return
+	}
+
+	// 发送消息
+	message, err := service.ChatAgent.SendMessageByAgent(req.ID, req.Content, req.Sender, req.Type, req.Metadata)
+	if err != nil {
+		response.ServerError(c, "发送消息失败", err)
+		return
+	}
+
+	response.Success(c, "发送消息成功", message)
+}
 
 // @Summary 获取客服的所有对话
 // @Description 获取当前认证客服的所有对话列表
@@ -25,9 +57,9 @@ import (
 // @Failure 401 {object} models.Response
 // @Failure 500 {object} models.Response
 // @Router /chat/agent/conversations [get]
-func (h ChatHeadler) GetAgentConversations(c *gin.Context) {
+func (h ChatAgentHeadler) GetAgentConversations(c *gin.Context) {
 	// 获取当前客服ID
-	_, exists := middleware.GetCurrentAgentID(c)
+	agentID, exists := middleware.GetCurrentAgentID(c)
 	if !exists {
 		response.Unauthorized(c, "未认证")
 		return
@@ -38,48 +70,16 @@ func (h ChatHeadler) GetAgentConversations(c *gin.Context) {
 
 	// 获取状态筛选参数
 	status := c.Query("status")
-
 	keyword := c.Query("keyword")
 
-	// 构建查询
-	query := database.DB.Model(&models.Conversations{})
-	// query = query.Where("agent_id = ?", agentID)
-
-	// 应用状态筛选
-	if status != "" {
-		query = query.Where("status = ?", status)
-	}
-
-	if keyword != "" {
-		query = query.Where("title LIKE ? OR content LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
-	}
-
-	// 计算总数
-	var total int64
-	query.Count(&total)
-
-	// 分页查询
-	var conversations []models.Conversations
-	query = query.Order("updated_at DESC")
-	query = query.Offset((page - 1) * pageSize).Limit(pageSize)
-	result := query.Find(&conversations)
-
-	if result.Error != nil {
-		response.ServerError(c, "获取对话列表失败", result.Error)
+	// 获取对话列表
+	conversations, total, err := service.ChatAgent.GetAgentConversations(agentID, page, pageSize, status, keyword)
+	if err != nil {
+		response.ServerError(c, "获取对话列表失败", err)
 		return
 	}
 
-	// 计算总页数
-	pages := (total + int64(pageSize) - 1) / int64(pageSize)
-
-	// 返回分页数据
-	response.Success(c, "获取成功", models.PaginationData{
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
-		Pages:    pages,
-		Items:    conversations,
-	})
+	response.SuccessWithPagination(c, "获取成功", conversations, total, page, pageSize)
 }
 
 // @Summary 获取指定UUID的对话信息
@@ -90,8 +90,8 @@ func (h ChatHeadler) GetAgentConversations(c *gin.Context) {
 // @Success 200 {object} models.Response{data=models.Conversations}
 // @Failure 400 {object} models.Response
 // @Failure 500 {object} models.Response
-// @Router /chat/conversations/{uuid} [get]
-func (h ChatHeadler) GetConversationByUUID(c *gin.Context) {
+// @Router /chat/agent/conversations/{uuid} [get]
+func (h ChatAgentHeadler) GetConversationByUUID(c *gin.Context) {
 	// 获取对话UUID
 	uuid := c.Param("uuid")
 	if uuid == "" {
@@ -99,15 +99,48 @@ func (h ChatHeadler) GetConversationByUUID(c *gin.Context) {
 		return
 	}
 
-	// 查找对话
-	var conversation models.Conversations
-	result := database.DB.Where("uuid = ?", uuid).First(&conversation)
-	if result.Error != nil {
-		response.BadRequest(c, "对话不存在", result.Error)
+	// 获取对话信息
+	conversation, err := service.ChatAgent.GetConversationByUUID(uuid)
+	if err != nil {
+		response.BadRequest(c, "对话不存在", err)
 		return
 	}
 
 	response.Success(c, "获取成功", conversation)
+}
+
+// @Summary 获取对话消息列表
+// @Description 获取指定对话的消息历史记录
+// @Accept json
+// @Produce json
+// @Param id path string true "对话ID"
+// @Param page query int false "页码,默认1"
+// @Param page_size query int false "每页数量,默认20"
+// @Success 200 {object} models.Response{data=models.PaginationData}
+// @Failure 400 {object} models.Response
+// @Failure 500 {object} models.Response
+// @Router /chat/agent/{id}/messages [get]
+func (h ChatAgentHeadler) GetMessageListByConversationID(c *gin.Context) {
+	// 获取路径参数
+	// 将路径参数id转换为int类型
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		response.BadRequest(c, "对话ID格式错误", err)
+		return
+	}
+
+	// 获取分页参数
+	page, pageSize := getPaginationParams(c)
+
+	// 获取消息列表
+	messages, total, err := service.ChatAgent.GetMessageListByConversationID(id, page, pageSize)
+	if err != nil {
+		response.ServerError(c, "获取消息失败", err)
+		return
+	}
+
+	response.SuccessWithPagination(c, "获取消息成功", messages, total, page, pageSize)
 }
 
 // @Summary 关闭对话
@@ -120,9 +153,9 @@ func (h ChatHeadler) GetConversationByUUID(c *gin.Context) {
 // @Failure 401 {object} models.Response
 // @Failure 500 {object} models.Response
 // @Router /chat/agent/{uuid}/close [put]
-func (h ChatHeadler) CloseConversation(c *gin.Context) {
+func (h ChatAgentHeadler) CloseConversation(c *gin.Context) {
 	// 获取当前客服ID
-	_, exists := middleware.GetCurrentAgentID(c)
+	agentID, exists := middleware.GetCurrentAgentID(c)
 	if !exists {
 		response.Unauthorized(c, "未认证")
 		return
@@ -135,34 +168,12 @@ func (h ChatHeadler) CloseConversation(c *gin.Context) {
 		return
 	}
 
-	// 查找对话
-	var conversation models.Conversations
-	result := database.DB.Where("uuid = ?", uuid).First(&conversation)
-	if result.Error != nil {
-		response.BadRequest(c, "对话不存在或无权操作", result.Error)
+	// 关闭对话
+	err := service.ChatAgent.CloseConversation(uuid, agentID)
+	if err != nil {
+		response.ServerError(c, "关闭对话失败", err)
 		return
 	}
-
-	// 更新对话状态
-	conversation.Status = "closed"
-	conversation.UpdatedAt = time.Now()
-	result = database.DB.Save(&conversation)
-
-	if result.Error != nil {
-		response.ServerError(c, "关闭对话失败", result.Error)
-		return
-	}
-
-	// 发送系统消息
-	systemMessage := models.Message{
-		ConversationID: conversation.ID,
-		Content:        "对话已关闭",
-		Sender:         "system",
-		Type:           "system",
-		CreatedAt:      time.Now(),
-	}
-
-	database.DB.Create(&systemMessage)
 
 	response.Success(c, "对话已关闭", nil)
 }
