@@ -37,7 +37,8 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentCon
 
   // 当选中的会话变化时，通知父组件
   useEffect(() => {
-    if (onCurrentConversationChange) {
+    if (onCurrentConversationChange && selectedConversation > 0) {
+      console.log("selectedConversation改变", selectedConversation)
       onCurrentConversationChange(selectedConversation);
     }
   }, [selectedConversation, onCurrentConversationChange]);

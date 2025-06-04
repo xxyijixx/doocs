@@ -49,23 +49,30 @@ export const useMessageStore = create<MessageState>((set, get) => ({
   },
   
   addMessage: (conversationId: number, message: Message) => {
+    console.log('addMessage被调用，会话ID:', conversationId, '消息:', message);
     set(state => {
       // 获取当前会话的消息列表，如果不存在则创建空数组
       const currentMessages = state.messagesByConversation[conversationId] || [];
+      console.log('当前会话消息数量:', currentMessages.length);
       
       // 检查消息是否已存在（基于 id 或其他唯一标识）
       const messageExists = currentMessages.some(m => m.id === message.id);
+      console.log('消息是否已存在:', messageExists);
       
       // 如果消息已存在，不做任何更改
       if (messageExists) {
+        console.log('消息已存在，跳过添加');
         return state;
       }
       
       // 添加新消息并更新状态
+      const newMessages = [...currentMessages, message];
+      console.log('添加新消息后，消息数量:', newMessages.length);
+      
       return {
         messagesByConversation: {
           ...state.messagesByConversation,
-          [conversationId]: [...currentMessages, message]
+          [conversationId]: newMessages
         }
       };
     });

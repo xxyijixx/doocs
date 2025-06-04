@@ -31,7 +31,7 @@ class WebSocketService {
     };
 
     this.socket.onmessage = (event) => {
-      console.log('WebSocket message received:', event.data);
+      console.log('WebSocket message received:', event.data, this.messageListeners.length);
       this.messageListeners.forEach(listener => listener(event));
     };
 
@@ -64,7 +64,9 @@ class WebSocketService {
   }
 
   public addMessageListener(listener: (event: MessageEvent) => void): void {
+    console.log('添加WS监听，Adding WebSocket message listener', this.messageListeners.length);
     this.messageListeners.push(listener);
+    console.log('添加WS监听 zhh，Adding WebSocket message listener', this.messageListeners.length);
   }
 
   public removeMessageListener(listener: (event: MessageEvent) => void): void {

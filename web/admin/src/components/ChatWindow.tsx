@@ -44,6 +44,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const messages = conversationId
     ? messagesByConversation[conversationId] || []
     : [];
+  
+  // 添加调试日志
+  console.log('ChatWindow - conversationId:', conversationId);
+  console.log('ChatWindow - messagesByConversation:', messagesByConversation);
+  console.log('ChatWindow - messages数量:', messages.length);
     
 
   useEffect(() => {
