@@ -219,7 +219,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* 消息列表 */}
-      <div className="flex-1 overflow-y-auto px-8 py-4 space-y-6">
+      <div className="flex-1 overflow-y-auto px-8 py-4">
         {loading ? (
           <div className="text-center text-gray-400 dark:text-gray-500 mt-10">
             加载中...
