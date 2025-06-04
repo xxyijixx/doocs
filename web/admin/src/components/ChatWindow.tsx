@@ -32,7 +32,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   conversationId,
   onBackClick,
 }) => {
-  const { messagesByConversation, loading, fetchMessages, refreshTrigger } =
+  const { messagesByConversation, loading, fetchMessages, refreshTrigger, addMessage } =
     useMessageStore();
   const { conversations } = useConversationStore();
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -80,23 +80,48 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     e.preventDefault();
     if (!newMessage.trim() || !conversationId) return;
 
+    const messageContent = newMessage.trim();
+    setSending(true);
+    
+    // 清空输入框
+    setNewMessage("");
+
+    // 创建临时消息对象，立即添加到本地状态
+    const tempMessage = {
+      id: Date.now(), // 使用时间戳作为临时ID
+      conversation_uuid: conversation?.uuid || '',
+      conversation_id: conversationId,
+      content: messageContent,
+      sender: "agent" as const,
+      type: "text" as const,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // 立即添加消息到本地状态
+    addMessage(conversationId, tempMessage);
+
     try {
       // 发送消息到服务器
-      await chatApi.sendMessage({
+      const response = await chatApi.sendMessage({
         id: conversationId,
-        content: newMessage,
+        content: messageContent,
         sender: "agent",
         type: "text",
       });
-      setSending(true);
-      // 清空输入框
-      setNewMessage("");
-
-      // 重新获取消息列表
-      fetchMessages(conversationId);
+      
+      // 如果服务器返回了消息数据，可以用服务器返回的数据更新本地消息
+      // 这里假设服务器返回的消息有正确的ID
+      if (response.data) {
+        // 可以选择用服务器返回的消息替换临时消息
+        // 或者保持当前的临时消息不变
+      }
+      
       setSending(false);
     } catch (error) {
       console.error("发送消息失败:", error);
+      // 发送失败时，可以选择移除刚添加的消息或显示错误状态
+      // 这里暂时保留消息，但可以根据需要调整
       setSending(false);
     }
   };
