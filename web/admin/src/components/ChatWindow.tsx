@@ -32,18 +32,24 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   conversationId,
   onBackClick,
 }) => {
-  const { messagesByConversation, loading, fetchMessages, refreshTrigger, addMessage } =
+  const { messagesByConversation, loading, fetchMessages, refreshTrigger, addMessage, loadMoreMessages } =
     useMessageStore();
   const { conversations } = useConversationStore();
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // 获取当前会话的消息
-  const messages = conversationId
-    ? messagesByConversation[conversationId] || []
-    : [];
+
+  
+  // 获取当前会话的消息状态
+  const conversationState = conversationId
+    ? messagesByConversation[conversationId]
+    : null;
+  const messages = conversationState?.messages || [];
+  const hasMore = conversationState?.hasMore || false;
+  const messagesLoading = conversationState?.loading || false;
   
   // 添加调试日志
   console.log('ChatWindow - conversationId:', conversationId);
@@ -64,10 +70,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   }, [conversationId, fetchMessages, conversations]);
 
-  // 当消息列表更新时，滚动到底部
+  // 当消息列表更新时，滚动到底部（仅在不是加载更多时）
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (!messagesLoading && conversationState?.currentPage === 1) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, messagesLoading, conversationState?.currentPage]);
 
   // 当刷新触发器更新时，重新获取消息
   useEffect(() => {
@@ -75,6 +83,28 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       fetchMessages(conversationId);
     }
   }, [refreshTrigger, conversationId, fetchMessages]);
+
+  // 滚动监听，实现懒加载
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop } = container;
+      // 当滚动到顶部附近时加载更多消息
+      if (scrollTop < 100 && hasMore && !messagesLoading && conversationId) {
+        const previousScrollHeight = container.scrollHeight;
+        loadMoreMessages(conversationId).then(() => {
+          // 加载完成后保持滚动位置
+          const newScrollHeight = container.scrollHeight;
+          container.scrollTop = newScrollHeight - previousScrollHeight;
+        });
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [conversationId, hasMore, messagesLoading, loadMoreMessages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,10 +249,30 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* 消息列表 */}
-      <div className="flex-1 overflow-y-auto px-8 py-4">
-        {loading ? (
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-8 py-4">
+        {/* 加载更多提示 */}
+        {messagesLoading && hasMore && (
+          <div className="text-center text-gray-400 dark:text-gray-500 mb-4">
+            <div className="flex items-center justify-center gap-2">
+              <CogIcon className="w-4 h-4 animate-spin" />
+              <span>加载更多消息...</span>
+            </div>
+          </div>
+        )}
+        
+        {/* 没有更多消息提示 */}
+        {!hasMore && messages.length > 0 && (
+          <div className="text-center text-gray-400 dark:text-gray-500 mb-4">
+            <span className="text-sm">已显示所有消息</span>
+          </div>
+        )}
+        
+        {loading && messages.length === 0 ? (
           <div className="text-center text-gray-400 dark:text-gray-500 mt-10">
-            加载中...
+            <div className="flex items-center justify-center gap-2">
+              <CogIcon className="w-5 h-5 animate-spin" />
+              <span>加载中...</span>
+            </div>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
@@ -237,53 +287,55 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             </div>
           </div>
         ) : (
-          messages.map((message, index) => (
-            <Transition
-              key={message.id || index}
-              appear
-              show={true}
-              enter="transition-all duration-300"
-              enterFrom="opacity-0 translate-y-2"
-              enterTo="opacity-100 translate-y-0"
-            >
-              <div
-                className={`flex gap-3 ${
-                  message.sender === "agent" ? "justify-end" : "justify-start"
-                }`}
+          <div className="space-y-4">
+            {messages.map((message, index) => (
+              <Transition
+                key={`${message.id}-${message.created_at}-${index}`}
+                appear
+                show={true}
+                enter="transition-all duration-300"
+                enterFrom="opacity-0 translate-y-2"
+                enterTo="opacity-100 translate-y-0"
               >
-                {message.sender === "customer" && (
-                  <div className="w-10 h-10 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center shadow-md">
-                    <UserIcon className="w-5 h-5 text-white" />
+                <div
+                  className={`flex gap-3 ${
+                    message.sender === "agent" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  {message.sender === "customer" && (
+                    <div className="w-10 h-10 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center shadow-md">
+                      <UserIcon className="w-5 h-5 text-white" />
+                    </div>
+                  )}
+                  <div className="flex flex-col max-w-xs lg:max-w-md">
+                    <div
+                      className={`px-4 py-3 rounded-2xl shadow-sm ${
+                        message.sender === "agent"
+                          ? "bg-blue-500 text-white rounded-br-md"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md"
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed">{message.content}</p>
+                    </div>
+                    <p
+                      className={`text-xs mt-1 opacity-70 ${
+                        message.sender === "agent" ? "text-right" : "text-left"
+                      }`}
+                    >
+                      {message.created_at
+                        ? new Date(message.created_at).toLocaleTimeString()
+                        : ""}
+                    </p>
                   </div>
-                )}
-                <div className="flex flex-col max-w-xs lg:max-w-md">
-                  <div
-                    className={`px-4 py-3 rounded-2xl shadow-sm ${
-                      message.sender === "agent"
-                        ? "bg-blue-500 text-white rounded-br-md"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md"
-                    }`}
-                  >
-                    <p className="text-sm leading-relaxed">{message.content}</p>
-                  </div>
-                  <p
-                    className={`text-xs mt-1 opacity-70 ${
-                      message.sender === "agent" ? "text-right" : "text-left"
-                    }`}
-                  >
-                    {message.created_at
-                      ? new Date(message.created_at).toLocaleTimeString()
-                      : ""}
-                  </p>
+                  {message.sender === "agent" && (
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
+                      <CpuChipIcon className="w-5 h-5 text-white" />
+                    </div>
+                  )}
                 </div>
-                {message.sender === "agent" && (
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
-                    <CpuChipIcon className="w-5 h-5 text-white" />
-                  </div>
-                )}
-              </div>
-            </Transition>
-          ))
+              </Transition>
+            ))}
+          </div>
         )}
         <div ref={messagesEndRef} />
       </div>
