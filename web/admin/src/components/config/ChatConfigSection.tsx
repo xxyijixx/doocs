@@ -49,36 +49,6 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
         </h2>
       </div>
       <div className="space-y-4">
-        {/* 显示当前配置状态 */}
-        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            当前配置状态
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">
-                机器人ID:
-              </span>
-              <span className="ml-2 font-mono">
-                {systemConfig.dooTaskIntegration.botId || "未设置"}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">
-                项目ID:
-              </span>
-              <span className="ml-2 font-mono">
-                {systemConfig.dooTaskIntegration.projectId || "未设置"}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">
-                来源数量:
-              </span>
-              <span className="ml-2 font-mono">{sources.length}</span>
-            </div>
-          </div>
-        </div>
 
         <div className="flex flex-wrap gap-4">
           <Button
@@ -107,7 +77,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
         {/* 来源管理 */}
         <div className="mt-6">
           <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-4">
-            客服来源管理
+            来源管理
           </h3>
 
           {/* 创建新来源 */}
@@ -163,7 +133,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                         </code>
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        任务ID: {source.taskId} | 对话ID: {source.dialogId}
+                        项目ID: {source.projectId} | 任务ID: {source.taskId} | 对话ID: {source.dialogId}
                       </div>
                     </div>
                     <div className="flex gap-2">

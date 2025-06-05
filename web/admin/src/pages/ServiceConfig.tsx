@@ -3,10 +3,7 @@ import { MessageAlert } from "../components/common/MessageAlert";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { BotConfigSection } from "../components/config/BotConfigSection";
 import { ChatConfigSection } from "../components/config/ChatConfigSection";
-import { BasicConfigSection } from "../components/config/BasicConfigSection";
-import { WorkingHoursSection } from "../components/config/WorkingHoursSection";
-import { AutoReplySection } from "../components/config/AutoReplySection";
-import { UIConfigSection } from "../components/config/UIConfigSection";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 export default function ServiceConfig() {
   const {
@@ -19,6 +16,8 @@ export default function ServiceConfig() {
     selectedUserBot,
     newSourceName,
     isCreatingSource,
+    confirmDialog,
+    closeConfirmDialog,
     setNewSourceName,
     setEditingSource,
     onGetUserBotList,
@@ -29,8 +28,6 @@ export default function ServiceConfig() {
     onDeleteSource,
     onResetSystemConfig,
     handleSystemConfigSubmit,
-    handleSystemConfigChange,
-    handleDefaultSourceConfigChange,
   } = useServiceConfig();
 
   if (isLoading) {
@@ -80,29 +77,29 @@ export default function ServiceConfig() {
           />
 
           {/* 基本配置 */}
-          <BasicConfigSection
+          {/* <BasicConfigSection
             systemConfig={systemConfig}
             onSystemConfigChange={handleSystemConfigChange}
             onDefaultSourceConfigChange={handleDefaultSourceConfigChange}
-          />
+          /> */}
 
           {/* 工作时间设置 */}
-           <WorkingHoursSection
+           {/* <WorkingHoursSection
              systemConfig={systemConfig}
              onDefaultSourceConfigChange={handleDefaultSourceConfigChange}
-           />
+           /> */}
 
           {/* 默认自动回复和客服分配设置 */}
-           <AutoReplySection
+           {/* <AutoReplySection
              systemConfig={systemConfig}
              onDefaultSourceConfigChange={handleDefaultSourceConfigChange}
-           />
+           /> */}
 
           {/* 默认界面设置 */}
-           <UIConfigSection
+           {/* <UIConfigSection
              systemConfig={systemConfig}
              onDefaultSourceConfigChange={handleDefaultSourceConfigChange}
-           />
+           /> */}
 
           {/* 提交按钮 */}
           <div className="flex justify-end">
@@ -142,6 +139,18 @@ export default function ServiceConfig() {
           </div>
         </form>
       </div>
+      
+      {/* 确认对话框 */}
+       <ConfirmDialog
+         isOpen={confirmDialog.isOpen}
+         onClose={closeConfirmDialog}
+         onConfirm={confirmDialog.onConfirm}
+         title={confirmDialog.title}
+         message={confirmDialog.message}
+         type={confirmDialog.title === '删除确认' ? 'danger' : 'warning'}
+         confirmText={confirmDialog.title === '删除确认' ? '删除' : '确认'}
+         cancelText="取消"
+       />
     </div>
   );
 }

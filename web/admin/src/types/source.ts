@@ -7,6 +7,7 @@ export interface CustomerServiceSource {
   id?: number;
   sourceKey: string; // 后端生成的来源标识key
   name: string; // 来源名称
+  projectId: number | null; // 对应的项目ID
   taskId: number | null; // 对应的任务ID
   dialogId: number | null; // 对应的对话ID
   

@@ -73,6 +73,14 @@ export const useServiceConfig = () => {
   const [newSourceName, setNewSourceName] = useState<string>("");
   const [isCreatingSource, setIsCreatingSource] = useState<boolean>(false);
   const [editingSource, setEditingSource] = useState<CustomerServiceSource | null>(null);
+  
+  // 确认对话框状态
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
   // 初始化
   useEffect(() => {
@@ -344,6 +352,7 @@ export const useServiceConfig = () => {
         id: sourceResponse.id,
         sourceKey: sourceResponse.sourceKey,
         name: newSourceName.trim(),
+        projectId: sourceResponse.projetId,
         taskId: taskId,
         dialogId: dialogId,
         ...systemConfig.defaultSourceConfig,
@@ -370,45 +379,60 @@ export const useServiceConfig = () => {
   };
 
   // 删除来源
-  const onDeleteSource = async (source: CustomerServiceSource) => {
-    if (!window.confirm(`确定要删除来源 "${source.name}" 吗？`)) {
-      return;
-    }
-
-    try {
-      if (source.id) {
-        await deleteSource(source.id);
+  const onDeleteSource = (source: CustomerServiceSource) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '删除确认',
+      message: `确定要删除来源 "${source.name}" 吗？`,
+      onConfirm: async () => {
+        try {
+          if (source.id) {
+            await deleteSource(source.id);
+          }
+          setSources((prev) => prev.filter((s) => s.id !== source.id));
+          setSaveMessage({
+            type: "success",
+            text: "来源删除成功",
+          });
+        } catch (error) {
+          console.error("删除来源失败:", error);
+          setSaveMessage({
+            type: "error",
+            text: `删除来源失败: ${
+              error instanceof Error ? error.message : "未知错误"
+            }`,
+          });
+        }
       }
-      setSources((prev) => prev.filter((s) => s.id !== source.id));
-      setSaveMessage({
-        type: "success",
-        text: "来源删除成功",
-      });
-    } catch (error) {
-      console.error("删除来源失败:", error);
-      setSaveMessage({
-        type: "error",
-        text: `删除来源失败: ${
-          error instanceof Error ? error.message : "未知错误"
-        }`,
-      });
-    }
+    });
+  };
+  
+  // 关闭确认对话框
+  const closeConfirmDialog = () => {
+    setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: () => {} });
   };
 
   // 重置系统配置
   const onResetSystemConfig = () => {
-    setSystemConfig((prev) => ({
-      ...prev,
-      dooTaskIntegration: {
-        botId: null,
-        botToken: "",
-        projectId: null,
-      },
-    }));
-    setSelectedUserBot(null);
-    setSaveMessage({
-      type: "success",
-      text: "系统配置已重置",
+    setConfirmDialog({
+      isOpen: true,
+      title: '重置确认',
+      message: '确定要重置系统配置吗？这将清除所有DooTask集成设置。',
+      onConfirm: () => {
+        setSystemConfig((prev) => ({
+          ...prev,
+          dooTaskIntegration: {
+            botId: null,
+            botToken: "",
+            projectId: null,
+          },
+        }));
+        setSelectedUserBot(null);
+        setSaveMessage({
+          type: "success",
+          text: "系统配置已重置",
+        });
+      }
     });
   };
 
@@ -479,6 +503,10 @@ export const useServiceConfig = () => {
     setNewSourceName,
     setEditingSource,
     setSaveMessage,
+    
+    // 确认对话框状态
+    confirmDialog,
+    closeConfirmDialog,
     
     // 方法
     onGetUserBotList,
