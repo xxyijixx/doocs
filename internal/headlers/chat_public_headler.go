@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"support-plugin/internal/models"
+	bizErrors "support-plugin/internal/pkg/errors"
 	"support-plugin/internal/pkg/response"
 	"support-plugin/internal/service"
 
@@ -66,11 +67,20 @@ func (h ChatPublicHeadler) SendMessage(c *gin.Context) {
 	// 发送消息
 	message, err := service.ChatPublic.SendMessage(req.UUID, req.Content, req.Sender, req.Type, req.Metadata)
 	if err != nil {
-		response.ServerError(c, "发送消息失败", err)
+		response.BadRequest(c, "发送消息失败", err)
 		return
 	}
 
-	response.Success(c, "发送消息成功", message)
+	// 为客户端简化消息数据
+	simplifiedMessage := map[string]interface{}{
+		"id":         message.ID,
+		"content":    message.Content,
+		"sender":     message.Sender,
+		"type":       message.Type,
+		"created_at": message.CreatedAt,
+	}
+
+	response.Success(c, "发送消息成功", simplifiedMessage)
 }
 
 // @Summary 获取对话消息列表
@@ -109,11 +119,23 @@ func (h ChatPublicHeadler) GetMessages(c *gin.Context) {
 	// 获取消息列表
 	messages, total, err := service.ChatPublic.GetMessages(uuid, page, pageSize)
 	if err != nil {
-		response.ServerError(c, "获取消息失败", err)
+		response.BadRequest(c, "获取消息失败", err)
 		return
 	}
 
-	response.SuccessWithPagination(c, "获取消息成功", messages, total, page, pageSize)
+	// 为客户端简化消息数据
+	simplifiedMessages := make([]map[string]interface{}, len(messages))
+	for i, msg := range messages {
+		simplifiedMessages[i] = map[string]interface{}{
+			"id":         msg.ID,
+			"content":    msg.Content,
+			"sender":     msg.Sender,
+			"type":       msg.Type,
+			"created_at": msg.CreatedAt,
+		}
+	}
+
+	response.SuccessWithPagination(c, "获取消息成功", simplifiedMessages, total, page, pageSize)
 }
 
 // @Summary 获取对话信息
@@ -136,9 +158,25 @@ func (h ChatPublicHeadler) GetConversation(c *gin.Context) {
 	// 获取对话信息
 	conversation, err := service.ChatPublic.GetConversation(uuid)
 	if err != nil {
+		// 检查是否是业务错误
+		if bizErr, ok := bizErrors.IsBusinessError(err); ok {
+			response.BadRequest(c, bizErr.Message, bizErr)
+			return
+		}
 		response.ServerError(c, "获取对话失败", err)
 		return
 	}
 
-	response.Success(c, "获取对话成功", conversation)
+	// 为客户端简化对话数据
+	simplifiedConversation := map[string]interface{}{
+		"uuid":            conversation.Uuid,
+		"title":           conversation.Title,
+		"status":          conversation.Status,
+		"source":          conversation.Source,
+		"last_message":    conversation.LastMessage,
+		"last_message_at": conversation.LastMessageAt,
+		"created_at":      conversation.CreatedAt,
+	}
+
+	response.Success(c, "获取对话成功", simplifiedConversation)
 }

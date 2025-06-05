@@ -4,12 +4,12 @@
  */
 
 // 配置API基础URL
-const CONFIG_API_BASE_URL = 'http://192.168.31.214:8888/api/v1';
+const API_BASE_URL = 'http://192.168.31.214:8888/api/v1';
 
 /**
  * 配置API响应接口
  */
-export interface ConfigApiResponse<T = any> {
+export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   message?: string;
@@ -18,14 +18,15 @@ export interface ConfigApiResponse<T = any> {
 /**
  * 通用配置API请求方法
  */
-async function configRequest<T = any>(
+async function apiRequest<T = any>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const response = await fetch(`${CONFIG_API_BASE_URL}${url}`, {
+  const response = await fetch(`${API_BASE_URL}${url}`, {
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
+      'Authorization': 'Bearer 123456'
     },
     ...options,
   });
@@ -44,7 +45,7 @@ async function configRequest<T = any>(
  * @returns 配置数据
  */
 export async function getConfig(configKey: string): Promise<any> {
-  return configRequest(`/configs/${configKey}`, {
+  return apiRequest(`/configs/${configKey}`, {
     method: 'GET',
   });
 }
@@ -55,7 +56,7 @@ export async function getConfig(configKey: string): Promise<any> {
  * @param configData 配置数据
  */
 export async function saveConfig(configKey: string, configData: any): Promise<void> {
-  return configRequest(`/configs/${configKey}`, {
+  return apiRequest(`/configs/${configKey}`, {
     method: 'POST',
     body: JSON.stringify(configData),
   });
@@ -66,7 +67,7 @@ export async function saveConfig(configKey: string, configData: any): Promise<vo
  * @returns 配置列表
  */
 export async function getAllConfigs(): Promise<any[]> {
-  return configRequest('/configs', {
+  return apiRequest('/configs', {
     method: 'GET',
   });
 }
@@ -76,7 +77,7 @@ export async function getAllConfigs(): Promise<any[]> {
  * @param configKey 配置键名
  */
 export async function deleteConfig(configKey: string): Promise<void> {
-  return configRequest(`/configs/${configKey}`, {
+  return apiRequest(`/configs/${configKey}`, {
     method: 'DELETE',
   });
 }
@@ -104,4 +105,24 @@ export async function configExists(configKey: string): Promise<boolean> {
   } catch (error) {
     return false;
   }
+}
+
+/**
+ * 关闭会话
+ * @param conversationId 会话ID
+ */
+export async function closeConversation(conversationId: number): Promise<void> {
+  return apiRequest(`/chat/agent/conversations/${conversationId}/close`, {
+    method: 'PUT',
+  });
+}
+
+/**
+ * 重新打开会话
+ * @param conversationId 会话ID
+ */
+export async function reopenConversation(conversationId: number): Promise<void> {
+  return apiRequest(`/chat/agent/conversations/${conversationId}/reopen`, {
+    method: 'PUT',
+  });
 }

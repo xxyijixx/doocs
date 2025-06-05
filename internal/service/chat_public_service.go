@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/dootask"
+	bizErrors "support-plugin/internal/pkg/errors"
 	"support-plugin/internal/pkg/logger"
 	"support-plugin/internal/pkg/websocket"
 )
@@ -32,7 +32,7 @@ func (s *ChatPublicService) CreateConversation(agentID, customerID uint, title, 
 	}
 	if err := database.DB.Model(&models.CustomerServiceSource{}).Where("source_key =?", source).First(&csSource).Error; err != nil {
 		logger.App.Error("来源不存在", zap.String("source", source), zap.Error(err))
-		return "", err
+		return "", bizErrors.ErrSourceNotFound
 	}
 
 	// 创建对话记录
@@ -71,14 +71,19 @@ func (s *ChatPublicService) SendMessage(conversationUUID, content, sender, msgTy
 	var conversation models.Conversations
 	result := database.DB.Where("uuid = ?", conversationUUID).First(&conversation)
 	if result.Error != nil {
-		return nil, errors.New("对话不存在")
+		return nil, bizErrors.ErrConversationNotFound
+	}
+
+	// 检查对话状态
+	if conversation.Status == "closed" {
+		return nil, bizErrors.ErrConversationClosed
 	}
 
 	// 查找来源
 	var csSource models.CustomerServiceSource
 	result = database.DB.Where("source_key =?", conversation.SourceKey).First(&csSource)
 	if result.Error != nil {
-		return nil, errors.New("来源不存在")
+		return nil, bizErrors.ErrSourceNotFound
 	}
 
 	dialogID := ""
@@ -135,7 +140,15 @@ func (s *ChatPublicService) GetMessages(conversationUUID string, page, pageSize 
 	var conversation models.Conversations
 	result := database.DB.Where("uuid = ?", conversationUUID).First(&conversation)
 	if result.Error != nil {
-		return nil, 0, errors.New("对话不存在")
+		return nil, 0, bizErrors.ErrConversationNotFound
+	}
+
+	// 检查对话状态 - 对于获取消息，即使关闭的对话也应该能查看历史消息
+	// 但可以在这里添加其他业务逻辑
+	if conversation.Status == "closed" {
+		// 可以选择返回错误或者允许查看历史消息
+		// return nil, 0, errors.New("对话已关闭")
+		// 这里我们允许查看已关闭对话的历史消息
 	}
 
 	// 计算总数
@@ -166,7 +179,7 @@ func (s *ChatPublicService) GetConversation(uuid string) (*models.Conversations,
 	var conversation models.Conversations
 	result := database.DB.Where("uuid = ?", uuid).First(&conversation)
 	if result.Error != nil {
-		return nil, errors.New("对话不存在")
+		return nil, bizErrors.ErrConversationNotFound
 	}
 
 	return &conversation, nil

@@ -7,6 +7,7 @@ import (
 
 	"support-plugin/internal/middleware"
 	"support-plugin/internal/models"
+	bizErrors "support-plugin/internal/pkg/errors"
 	"support-plugin/internal/pkg/response"
 	"support-plugin/internal/service"
 )
@@ -35,7 +36,7 @@ func (h ChatAgentHeadler) SendMessageByAgent(c *gin.Context) {
 	}
 
 	// 发送消息
-	message, err := service.ChatAgent.SendMessageByAgent(req.ID, req.Content, req.Sender, req.Type, req.Metadata)
+	message, err := service.ChatAgent.SendMessageByAgent(uint(req.ID), req.Content, req.Sender, req.Type, req.Metadata)
 	if err != nil {
 		response.ServerError(c, "发送消息失败", err)
 		return
@@ -144,38 +145,90 @@ func (h ChatAgentHeadler) GetMessageListByConversationID(c *gin.Context) {
 }
 
 // @Summary 关闭对话
-// @Description 关闭指定的对话
+// @Description 客服关闭指定的对话
 // @Accept json
 // @Produce json
 // @Param uuid path string true "对话UUID"
 // @Success 200 {object} models.Response
 // @Failure 400 {object} models.Response
-// @Failure 401 {object} models.Response
 // @Failure 500 {object} models.Response
-// @Router /chat/agent/{uuid}/close [put]
+// @Router /chat/agent/conversations/{id}/close [put]
 func (h ChatAgentHeadler) CloseConversation(c *gin.Context) {
-	// 获取当前客服ID
-	agentID, exists := middleware.GetCurrentAgentID(c)
-	if !exists {
-		response.Unauthorized(c, "未认证")
+	// 获取对话UUID
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		response.BadRequest(c, "对话ID格式错误", err)
 		return
 	}
 
-	// 获取对话UUID
-	uuid := c.Param("uuid")
-	if uuid == "" {
-		response.BadRequest(c, "缺少对话UUID", nil)
+	// 获取当前客服信息
+	// agentInfo, exists := c.Get("agent")
+	// if !exists {
+	// 	response.Unauthorized(c, "未授权访问")
+	// 	return
+	// }
+
+	// agent := agentInfo.(models.Agent)
+	agentID, exists := middleware.GetCurrentAgentID(c)
+	if !exists {
+		response.Unauthorized(c, "未授权访问")
 		return
 	}
 
 	// 关闭对话
-	err := service.ChatAgent.CloseConversation(uuid, agentID)
+	err = service.ChatAgent.CloseConversation(id, agentID)
 	if err != nil {
+		// 检查是否是业务错误
+		if bizErr, ok := bizErrors.IsBusinessError(err); ok {
+			response.BadRequest(c, bizErr.Message, bizErr)
+			return
+		}
 		response.ServerError(c, "关闭对话失败", err)
 		return
 	}
 
 	response.Success(c, "对话已关闭", nil)
+}
+
+// @Summary 重新打开对话
+// @Description 客服重新打开已关闭的对话
+// @Accept json
+// @Produce json
+// @Param uuid path string true "对话UUID"
+// @Success 200 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 500 {object} models.Response
+// @Router /chat/agent/conversations/{id}/reopen [put]
+func (h ChatAgentHeadler) ReopenConversation(c *gin.Context) {
+	// 获取对话UUID
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		response.BadRequest(c, "对话ID格式错误", err)
+		return
+	}
+
+	// 获取当前客服信息
+	agentID, exists := middleware.GetCurrentAgentID(c)
+	if !exists {
+		response.Unauthorized(c, "未授权访问")
+		return
+	}
+
+	// 重新打开对话
+	err = service.ChatAgent.ReopenConversation(id, agentID)
+	if err != nil {
+		// 检查是否是业务错误
+		if bizErr, ok := bizErrors.IsBusinessError(err); ok {
+			response.BadRequest(c, bizErr.Message, bizErr)
+			return
+		}
+		response.ServerError(c, "重新打开对话失败", err)
+		return
+	}
+
+	response.Success(c, "对话已重新打开", nil)
 }
 
 // 获取分页参数

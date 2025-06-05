@@ -18,6 +18,8 @@ interface ConversationState {
   updateConversationLastMessage: (conversationId: number, lastMessage: string, lastMessageAt: string) => void;
   // 更新整个会话信息
   updateConversation: (conversationId: number, updates: Partial<Conversation>) => void;
+  // 更新会话状态
+  updateConversationStatus: (conversationId: number, status: "open" | "closed") => void;
 }
 
 export const useConversationStore = create<ConversationState>((set) => ({
@@ -64,6 +66,17 @@ export const useConversationStore = create<ConversationState>((set) => ({
       conversations: state.conversations.map(conv => 
         conv.id === conversationId 
           ? { ...conv, ...updates }
+          : conv
+      )
+    }));
+  },
+
+  updateConversationStatus: (conversationId: number, status: "open" | "closed") => {
+    
+    set(state => ({
+      conversations: state.conversations.map(conv => 
+        conv.id === conversationId && conv.status !== status
+          ? { ...conv, status }
           : conv
       )
     }));

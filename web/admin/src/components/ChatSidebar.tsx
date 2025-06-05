@@ -1,10 +1,11 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect, forwardRef } from 'react';
 // import type { Conversation } from '../types/chat';
-import { MagnifyingGlassIcon, HomeIcon, Cog6ToothIcon, UserGroupIcon, PlusIcon, CogIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, HomeIcon, Cog6ToothIcon, UserGroupIcon, PlusIcon, CogIcon, FunnelIcon, XMarkIcon, EllipsisVerticalIcon, XCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { Button, Field, Input, Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 // import { ThemeToggle } from './ThemeToggle';
 import { useConversationStore } from '../store/conversationStore';
+import { closeConversation, reopenConversation } from '../api/cs';
 
 interface ChatSidebarProps {
   selectedId: number;
@@ -22,7 +23,7 @@ export interface ChatSidebarRef {
 }
 
 export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selectedId, onSelectConversation, onRefresh, isMobile = false, onNewMessage, onSendMessage }, ref) => {
-  const { conversations, loading, fetchConversations, refreshTrigger, updateConversationLastMessage } = useConversationStore();
+  const { conversations, loading, fetchConversations, refreshTrigger, updateConversationLastMessage, updateConversationStatus } = useConversationStore();
   const [search, setSearch] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -50,8 +51,32 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
     onSendMessage?.(conversationId, message);
   }, [updateConversationLastMessage, onSendMessage]);
 
+  // 关闭会话
+  const handleCloseConversation = async (conversationId: number) => {
+    try {
+      await closeConversation(conversationId);
+      // 更新本地状态
+      updateConversationStatus(conversationId, 'closed');
+    } catch (error) {
+      console.error('关闭会话时发生错误:', error);
+      alert('关闭会话失败: ' + (error instanceof Error ? error.message : '未知错误'));
+    }
+  };
+
+  // 重新打开会话
+  const handleReopenConversation = async (conversationId: number) => {
+    try {
+      await reopenConversation(conversationId);
+      // 更新本地状态
+      updateConversationStatus(conversationId, 'open');
+    } catch (error) {
+      console.error('重新打开会话时发生错误:', error);
+      alert('重新打开会话失败: ' + (error instanceof Error ? error.message : '未知错误'));
+    }
+  };
+
   // 暴露方法给父组件使用
-  useImperativeHandle(ref, () => ({
+  React.useImperativeHandle(ref, () => ({
     handleNewMessageReceived,
     handleMessageSent
   }), [handleNewMessageReceived, handleMessageSent]);
@@ -341,11 +366,53 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
                   )}
                 </div>
               </div>
-              {/* 状态指示器 */}
+              {/* 状态指示器和操作菜单 */}
               <div className="flex items-center gap-2">
                 {c.status === 'open' && (
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                 )}
+                {c.status === 'closed' && (
+                  <span className="w-2 h-2 rounded-full bg-gray-400" />
+                )}
+                
+                {/* 操作菜单 */}
+                <Menu as="div" className="relative">
+                  <MenuButton 
+                    className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <EllipsisVerticalIcon className="w-4 h-4 text-gray-400" />
+                  </MenuButton>
+                  <MenuItems className="absolute right-0 z-20 mt-1 w-32 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
+                    {c.status === 'open' ? (
+                      <MenuItem>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCloseConversation(c.id);
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
+                        >
+                          <XCircleIcon className="w-4 h-4" />
+                          关闭会话
+                        </button>
+                      </MenuItem>
+                    ) : (
+                      <MenuItem>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReopenConversation(c.id);
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm text-green-600 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
+                        >
+                          <ArrowPathIcon className="w-4 h-4" />
+                          重新打开
+                        </button>
+                      </MenuItem>
+                    )}
+                  </MenuItems>
+                </Menu>
               </div>
             </Button>
           ))

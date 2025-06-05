@@ -100,7 +100,9 @@ func RegisterRoutes(r *gin.Engine) {
 				// 获取对话消息列表
 				chatProtected.GET("/:id/messages", headlers.ChatAgent.GetMessageListByConversationID)
 				// 关闭对话
-				chatProtected.PUT("/:uuid/close", headlers.ChatAgent.CloseConversation)
+				chatProtected.PUT("/conversations/:id/close", headlers.ChatAgent.CloseConversation)
+				// 重新打开对话
+				chatProtected.PUT("/conversations/:id/reopen", headlers.ChatAgent.ReopenConversation)
 			}
 		}
 	}
