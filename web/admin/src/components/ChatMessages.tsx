@@ -6,10 +6,10 @@ import { PaperAirplaneIcon, ExclamationTriangleIcon, ChatBubbleLeftEllipsisIcon,
 import { CogIcon } from '@heroicons/react/24/outline';
 
 interface ChatMessagesProps {
-  conversationUuid: string;
+  conversationId: number;
 }
 
-export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationUuid }) => {
+export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationId }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -23,7 +23,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationUuid }) 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await chatApi.getMessages(conversationUuid);
+        const response = await chatApi.getMessages(conversationId);
         setMessages(response.data.items);
         setError(null);
       } catch (err) {
@@ -35,7 +35,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationUuid }) 
     };
 
     fetchMessages();
-  }, [conversationUuid]);
+  }, [conversationId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -47,14 +47,14 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationUuid }) 
 
     try {
       await chatApi.sendMessage({
-        uuid: conversationUuid,
+        id: conversationId,
         content: newMessage,
         sender: 'agent',
         type: 'text',
       });
 
       // 重新获取消息列表
-      const response = await chatApi.getMessages(conversationUuid);
+      const response = await chatApi.getMessages(conversationId);
       setMessages(response.data.items);
       setNewMessage('');
     } catch (err) {
