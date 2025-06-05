@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 // import type { Conversation } from '../types/chat';
 import { MagnifyingGlassIcon, HomeIcon, Cog6ToothIcon, UserGroupIcon, PlusIcon, CogIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Button, Field, Input, Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
@@ -11,10 +11,18 @@ interface ChatSidebarProps {
   onSelectConversation: (id: number) => void;
   onRefresh?: () => void; // 设为可选，因为现在主要依赖 Zustand store
   isMobile?: boolean; // 添加移动端标识
+  onNewMessage?: (conversationId: number, message: string) => void; // 新消息回调
+  onSendMessage?: (conversationId: number, message: string) => void; // 发送消息回调
 }
 
-export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedId, onSelectConversation, onRefresh, isMobile = false }) => {
-  const { conversations, loading, fetchConversations, refreshTrigger } = useConversationStore();
+// 暴露给父组件的方法接口
+export interface ChatSidebarRef {
+  handleNewMessageReceived: (conversationId: number, message: string) => void;
+  handleMessageSent: (conversationId: number, message: string) => void;
+}
+
+export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selectedId, onSelectConversation, onRefresh, isMobile = false, onNewMessage, onSendMessage }, ref) => {
+  const { conversations, loading, fetchConversations, refreshTrigger, updateConversationLastMessage } = useConversationStore();
   const [search, setSearch] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -27,6 +35,26 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedId, onSelectCo
     fetchConversations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTrigger, onRefresh]);
+
+  // 处理接收到新消息的推送
+  const handleNewMessageReceived = React.useCallback((conversationId: number, message: string) => {
+    const now = new Date().toISOString();
+    updateConversationLastMessage(conversationId, message, now);
+    onNewMessage?.(conversationId, message);
+  }, [updateConversationLastMessage, onNewMessage]);
+
+  // 处理发送消息
+  const handleMessageSent = React.useCallback((conversationId: number, message: string) => {
+    const now = new Date().toISOString();
+    updateConversationLastMessage(conversationId, message, now);
+    onSendMessage?.(conversationId, message);
+  }, [updateConversationLastMessage, onSendMessage]);
+
+  // 暴露方法给父组件使用
+  useImperativeHandle(ref, () => ({
+    handleNewMessageReceived,
+    handleMessageSent
+  }), [handleNewMessageReceived, handleMessageSent]);
 
   // 获取所有来源选项
   const sourceOptions = ['all', ...Array.from(new Set(conversations.map(c => c.source)))];
@@ -280,7 +308,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedId, onSelectCo
               key={c.id}
               onClick={() => onSelectConversation(c.id)}
               className={`
-                group w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                group w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 h-16
                 shadow-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 focus:bg-blue-100 dark:focus:bg-blue-900/30 text-left relative   
                 ${selectedId === c.id ? 'bg-blue-50 dark:bg-blue-900/20 shadow-md' : 'bg-white dark:bg-gray-800 hover:shadow-md'}
               `}
@@ -294,17 +322,22 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedId, onSelectCo
                 {c.title ? c.title[0].toUpperCase() : c.id}
               </div>
               {/* 标题和副标题 */}
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
                 <div className={`truncate font-medium ${selectedId === c.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}>
                   {c.title || `会话 ${c.id}`}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
                   <span>来源: {c.source}</span>
-                  {c.last_message_at && (
-                    <span className="w-1 h-1 rounded-full bg-gray-400" />
-                  )}
-                  {c.last_message_at && (
-                    <span>有消息</span>
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 h-4">
+                  {c.last_message_at ? (
+                    c.last_message ? (
+                      <span className="truncate">{c.last_message}</span>
+                    ) : (
+                      <span>有新消息</span>
+                    )
+                  ) : (
+                    <span className="opacity-0">占位</span>
                   )}
                 </div>
               </div>
@@ -337,4 +370,6 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedId, onSelectCo
       </div>
     </aside>
   );
-};
+});
+
+ChatSidebar.displayName = 'ChatSidebar';

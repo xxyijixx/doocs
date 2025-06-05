@@ -14,6 +14,10 @@ interface ConversationState {
   triggerRefresh: () => void;
   // 添加会话
   addConversation: (conversation: Conversation) => void;
+  // 更新会话的最新消息
+  updateConversationLastMessage: (conversationId: number, lastMessage: string, lastMessageAt: string) => void;
+  // 更新整个会话信息
+  updateConversation: (conversationId: number, updates: Partial<Conversation>) => void;
 }
 
 export const useConversationStore = create<ConversationState>((set) => ({
@@ -43,5 +47,25 @@ export const useConversationStore = create<ConversationState>((set) => ({
 
   addConversation: (conversation: Conversation) => {
     set(state => ({ conversations: [conversation, ...state.conversations] }));
+  },
+
+  updateConversationLastMessage: (conversationId: number, lastMessage: string, lastMessageAt: string) => {
+    set(state => ({
+      conversations: state.conversations.map(conv => 
+        conv.id === conversationId 
+          ? { ...conv, last_message: lastMessage, last_message_at: lastMessageAt }
+          : conv
+      )
+    }));
+  },
+
+  updateConversation: (conversationId: number, updates: Partial<Conversation>) => {
+    set(state => ({
+      conversations: state.conversations.map(conv => 
+        conv.id === conversationId 
+          ? { ...conv, ...updates }
+          : conv
+      )
+    }));
   }
 }));

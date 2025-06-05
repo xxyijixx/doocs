@@ -6,6 +6,7 @@ export interface Conversation {
   title: string;
   status: 'open' | 'closed';
   source: string;
+  last_message: string | null;
   last_message_at: string | null;
   created_at: string;
   updated_at: string;

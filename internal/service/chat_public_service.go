@@ -113,6 +113,7 @@ func (s *ChatPublicService) SendMessage(conversationUUID, content, sender, msgTy
 	// 更新对话的最后更新时间和最后消息时间
 	database.DB.Model(&conversation).Updates(map[string]interface{}{
 		"updated_at":      now,
+		"last_message":    content,
 		"last_message_at": now,
 	})
 

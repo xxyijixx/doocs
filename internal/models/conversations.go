@@ -72,6 +72,7 @@ type Conversations struct {
 	Status        string         `gorm:"column:status;default:'open'" json:"status"`           // 状态：open, closed
 	Source        string         `gorm:"column:source;default:'widget'" json:"source"`         // 来源：widget, api, etc.
 	SourceKey     string         `gorm:"column:source_key;default:'widget'" json:"source_key"` // 来源：widget, api, etc.
+	LastMessage   string         `gorm:"column:last_message" json:"last_message"`              // 最后一条消息内容
 	LastMessageAt *time.Time     `gorm:"column:last_message_at" json:"last_message_at"`        // 最后消息时间
 	CreatedAt     time.Time      `gorm:"column:created_at" json:"created_at"`                  // 创建时间
 	UpdatedAt     time.Time      `gorm:"column:updated_at" json:"updated_at"`                  // 更新时间
