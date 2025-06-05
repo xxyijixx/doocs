@@ -1,9 +1,12 @@
 package routes
 
 import (
+	"net/http"
+	"strings"
 	"support-plugin/internal/headlers"
 	"support-plugin/internal/middleware"
 	"support-plugin/internal/pkg/websocket"
+	"support-plugin/internal/web"
 
 	_ "support-plugin/docs"
 
@@ -108,9 +111,69 @@ func RegisterRoutes(r *gin.Engine) {
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	// 静态文件服务
-	r.Static("/static", "./static")
+	// // 静态文件服务
+	// r.StaticFS("/apps/cs", http.Dir("./web/admin/dist"))
 
-	// 404处理
-	r.NoRoute(headlers.NotFound)
+	// // 404处理，将所有未匹配的路由重定向到前端的index.html
+	// r.NoRoute(func(c *gin.Context) {
+	// 	c.File("./web/admin/dist/index.html")
+	// })
+	// 静态文件服务
+	r.GET("/apps/cs/*filepath", func(c *gin.Context) {
+		path := c.Param("filepath")
+
+		if path == "/" || path == "" {
+			path = "/index.html"
+		}
+
+		filePath := "dist" + path
+
+		// 尝试读取文件
+		file, err := web.Dist.ReadFile(filePath)
+		if err != nil {
+			// 文件不存在返回 index.html（用于 SPA 路由兼容）
+			if strings.Contains(err.Error(), "file does not exist") {
+
+			} else {
+				c.String(http.StatusInternalServerError, "Error: %v", err)
+			}
+			if strings.HasSuffix(path, ".html") || path == "/index.html" {
+				c.Data(http.StatusOK, "text/html; charset=utf-8", web.IndexByte)
+				return
+			}
+
+			// 非 HTML 文件，直接返回 404
+			c.String(http.StatusNotFound, "Not Found")
+			return
+		}
+		// 可选：简单的 MIME 类型推断
+		mimeType := func(path string) string {
+			switch {
+			case strings.HasSuffix(path, ".html"):
+				return "text/html; charset=utf-8"
+			case strings.HasSuffix(path, ".js"):
+				return "application/javascript"
+			case strings.HasSuffix(path, ".css"):
+				return "text/css"
+			case strings.HasSuffix(path, ".svg"):
+				return "image/svg+xml"
+			case strings.HasSuffix(path, ".png"):
+				return "image/png"
+			case strings.HasSuffix(path, ".jpg"), strings.HasSuffix(path, ".jpeg"):
+				return "image/jpeg"
+			case strings.HasSuffix(path, ".json"):
+				return "application/json"
+			default:
+				return "application/octet-stream"
+			}
+		}
+		// 根据后缀设置 MIME 类型
+		contentType := mimeType(path)
+		c.Data(http.StatusOK, contentType, file)
+	})
+
+	// 404处理，将所有未匹配的路由重定向到前端的index.html
+	// r.NoRoute(func(c *gin.Context) {
+	// 	c.File("./web/admin/dist/index.html")
+	// })
 }
