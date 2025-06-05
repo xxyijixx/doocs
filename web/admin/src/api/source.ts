@@ -7,41 +7,7 @@ import type {
   CreateSourceRequest,
   CreateSourceResponse,
 } from '../types/source';
-
-// 配置API基础URL
-const CONFIG_API_BASE_URL = 'http://192.168.31.214:8888/api/v1';
-
-/**
- * 配置API响应接口
- */
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-}
-
-/**
- * 通用API请求方法
- */
-async function apiRequest<T = any>(
-  url: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const response = await fetch(`${CONFIG_API_BASE_URL}${url}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  });
-
-  if (!response.ok) {
-    throw new Error(`请求失败: ${response.status} ${response.statusText}`);
-  }
-
-  const result = await response.json();
-  return result.data;
-}
+import { apiRequest } from './request';
 
 /**
  * 创建客服来源

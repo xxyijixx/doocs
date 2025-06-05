@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { chatApi } from '../services/api';
+import { chatApi } from '../api/chat';
 import type { Message } from '../types/chat';
 
 interface ConversationMessageState {
@@ -65,7 +65,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       }));
       
       const response = await chatApi.getMessages(conversationId, page, pageSize);
-      console.log(`获取会话 ${conversationId} 第${page}页消息成功:`, response.data.items.length, '条消息');
+      console.log(`获取会话 ${conversationId} 第${page}页消息成功:`, response.items.length, '条消息');
       
       // 更新特定会话的消息列表
       set(state => {
@@ -76,10 +76,10 @@ export const useMessageStore = create<MessageState>((set, get) => ({
           messagesByConversation: {
             ...state.messagesByConversation,
             [conversationId]: {
-              messages: isFirstPage ? response.data.items : [...response.data.items, ...currentState.messages],
-              currentPage: response.data.page,
-              totalPages: response.data.pages,
-              hasMore: response.data.page < response.data.pages,
+              messages: isFirstPage ? response.items : [...response.items, ...currentState.messages],
+              currentPage: response.page,
+              totalPages: response.pages,
+              hasMore: response.page < response.pages,
               loading: false
             }
           },

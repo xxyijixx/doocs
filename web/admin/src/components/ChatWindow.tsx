@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { chatApi } from "../services/api";
+import { chatApi } from "../api/chat";
 import type { Conversation } from "../types/chat";
 import {
   PaperAirplaneIcon,
@@ -142,7 +142,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       
       // 如果服务器返回了消息数据，可以用服务器返回的数据更新本地消息
       // 这里假设服务器返回的消息有正确的ID
-      if (response.data) {
+      if (response) {
         // 可以选择用服务器返回的消息替换临时消息
         // 或者保持当前的临时消息不变
       }

@@ -41,5 +41,11 @@ frontend-build-admin:
 	@echo "Building admin frontend..."
 	@cd web/admin && npm install && npm run build
 
+frontend-copy-admin:
+	@echo "Copying admin frontend assets..."
+	@rm -rf internal/web/dist/*
+	@cp -r web/admin/dist/* internal/web/dist/
+
 # 将前端构建添加到 all 目标，或者单独执行
-all: build frontend-build-widget frontend-build-admin
+all: frontend-build-widget frontend-build-admin frontend-copy-admin build
+build-admin: frontend-build-admin frontend-copy-admin

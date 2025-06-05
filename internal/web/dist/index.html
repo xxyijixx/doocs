@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/apps/cs/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+    <script>
+      // 在页面加载时立即执行，防止闪烁
+      (function() {
+        console.log('Initial theme setup');
+        const savedTheme = localStorage.getItem('theme');
+        console.log('Saved theme from localStorage:', savedTheme);
+        
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        console.log('System prefers dark:', systemPrefersDark);
+        
+        const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+        console.log('Final theme to apply:', theme);
+        
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+        
+        console.log('Initial HTML classList:', document.documentElement.classList.toString());
+      })();
+    </script>
+    <script type="module" crossorigin src="/apps/cs/assets/index-eqtGPp4B.js"></script>
+    <link rel="stylesheet" crossorigin href="/apps/cs/assets/index-DEWK919F.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

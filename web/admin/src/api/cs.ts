@@ -1,53 +1,9 @@
-import { isMicroApp, getUserToken } from '@dootask/tools'
 /**
  * 配置相关API请求封装
  * 与DooTask交互的请求分离，专门处理系统配置相关的API调用
  */
 
-// 配置API基础URL
-const API_BASE_URL = 'http://192.168.31.214:8888/api/v1';
-
-/**
- * 配置API响应接口
- */
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-}
-
-/**
- * 通用配置API请求方法
- */
-async function apiRequest<T = any>(
-  url: string,
-  options: RequestInit = {}
-): Promise<T> {
-  // 添加自定义头
-  const customHeaders = new Headers(options.headers);
- 
-  if (isMicroApp()) {
-    customHeaders.set('Authorization', 'Bearer 123456');
-    customHeaders.set('Token', getUserToken())
-  } else {
-    customHeaders.set('Authorization', 'Bearer 123456');
-  }
-  const response = await fetch(`${API_BASE_URL}${url}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...customHeaders,
-      ...options.headers,
-    },
-    ...options,
-  });
-
-  if (!response.ok) {
-    throw new Error(`请求失败: ${response.status} ${response.statusText}`);
-  }
-
-  const result = await response.json();
-  return result.data;
-}
+import { apiRequest } from './request';
 
 /**
  * 获取配置
@@ -55,9 +11,7 @@ async function apiRequest<T = any>(
  * @returns 配置数据
  */
 export async function getConfig(configKey: string): Promise<any> {
-  return apiRequest(`/configs/${configKey}`, {
-    method: 'GET',
-  });
+  return apiRequest(`/configs/${configKey}`);
 }
 
 /**
@@ -77,9 +31,7 @@ export async function saveConfig(configKey: string, configData: any): Promise<vo
  * @returns 配置列表
  */
 export async function getAllConfigs(): Promise<any[]> {
-  return apiRequest('/configs', {
-    method: 'GET',
-  });
+  return apiRequest('/configs');
 }
 
 /**

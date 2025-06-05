@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { chatApi } from '../services/api';
+import { chatApi } from '../api/chat';
 import type { Conversation } from '../types/chat';
 
 interface ConversationState {
@@ -32,8 +32,8 @@ export const useConversationStore = create<ConversationState>((set) => ({
     try {
       set({ loading: true, error: null });
       const response = await chatApi.getConversations();
-      console.log('获取会话列表成功:', response.data.items);
-      set({ conversations: response.data.items, loading: false });
+      console.log('获取会话列表成功:', response.items);
+      set({ conversations: response.items, loading: false });
     } catch (error) {
       console.error('获取会话列表失败:', error);
       set({ 

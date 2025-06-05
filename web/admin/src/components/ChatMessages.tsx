@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { chatApi } from '../services/api';
+import { chatApi } from '../api/chat';
 import type { Message } from '../types/chat';
 import { Button, Field, Input, Transition } from '@headlessui/react';
 import { PaperAirplaneIcon, ExclamationTriangleIcon, ChatBubbleLeftEllipsisIcon, UserIcon, CpuChipIcon } from '@heroicons/react/24/solid';
@@ -24,7 +24,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationId }) =>
     const fetchMessages = async () => {
       try {
         const response = await chatApi.getMessages(conversationId);
-        setMessages(response.data.items);
+        setMessages(response.items);
         setError(null);
       } catch (err) {
         setError('获取消息失败');
@@ -55,7 +55,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationId }) =>
 
       // 重新获取消息列表
       const response = await chatApi.getMessages(conversationId);
-      setMessages(response.data.items);
+      setMessages(response.items);
       setNewMessage('');
     } catch (err) {
       console.error('发送消息失败:', err);

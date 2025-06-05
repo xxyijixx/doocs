@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { chatApi } from '../services/api';
+import { chatApi } from '../api/chat';
 import type { Conversation } from '../types/chat';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon, ExclamationTriangleIcon, ChatBubbleLeftRightIcon, ClockIcon } from '@heroicons/react/20/solid';
@@ -19,7 +19,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onSelectConversation, select
     const fetchConversations = async () => {
       try {
         const response = await chatApi.getConversations();
-        setConversations(response.data.items);
+        setConversations(response.items);
         setError(null);
       } catch (err) {
         setError('获取会话列表失败');
