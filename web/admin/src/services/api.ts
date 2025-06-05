@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { ApiResponse, Conversation, Message, PaginationData, SendMessageRequest } from '../types/chat';
+import { isMicroApp, getUserToken } from '@dootask/tools'
 
 const api = axios.create({
   baseURL: 'http://localhost:8888/api/v1',
@@ -10,11 +11,10 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token'); // 假设token存储在localStorage中
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    config.headers.Authorization = `Bearer 1234`;
+    config.headers['Authorization'] = 'Bearer 123456';
+    if (isMicroApp()) {
+      config.headers['Token'] = getUserToken();
+    } 
     return config;
   },
   (error) => {

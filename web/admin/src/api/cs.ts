@@ -1,3 +1,4 @@
+import { isMicroApp, getUserToken } from '@dootask/tools'
 /**
  * 配置相关API请求封装
  * 与DooTask交互的请求分离，专门处理系统配置相关的API调用
@@ -22,11 +23,20 @@ async function apiRequest<T = any>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> {
+  // 添加自定义头
+  const customHeaders = new Headers(options.headers);
+ 
+  if (isMicroApp()) {
+    customHeaders.set('Authorization', 'Bearer 123456');
+    customHeaders.set('Token', getUserToken())
+  } else {
+    customHeaders.set('Authorization', 'Bearer 123456');
+  }
   const response = await fetch(`${API_BASE_URL}${url}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...customHeaders,
       ...options.headers,
-      'Authorization': 'Bearer 123456'
     },
     ...options,
   });

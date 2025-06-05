@@ -1,4 +1,5 @@
 dootask:
+  url: ${DOOTASK_URL}
   token: ${DOOTASK_TOKEN}
   webhook: ${DOOTASK_WEBHOOK}
   version: ${DOOTASK_VERSION}

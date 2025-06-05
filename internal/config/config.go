@@ -3,6 +3,7 @@ package config
 type AppConfig struct {
 	Name string `mapstructure:"name" default:"DefaultAppName"`
 	Port int    `mapstructure:"port" default:"8888"`
+	Mode string `mapstructure:"mode" default:"dootask"` // debug or release
 }
 
 type DBConfig struct {
@@ -25,6 +26,7 @@ type RedisConfig struct {
 }
 
 type DooTaskConfig struct {
+	Url     string `mapstructure:"url" default:"http://nginx"`
 	Token   string `mapstructure:"token" default:""`
 	Version string `mapstructure:"version" default:"1.0.0"`
 	WebHook string `mapstructure:"webhook" default:""`
