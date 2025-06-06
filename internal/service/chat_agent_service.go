@@ -1,9 +1,13 @@
 package service
 
 import (
+	"fmt"
+	"support-plugin/internal/config"
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
+	"support-plugin/internal/pkg/dootask"
 	bizErrors "support-plugin/internal/pkg/errors"
+	"support-plugin/internal/pkg/websocket"
 )
 
 type ChatAgentService struct{}
@@ -44,6 +48,22 @@ func (s *ChatAgentService) SendMessageByAgent(conversationID uint, content, msgT
 		"last_message":    content,
 		"last_message_at": message.CreatedAt,
 	})
+
+	go websocket.BroadcastMessage(conversation.Uuid, map[string]interface{}{
+		"content": content,
+	}, websocket.MessageTypeNewMessage)
+
+	if conversation.DooTaskDialogID > 0 && conversation.DooTaskTaskID > 0 {
+		content := fmt.Sprintf("[从系统回复]\n%s", message.Content)
+		go func(content string, dialogId int) {
+			customerServiceConfigData, err := models.LoadConfig[models.CustomerServiceConfigData](database.DB, models.CSConfigKeySystem)
+			if err != nil {
+				// logger.Logger.Error("获取客服配置失败", zap.Error(err))
+				return
+			}
+			s.sendToBot(customerServiceConfigData, content, fmt.Sprintf("%d", dialogId))
+		}(content, conversation.DooTaskDialogID)
+	}
 
 	return &message, nil
 }
@@ -166,4 +186,24 @@ func (s *ChatAgentService) ReopenConversation(id int, agentID uint) error {
 	}
 
 	return nil
+}
+
+// sendToBot 发送消息到机器人
+func (s *ChatAgentService) sendToBot(CustomerServiceConfigData *models.CustomerServiceConfigData, content, dialogID string) {
+
+	robot := dootask.DootaskRobot{
+		Webhook: config.Cfg.DooTask.WebHook,
+		Token:   CustomerServiceConfigData.DooTaskIntegration.BotToken,
+		Version: config.Cfg.DooTask.Version,
+	}
+
+	robot.Message = &dootask.DootaskMessage{
+		Text:     content,
+		DialogId: dialogID,
+		Token:    CustomerServiceConfigData.DooTaskIntegration.BotToken,
+		Version:  config.Cfg.DooTask.Version,
+	}
+
+	result, err := robot.SendMsg()
+	fmt.Println("发送消息到机器人", result, err)
 }
