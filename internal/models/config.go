@@ -80,11 +80,12 @@ type CustomerServiceConfigData struct {
 
 // DooTask集成设置子结构
 type DooTaskIntegrationData struct {
-	BotId     *int   `json:"botId"`
-	BotToken  string `json:"botToken"`
-	ProjectId *int   `json:"projectId"`
-	TaskId    *int   `json:"taskId"`
-	DialogId  *int   `json:"dialogId"`
+	BotId      *int   `json:"botId"`
+	BotToken   string `json:"botToken"`
+	ProjectId  *int   `json:"projectId"`
+	TaskId     *int   `json:"taskId"`
+	DialogId   *int   `json:"dialogId"`
+	CreateTask bool   `json:"createTask"`
 }
 
 // 工作时间设置子结构

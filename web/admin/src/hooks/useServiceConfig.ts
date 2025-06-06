@@ -9,6 +9,10 @@ import {
   openUserDialog,
   getUserDialogList,
   sendMessage,
+  getProjectInfo,
+  updateProjectUser,
+  updateProjectPermisson,
+  createProjectColumn,
   generateMentionMessage,
 } from "../api/dootask";
 import { getConfig, saveConfig } from "../api/cs";
@@ -193,7 +197,7 @@ export const useServiceConfig = () => {
   };
 
   // 创建项目
-  const onCreateProject = () => {
+  const onCreateProject = async () => {
     if (!isRunInMicroApp) return;
     
     if (!selectedUserBot) {
@@ -212,35 +216,62 @@ export const useServiceConfig = () => {
       return;
     }
 
-    createProject({
-      name: "智慧客服",
-      flow: false,
-    })
-      .then((response) => {
-        const projectId = response.data.id;
-        console.log(`项目ID: ${projectId}`);
-
-        setSystemConfig((prev) => ({
-          ...prev,
-          dooTaskIntegration: {
-            ...prev.dooTaskIntegration,
-            botId: selectedUserBot.id,
-            projectId: projectId,
-          },
-        }));
-
-        setSaveMessage({
-          type: "success",
-          text: `项目创建成功，项目ID: ${projectId}`,
-        });
-      })
-      .catch((error) => {
-        console.error("创建项目失败:", error.message);
-        setSaveMessage({
-          type: "error",
-          text: `创建项目失败: ${error.message}`,
-        });
+    try {
+      // 创建项目
+      const response = await createProject({
+        name: "智慧客服",
+        flow: false,
       });
+      
+      const projectId = response.data.id;
+      console.log(`项目ID: ${projectId}`);
+
+      // 更新系统配置
+      setSystemConfig((prev) => ({
+        ...prev,
+        dooTaskIntegration: {
+          ...prev.dooTaskIntegration,
+          botId: selectedUserBot.id,
+          projectId: projectId,
+        },
+      }));
+
+      // 更新项目权限
+      await updateProjectPermisson(projectId);
+      
+      // 获取项目信息并提取用户ID
+      const projectInfo = await getProjectInfo(projectId);
+      const projectUserIds: number[] = [];
+      
+      // 提取项目用户的userid
+      if (projectInfo.data && projectInfo.data.project_user) {
+        projectInfo.data.project_user.forEach((user: any) => {
+          if (user.userid) {
+            projectUserIds.push(user.userid);
+          }
+        });
+      }
+      
+      // 添加机器人ID到用户列表
+      if (selectedUserBot.id && !projectUserIds.includes(selectedUserBot.id)) {
+        projectUserIds.push(selectedUserBot.id);
+      }
+      
+      // 更新项目用户
+      await updateProjectUser(projectId, projectUserIds);
+      
+      setSaveMessage({
+        type: "success",
+        text: `项目创建成功，项目ID: ${projectId}`,
+      });
+      
+    } catch (error) {
+      console.error("创建项目失败:", error);
+      setSaveMessage({
+        type: "error",
+        text: `创建项目失败: ${error instanceof Error ? error.message : '未知错误'}`,
+      });
+    }
   };
 
   // 创建并获取机器人Token
@@ -320,7 +351,10 @@ export const useServiceConfig = () => {
 
     setIsCreatingSource(true);
     try {
-      const taskName = `智能客服-${newSourceName.trim()}`;
+      const columnResponse = await createProjectColumn(systemConfig.dooTaskIntegration.projectId, newSourceName.trim())
+      const columnId = columnResponse.data.id;
+      console.log(`项目列ID: ${columnId}`);
+      const taskName = `智能客服-${newSourceName.trim()}-通知提醒`;
 
       const taskResponse = await createTask({
         project_id: systemConfig.dooTaskIntegration.projectId,
@@ -345,6 +379,7 @@ export const useServiceConfig = () => {
         taskId: taskId,
         dialogId: dialogId,
         projectId: systemConfig.dooTaskIntegration.projectId,
+        columnId: columnId,
         botId: selectedUserBot.id,
       });
 

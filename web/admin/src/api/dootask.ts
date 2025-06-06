@@ -272,6 +272,110 @@ export async function getUserDialogList(dialog_id: number): Promise<responseSucc
   });
 }
 
+// 获取项目信息
+// 响应如下
+// {
+//   "ret": 1,
+//   "msg": "success",
+//   "data": {
+//       "id": 26,
+//       "name": "\u667a\u6167\u5ba2\u670d",
+//       "desc": "",
+//       "userid": 1,
+//       "personal": 0,
+//       "archive_method": "system",
+//       "archive_days": 30,
+//       "user_simple": "",
+//       "dialog_id": 90,
+//       "archived_at": null,
+//       "archived_userid": 0,
+//       "created_at": "2025-06-05 16:29:19",
+//       "updated_at": "2025-06-05 16:29:19",
+//       "owner": 1,
+//       "top_at": null,
+//       "owner_userid": 1,
+//       "task_num": 2,
+//       "task_complete": 0,
+//       "task_percent": 0,
+//       "task_my_num": 0,
+//       "task_my_complete": 0,
+//       "task_my_percent": 0,
+//       "project_user": [
+//           {
+//               "id": 31,
+//               "project_id": 26,
+//               "userid": 1,
+//               "owner": 1,
+//               "top_at": null,
+//               "created_at": "2025-06-05 16:29:19",
+//               "updated_at": "2025-06-05 16:29:19"
+//           }
+//       ]
+//   }
+// }
+export async function getProjectInfo(project_id: number): Promise<responseSuccess> {
+  return dooTaskAPI({
+    url: `/api/project/one?project_id=${project_id}`,
+    method: "GET",
+  });
+}
+
+export async function updateProjectUser(project_id: number, user_ids: number[]): Promise<responseSuccess> {
+  // 将user_ids数组转换为URL查询参数格式
+  const userIdParams = user_ids.map(id => `userid[]=${id}`).join('&');
+  return dooTaskAPI({
+    url: `/api/project/user?project_id=${project_id}&${userIdParams}`,
+    method: "GET",
+  })
+}
+
+// 给项目更新权限，设置全部权限
+export async function updateProjectPermisson(project_id: number): Promise<responseSuccess> {
+  return dooTaskAPI({
+    url: `/api/project/permission/update`,
+    method: "POST",
+    data: `{"project_id":${project_id},"task_list_add":[1,2],"task_list_update":[1,2],"task_list_remove":[1,2],"task_list_sort":[1,2],"task_add":[1,2],"task_update":[1,3,4,2],"task_time":[1,3,4,2],"task_status":[1,3,4,2],"task_remove":[1,3,4,2],"task_archived":[1,3,4,2],"task_move":[1,3,4,2]}`,
+  })
+}
+
+// {
+//   "ret": 1,
+//   "msg": "\u6dfb\u52a0\u6210\u529f",
+//   "data": {
+//       "id": 65,
+//       "project_id": 29,
+//       "name": "\u65b0\u5efa\u5217\u8868",
+//       "color": "",
+//       "sort": 1,
+//       "created_at": "2025-06-06 09:36:25",
+//       "updated_at": "2025-06-06 09:36:25",
+//       "deleted_at": null,
+//       "project_task": [],
+//       "project": {
+//           "id": 29,
+//           "name": "\u667a\u6167\u5ba2\u670d",
+//           "desc": "",
+//           "userid": 1,
+//           "personal": 0,
+//           "archive_method": "system",
+//           "archive_days": 30,
+//           "user_simple": "2|1,8",
+//           "dialog_id": 95,
+//           "archived_at": null,
+//           "archived_userid": 0,
+//           "created_at": "2025-06-06 09:32:40",
+//           "updated_at": "2025-06-06 09:32:41",
+//           "owner_userid": 1
+//       }
+//   }
+// }
+export async function createProjectColumn(project_id: number, name: string): Promise<responseSuccess> {
+  return dooTaskAPI({
+    url: `/api/project/column/add?project_id=${project_id}&name=${name}`,
+    method: "GET",
+  })
+}
+
 // 辅助方法分隔
 
 /**

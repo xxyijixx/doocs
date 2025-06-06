@@ -52,6 +52,115 @@ func (u *UserInfoResp) IsAdmin() bool {
 	return false
 }
 
+type CreateTaskResp struct {
+	ID             int         `json:"id"`
+	ParentID       int         `json:"parent_id"`
+	ProjectID      int         `json:"project_id"`
+	ColumnID       int         `json:"column_id"`
+	DialogID       int         `json:"dialog_id"`
+	FlowItemID     int         `json:"flow_item_id"`
+	FlowItemName   string      `json:"flow_item_name"`
+	Name           string      `json:"name"`
+	Color          string      `json:"color"`
+	Desc           string      `json:"desc"`
+	StartAt        string      `json:"start_at"`
+	EndAt          string      `json:"end_at"`
+	ArchivedAt     interface{} `json:"archived_at"`
+	ArchivedUserid int         `json:"archived_userid"`
+	ArchivedFollow int         `json:"archived_follow"`
+	CompleteAt     interface{} `json:"complete_at"`
+	Userid         int         `json:"userid"`
+	Visibility     int         `json:"visibility"`
+	PLevel         int         `json:"p_level"`
+	PName          string      `json:"p_name"`
+	PColor         string      `json:"p_color"`
+	Sort           int         `json:"sort"`
+	Loop           string      `json:"loop"`
+	LoopAt         interface{} `json:"loop_at"`
+	CreatedAt      string      `json:"created_at"`
+	UpdatedAt      string      `json:"updated_at"`
+	DeletedAt      interface{} `json:"deleted_at"`
+	DeletedUserid  int         `json:"deleted_userid"`
+	Owner          int         `json:"owner"`
+	Assist         int         `json:"assist"`
+	IsVisible      int         `json:"is_visible"`
+	FileNum        int         `json:"file_num"`
+	MsgNum         int         `json:"msg_num"`
+	SubNum         int         `json:"sub_num"`
+	SubComplete    int         `json:"sub_complete"`
+	Percent        int         `json:"percent"`
+	Today          bool        `json:"today"`
+	Overdue        bool        `json:"overdue"`
+	TaskUser       []struct {
+		ID        int    `json:"id"`
+		ProjectID int    `json:"project_id"`
+		TaskID    int    `json:"task_id"`
+		TaskPid   int    `json:"task_pid"`
+		Userid    int    `json:"userid"`
+		Owner     int    `json:"owner"`
+		CreatedAt string `json:"created_at"`
+		UpdatedAt string `json:"updated_at"`
+	} `json:"task_user"`
+	TaskTag []interface{} `json:"task_tag"`
+}
+
+type CreateTaskReq struct {
+	Name      string `json:"name"`
+	Content   string `json:"content"`
+	Owner     []int  `json:"owner"`
+	Assist    []int  `json:"assist"`
+	ProjectID int    `json:"project_id"`
+	ColumnID  int    `json:"column_id"`
+}
+
+type TaskDialogResp struct {
+	ID         int `json:"id"`
+	DialogID   int `json:"dialog_id"`
+	DialogData struct {
+		ID         int           `json:"id"`
+		Type       string        `json:"type"`
+		GroupType  string        `json:"group_type"`
+		SessionID  int           `json:"session_id"`
+		Name       string        `json:"name"`
+		Avatar     string        `json:"avatar"`
+		OwnerID    int           `json:"owner_id"`
+		LinkID     int           `json:"link_id"`
+		TopUserid  int           `json:"top_userid"`
+		TopMsgID   int           `json:"top_msg_id"`
+		CreatedAt  string        `json:"created_at"`
+		UpdatedAt  string        `json:"updated_at"`
+		DeletedAt  interface{}   `json:"deleted_at"`
+		TopAt      interface{}   `json:"top_at"`
+		LastAt     interface{}   `json:"last_at"`
+		MarkUnread int           `json:"mark_unread"`
+		Silence    int           `json:"silence"`
+		Hide       int           `json:"hide"`
+		Color      string        `json:"color"`
+		UserAt     string        `json:"user_at"`
+		UserMs     int64         `json:"user_ms"`
+		Unread     int           `json:"unread"`
+		UnreadOne  int           `json:"unread_one"`
+		Mention    int           `json:"mention"`
+		MentionIds []interface{} `json:"mention_ids"`
+		People     int           `json:"people"`
+		PeopleUser int           `json:"people_user"`
+		PeopleBot  int           `json:"people_bot"`
+		TodoNum    int           `json:"todo_num"`
+		LastMsg    interface{}   `json:"last_msg"`
+		Pinyin     string        `json:"pinyin"`
+		QuickMsgs  []interface{} `json:"quick_msgs"`
+		DialogUser interface{}   `json:"dialog_user"`
+		GroupInfo  struct {
+			ID         int         `json:"id"`
+			Name       string      `json:"name"`
+			CompleteAt interface{} `json:"complete_at"`
+			ArchivedAt interface{} `json:"archived_at"`
+			DeletedAt  interface{} `json:"deleted_at"`
+		} `json:"group_info"`
+		Bot int `json:"bot"`
+	} `json:"dialog_data"`
+}
+
 type VersionInfoResp struct {
 	Version string `json:"version"`
 	Publish struct {

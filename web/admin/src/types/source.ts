@@ -93,6 +93,7 @@ export interface CreateSourceRequest {
   taskId: number;
   dialogId: number;
   projectId: number;
+  columnId: number;
   botId: number;
 }
 
@@ -104,4 +105,5 @@ export interface CreateSourceResponse {
   taskId: number;
   dialogId: number;
   projetId: number;
+  columnId: number;
 }

@@ -67,6 +67,41 @@ func (d *DootaskService) GetVersoinInfo() (*dto.VersionInfoResp, error) {
 	return versionInfo, nil
 }
 
+func (d *DootaskService) CreateTask(token string, task *dto.CreateTaskReq) (*dto.CreateTaskResp, error) {
+	url := fmt.Sprintf("%s%s?token=%s", config.Cfg.DooTask.Url, "/api/task/create", token)
+	result, err := d.client.Post(url, task)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := d.UnmarshalAndCheckResponse(result)
+	if err != nil {
+		return nil, err
+	}
+	createTaskResp := new(dto.CreateTaskResp)
+	if err := common.MapToStruct(resp, createTaskResp); err != nil {
+		return nil, err
+	}
+	return createTaskResp, nil
+}
+
+func (d *DootaskService) OpenTaskDialog(token string, taskId int) (*dto.TaskDialogResp, error) {
+	// /api/project/task/dialog
+	url := fmt.Sprintf("%s%s?task_id=%d&token=%s", config.Cfg.DooTask.Url, "/api/project/task/dialog", taskId, token)
+	result, err := d.client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := d.UnmarshalAndCheckResponse(result)
+	if err != nil {
+		return nil, err
+	}
+	taskDialogResp := new(dto.TaskDialogResp)
+	if err := common.MapToStruct(resp, taskDialogResp); err != nil {
+		return nil, err
+	}
+	return taskDialogResp, nil
+}
+
 // 解码并检查返回数据
 func (d *DootaskService) UnmarshalAndCheckResponse(resp []byte) (map[string]interface{}, error) {
 	var ret map[string]interface{}
