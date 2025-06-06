@@ -7,6 +7,7 @@ import { getAgentList, setAgents } from '../api/auth';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { MessageAlert } from '../components/common/MessageAlert';
 import { PlusIcon, UserIcon } from '@heroicons/react/24/outline';
+import { methods } from '@dootask/tools';
 
 interface Agent {
   id: number;
@@ -24,7 +25,7 @@ export default function AgentManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [newUserIds, setNewUserIds] = useState<string>('');
+  const [isSelectingUsers, setIsSelectingUsers] = useState(false);
 
   // 加载客服列表
   const loadAgents = async () => {
@@ -40,31 +41,32 @@ export default function AgentManagement() {
     }
   };
 
-  // 设置客服
-  const handleSetAgents = async () => {
-    if (!newUserIds.trim()) {
-      setMessage({ type: 'error', text: '请输入DooTask用户ID' });
-      return;
-    }
-
+  // 选择用户并设置为客服
+  const handleSelectUsers = async () => {
     try {
-      setIsSaving(true);
+      setIsSelectingUsers(true);
       setMessage(null);
       
-      // 解析用户ID列表
-      const userIds = newUserIds
-        .split(',')
-        .map(id => parseInt(id.trim()))
-        .filter(id => !isNaN(id));
+      // 使用DooTask的用户选择器
+      const selectedUsers = await methods.selectUsers({
+        multiple: true,
+        title: '选择客服人员',
+        placeholder: '请选择要设置为客服的用户'
+      });
 
-      if (userIds.length === 0) {
-        setMessage({ type: 'error', text: '请输入有效的用户ID' });
+      if (!selectedUsers || selectedUsers.length === 0) {
+        setMessage({ type: 'error', text: '未选择任何用户' });
         return;
       }
+      console.log("selectedUsers", selectedUsers)
+
+      setIsSaving(true);
+      
+      // 提取用户ID列表
+      const userIds = selectedUsers.map((user: number) => user);
 
       await setAgents(userIds);
-      setMessage({ type: 'success', text: '客服设置成功' });
-      setNewUserIds('');
+      setMessage({ type: 'success', text: `成功设置 ${selectedUsers.length} 个用户为客服` });
       
       // 重新加载客服列表
       await loadAgents();
@@ -72,6 +74,7 @@ export default function AgentManagement() {
       console.error('设置客服失败:', error);
       setMessage({ type: 'error', text: error.message || '设置客服失败' });
     } finally {
+      setIsSelectingUsers(false);
       setIsSaving(false);
     }
   };
@@ -85,7 +88,7 @@ export default function AgentManagement() {
   }
 
   return (
-    <div className="min-h-screen py-8">
+    <div className="h-full py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">客服管理</h1>
@@ -108,27 +111,25 @@ export default function AgentManagement() {
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
             添加客服
           </h2>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                DooTask用户ID（多个用逗号分隔）
-              </label>
-              <input
-                type="text"
-                value={newUserIds}
-                onChange={(e) => setNewUserIds(e.target.value)}
-                placeholder="例如: 1001, 1002, 1003"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                disabled={isSaving}
-              />
-            </div>
-            <div className="flex items-end">
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              点击下方按钮从DooTask用户中选择客服人员
+            </p>
+            <div className="flex justify-start">
               <button
-                onClick={handleSetAgents}
-                disabled={isSaving}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleSelectUsers}
+                disabled={isSelectingUsers || isSaving}
+                className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSaving ? (
+                {isSelectingUsers ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    选择中...
+                  </>
+                ) : isSaving ? (
                   <>
                     <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -139,7 +140,7 @@ export default function AgentManagement() {
                 ) : (
                   <>
                     <PlusIcon className="w-4 h-4 mr-2" />
-                    设置客服
+                    选择客服人员
                   </>
                 )}
               </button>

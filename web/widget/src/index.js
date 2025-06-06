@@ -40,7 +40,19 @@ async function getMessages(uuid) {
         if (data.code === 200 && data.data && data.data.items) {
             return data.data.items;
         } else {
-            console.error('Failed to get messages:', data.msg);
+            // 处理会话不存在或已关闭的情况
+            if (data.message === '对话不存在' || (data.data && data.data.error_code === 'CONVERSATION_NOT_FOUND')) {
+                console.warn('会话不存在，需要创建新会话');
+                // 清除本地存储的会话UUID
+                localStorage.removeItem(CONVERSATION_UUID_KEY);
+                conversationUuid = null;
+                return { error: 'conversation_not_found' };
+            }
+            if (data.message === '对话已关闭' || (data.data && data.data.error_code === 'CONVERSATION_CLOSED')) {
+                console.warn('会话已关闭');
+                return { error: 'conversation_closed' };
+            }
+            console.error('Failed to get messages:', data.message);
             return [];
         }
     } catch (error) {
@@ -66,7 +78,19 @@ async function sendMessage(uuid, content) {
         if (data.code === 200 && data.data) {
             return data.data;
         } else {
-            console.error('Failed to send message:', data.msg);
+            // 处理会话不存在或已关闭的情况
+            if (data.message === '对话不存在' || (data.data && data.data.error_code === 'CONVERSATION_NOT_FOUND')) {
+                console.warn('会话不存在，需要创建新会话');
+                // 清除本地存储的会话UUID
+                localStorage.removeItem(CONVERSATION_UUID_KEY);
+                conversationUuid = null;
+                return { error: 'conversation_not_found' };
+            }
+            if (data.message === '对话已关闭' || (data.data && data.data.error_code === 'CONVERSATION_CLOSED')) {
+                console.warn('会话已关闭');
+                return { error: 'conversation_closed' };
+            }
+            console.error('Failed to send message:', data.message);
             return null;
         }
     } catch (error) {
@@ -197,10 +221,32 @@ async function initializeChatWidget(options) {
             addMessageToChat({ content: content, sender: 'customer' });
             messageInput.value = '';
             const sentMessage = await sendMessage(conversationUuid, content);
-            // if (sentMessage && sentMessage.content) {
-            //     // Display agent's response
-            //     addMessageToChat({ content: sentMessage.content, sender: 'agent' });
-            // }
+            
+            // 处理发送消息的错误情况
+            if (sentMessage && sentMessage.error) {
+                if (sentMessage.error === 'conversation_not_found') {
+                    // 会话不存在，尝试创建新会话
+                    addMessageToChat({ 
+                        content: '会话已失效，正在重新连接...', 
+                        sender: 'system' 
+                    });
+                    // 重新初始化会话
+                    const newUuid = await createNewConversation(source || 'widget');
+                    if (newUuid) {
+                        conversationUuid = newUuid;
+                        initWebSocket();
+                        // 重新发送消息
+                        await sendMessage(conversationUuid, content);
+                    }
+                } else if (sentMessage.error === 'conversation_closed') {
+                    addMessageToChat({ 
+                        content: '此会话已关闭，无法发送新消息', 
+                        sender: 'system' 
+                    });
+                    // 显示新建会话按钮
+                    showNewConversationButton();
+                }
+            }
         }
     };
 
@@ -213,11 +259,78 @@ async function initializeChatWidget(options) {
     // Load existing messages
     if (conversationUuid) {
         const messages = await getMessages(conversationUuid);
-        messages.forEach(msg => {
-            addMessageToChat(msg);
-        });
+        if (messages && messages.error) {
+            if (messages.error === 'conversation_not_found') {
+                // 会话不存在，创建新会话
+                addMessageToChat({ 
+                    content: '正在初始化新会话...', 
+                    sender: 'system' 
+                });
+                const newUuid = await createNewConversation(source || 'widget');
+                if (newUuid) {
+                    conversationUuid = newUuid;
+                    initWebSocket();
+                }
+            } else if (messages.error === 'conversation_closed') {
+                addMessageToChat({ 
+                    content: '此会话已关闭', 
+                    sender: 'system' 
+                });
+                // 显示新建会话按钮
+                showNewConversationButton();
+            }
+        } else if (Array.isArray(messages)) {
+            messages.forEach(msg => {
+                addMessageToChat(msg);
+            });
+        }
         // 确保加载消息后滚动到最底部
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // 新建会话按钮功能
+    function showNewConversationButton() {
+        // 检查是否已经存在新建会话按钮
+        if (document.getElementById('new-conversation-btn')) {
+            return;
+        }
+
+        const newConversationBtn = document.createElement('button');
+        newConversationBtn.id = 'new-conversation-btn';
+        newConversationBtn.textContent = '开始新会话';
+        newConversationBtn.style.cssText = `
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        `;
+
+        newConversationBtn.onclick = async () => {
+            // 创建新会话
+            const newUuid = await createNewConversation(source || 'widget');
+            if (newUuid) {
+                conversationUuid = newUuid;
+                // 清空聊天记录
+                messagesContainer.innerHTML = '';
+                // 重新初始化WebSocket
+                initWebSocket();
+                // 移除新建会话按钮
+                newConversationBtn.remove();
+                addMessageToChat({ 
+                    content: '新会话已创建，您可以开始对话了', 
+                    sender: 'system' 
+                });
+            }
+        };
+
+        // 将按钮插入到输入框上方
+        const inputContainer = chatContainer.querySelector('div:last-child');
+        inputContainer.parentNode.insertBefore(newConversationBtn, inputContainer);
     }
 
     // 初始化WebSocket连接
@@ -250,9 +363,10 @@ async function initializeChatWidget(options) {
                         const messageData = fullMessage.data;
                         console.log('收到新消息:', messageData);
                         // 如果是客服发送的消息，显示在聊天窗口中
-                        if (fullMessage.sender === 'agent') {
-                            addMessageToChat({ content: messageData.content, sender: 'agent' });
-                        }
+                        // if (fullMessage.sender === 'agent') {
+                        //     addMessageToChat({ content: messageData.content, sender: 'agent' });
+                        // }
+                        addMessageToChat({ content: messageData.content, sender: 'agent' });
                     }
                 } catch (e) {
                     console.error('解析WebSocket消息失败:', e);
@@ -291,6 +405,6 @@ async function initializeChatWidget(options) {
 // If the script is loaded asynchronously, initialize it when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
     // Always initialize the chat widget when DOM is ready with default values
-    initializeChatWidget({ baseUrl: 'http://localhost:8888', source: 'CS-YqO4ksAQ6euwM2aqyOck' });
+    initializeChatWidget({ baseUrl: 'http://192.168.31.214:8888', source: 'CS-4A6euKS8gwMUaqyOWcks' });
 
 });

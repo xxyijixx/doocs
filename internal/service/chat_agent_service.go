@@ -53,7 +53,7 @@ func (s *ChatAgentService) SendMessageByAgent(conversationID uint, content, msgT
 		"content": content,
 	}, websocket.MessageTypeNewMessage)
 
-	if conversation.DooTaskDialogID > 0 && conversation.DooTaskTaskID > 0 {
+	if conversation.DooTaskDialogID > 0 && conversation.DooTaskTaskID > 0 && metadata != "dootask"{
 		content := fmt.Sprintf("[从系统回复]\n%s", message.Content)
 		go func(content string, dialogId int) {
 			customerServiceConfigData, err := models.LoadConfig[models.CustomerServiceConfigData](database.DB, models.CSConfigKeySystem)

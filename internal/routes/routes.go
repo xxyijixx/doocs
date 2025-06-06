@@ -30,21 +30,21 @@ func RegisterRoutes(r *gin.Engine) {
 			dooTaskRoutes.POST("/:chatKey/chat", headlers.DooTask.Chat)
 		}
 
-		// 认证相关路由
-		authRoutes := v1.Group("/auth")
-		{
-			// 客服登录
-			authRoutes.POST("/login", headlers.Auth.Login)
+		// // 认证相关路由
+		// authRoutes := v1.Group("/auth")
+		// {
+		// 	// 客服登录
+		// 	authRoutes.POST("/login", headlers.Auth.Login)
 
-			// 需要认证的路由
-			authProtected := authRoutes.Group("", middleware.AgentAuthMiddleware())
-			{
-				// 获取当前客服信息
-				authProtected.GET("/me", headlers.Auth.GetCurrentAgent)
-				// 创建客服账号
-				authProtected.POST("/agents", headlers.Auth.CreateAgent)
-			}
-		}
+		// 	// 需要认证的路由
+		// 	authProtected := authRoutes.Group("", middleware.AgentAuthMiddleware())
+		// 	{
+		// 		// 获取当前客服信息
+		// 		authProtected.GET("/me", headlers.Auth.GetCurrentAgent)
+		// 		// 创建客服账号
+		// 		authProtected.POST("/agents", headlers.Auth.CreateAgent)
+		// 	}
+		// }
 
 		// 配置相关路由
 		configRoutes := v1.Group("/configs", middleware.AgentAuthMiddleware(), middleware.AdminAuthMiddleware())
