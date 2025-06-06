@@ -1,4 +1,4 @@
-package service
+package dootask
 
 import (
 	"encoding/json"
@@ -7,8 +7,11 @@ import (
 	"support-plugin/internal/config"
 	"support-plugin/internal/constant"
 	"support-plugin/internal/models/dto"
+	"support-plugin/internal/pkg/logger"
 	"support-plugin/internal/utils/common"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // 只需要用户的基础信息
@@ -20,6 +23,8 @@ type DootaskService struct {
 type IDootaskService interface {
 	GetUserInfo(token string) (*dto.UserInfoResp, error)
 	GetVersoinInfo() (*dto.VersionInfoResp, error)
+	CreateTask(token string, task *dto.CreateTaskReq) (*dto.CreateTaskResp, error)
+	OpenTaskDialog(token string, taskId int) (*dto.TaskDialogResp, error)
 }
 
 func NewIDootaskService() IDootaskService {
@@ -68,15 +73,18 @@ func (d *DootaskService) GetVersoinInfo() (*dto.VersionInfoResp, error) {
 }
 
 func (d *DootaskService) CreateTask(token string, task *dto.CreateTaskReq) (*dto.CreateTaskResp, error) {
-	url := fmt.Sprintf("%s%s?token=%s", config.Cfg.DooTask.Url, "/api/task/create", token)
+	url := fmt.Sprintf("%s%s?token=%s", config.Cfg.DooTask.Url, "/api/project/task/add", token)
 	result, err := d.client.Post(url, task)
 	if err != nil {
 		return nil, err
 	}
+
 	resp, err := d.UnmarshalAndCheckResponse(result)
 	if err != nil {
+		logger.App.Error("UnmarshalAndCheckResponse failed", zap.Error(err))
 		return nil, err
 	}
+	logger.App.Info("create task resp", zap.Any("resp", resp))
 	createTaskResp := new(dto.CreateTaskResp)
 	if err := common.MapToStruct(resp, createTaskResp); err != nil {
 		return nil, err

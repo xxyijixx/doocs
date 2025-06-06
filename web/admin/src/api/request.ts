@@ -21,6 +21,7 @@ interface ApiConfig {
  * 默认API配置
  */
 const DEFAULT_CONFIG: ApiConfig = {
+//   baseURL: 'http://192.168.31.214:8888/api/v1',
   baseURL: 'http://192.168.31.214:8888/api/v1',
   timeout: 10000,
 };

@@ -8,9 +8,9 @@ import (
 	"go.uber.org/zap"
 
 	"support-plugin/internal/config"
+	"support-plugin/internal/pkg/dootask"
 	"support-plugin/internal/pkg/logger"
 	"support-plugin/internal/pkg/response"
-	"support-plugin/internal/service"
 )
 
 // AgentAuthMiddleware 客服认证中间件
@@ -29,7 +29,7 @@ func AgentAuthMiddleware() gin.HandlerFunc {
 
 		if config.Cfg.App.Mode == "dootask" {
 			dootaskToken := Token(c)
-			dootaskService := service.NewIDootaskService()
+			dootaskService := dootask.NewIDootaskService()
 			userInfoResp, err := dootaskService.GetUserInfo(dootaskToken)
 			if err != nil {
 				response.Unauthorized(c, err.Error())

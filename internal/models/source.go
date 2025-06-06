@@ -14,7 +14,7 @@ type CustomerServiceSource struct {
 	TaskID    *int           `gorm:"column:task_id" json:"taskId"`                                    // DooTask任务ID
 	DialogID  *int           `gorm:"column:dialog_id" json:"dialogId"`                                // DooTask对话ID
 	ProjectID *int           `gorm:"column:project_id" json:"projectId"`                              // DooTask项目ID
-	ColumnID  *int           `gorm:"column:column_id" json:"columnId"`                                // DooTask列ID
+	ColumnID  int            `gorm:"column:column_id;default:0" json:"columnId"`                      // DooTask列ID
 	Config    string         `gorm:"column:config;type:text" json:"config"`                           // 来源配置JSON
 	Status    int            `gorm:"column:status;default:1" json:"status"`                           // 状态：1-启用，0-禁用
 	CreatedAt time.Time      `gorm:"column:created_at" json:"createdAt"`
@@ -52,7 +52,7 @@ type CreateSourceRequest struct {
 	TaskID    *int                        `json:"taskId" binding:"required"`    // DooTask任务ID
 	DialogID  *int                        `json:"dialogId" binding:"required"`  // DooTask对话ID
 	ProjectID *int                        `json:"projectId" binding:"required"` // DooTask项目ID
-	ColumnID  *int                        `json:"columnId"`                     // DooTask列ID
+	ColumnID  int                         `json:"columnId"`                     // DooTask列ID
 	Config    CustomerServiceSourceConfig `json:"config" binding:"required"`    // 来源配置
 }
 
@@ -64,5 +64,5 @@ type CreateSourceResponse struct {
 	TaskID    *int   `json:"taskId"`
 	DialogID  *int   `json:"dialogId"`
 	ProjectID *int   `json:"projectId"`
-	Column    *int   `json:"columnId"`
+	ColumnID  int    `json:"columnId"`
 }

@@ -60,6 +60,7 @@ func (h SourceHeadler) CreateSource(c *gin.Context) {
 		TaskID:    req.TaskID,
 		DialogID:  req.DialogID,
 		ProjectID: req.ProjectID,
+		ColumnID:  req.ColumnID,
 		Config:    string(configJSON),
 		Status:    1, // 默认启用
 	}
@@ -77,6 +78,7 @@ func (h SourceHeadler) CreateSource(c *gin.Context) {
 		TaskID:    source.TaskID,
 		DialogID:  source.DialogID,
 		ProjectID: source.ProjectID,
+		ColumnID:  source.ColumnID,
 	}
 
 	response.Success(c, "创建来源成功", resp)

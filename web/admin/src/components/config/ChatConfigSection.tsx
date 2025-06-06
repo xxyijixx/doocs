@@ -25,6 +25,7 @@ interface ChatConfigSectionProps {
   onDeleteSource: (source: CustomerServiceSource) => void;
   onEditSource: (source: CustomerServiceSource) => void;
   setNewSourceName: (name: string) => void;
+  onUpdateCreateTask: (enabled: boolean) => void;
 }
 
 export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
@@ -39,6 +40,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
   onDeleteSource,
   onEditSource,
   setNewSourceName,
+  onUpdateCreateTask,
 }) => {
   return (
     <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
@@ -72,6 +74,33 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
             <ExclamationTriangleIcon className="h-4 w-4" />
             重置系统配置
           </Button>
+        </div>
+
+        {/* DooTask 任务配置 */}
+        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
+          {/* <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-4">
+            DooTask 任务配置
+          </h3> */}
+          <div className="space-y-4">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="createTask"
+                checked={systemConfig.dooTaskIntegration.createTask}
+                onChange={(e) => onUpdateCreateTask(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label
+                htmlFor="createTask"
+                className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
+              >
+                自动创建 DooTask 任务
+              </label>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              启用后，当有新的客服对话时，系统将自动在 DooTask 中创建对应的任务。
+            </p>
+          </div>
         </div>
 
         {/* 来源管理 */}

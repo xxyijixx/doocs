@@ -12,6 +12,7 @@ import (
 	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/dootask"
 	bizErrors "support-plugin/internal/pkg/errors"
+	"support-plugin/internal/pkg/eventbus"
 	"support-plugin/internal/pkg/logger"
 	"support-plugin/internal/pkg/websocket"
 )
@@ -62,6 +63,17 @@ func (s *ChatPublicService) CreateConversation(agentID, customerID uint, title, 
 	// 广播新对话给所有客服
 	go websocket.BroadcastToAllAgents(conversation, websocket.MessageTypeNewConversation)
 
+	// 异步发布对话创建事件到事件总线
+	if eventbus.GlobalEventBus != nil {
+		fmt.Println("发布对话创建事件")
+		conversationEvent := eventbus.NewConversationCreatedEvent(conversation.ID)
+		if err := eventbus.GlobalEventBus.Publish(conversationEvent); err != nil {
+			logger.App.Error("发布对话创建事件失败", zap.Uint("会话ID", conversation.ID), zap.Error(err))
+		}
+	} else {
+		fmt.Println("GlobalEventBusGlobalEventBus发布对话创建事件")
+	}
+
 	return uuidStr, nil
 }
 
@@ -84,11 +96,6 @@ func (s *ChatPublicService) SendMessage(conversationUUID, content, sender, msgTy
 	result = database.DB.Where("source_key =?", conversation.SourceKey).First(&csSource)
 	if result.Error != nil {
 		return nil, bizErrors.ErrSourceNotFound
-	}
-
-	dialogID := ""
-	if csSource.DialogID != nil {
-		dialogID = fmt.Sprintf("%d", *csSource.DialogID)
 	}
 
 	// 如果消息类型为空，设置默认值
@@ -128,7 +135,8 @@ func (s *ChatPublicService) SendMessage(conversationUUID, content, sender, msgTy
 		go websocket.BroadcastToAllAgents(message, websocket.MessageTypeNewMessage)
 
 		// 发送消息到机器人
-		go s.sendToBot(content, dialogID, conversation.Title)
+		// go s.sendToBot(content, dialogID, conversation.Title)
+		go s.sendDooTaskMessage(&message, &conversation, &csSource)
 	}
 
 	return &message, nil
@@ -185,12 +193,28 @@ func (s *ChatPublicService) GetConversation(uuid string) (*models.Conversations,
 	return &conversation, nil
 }
 
-// sendToBot 发送消息到机器人
-func (s *ChatPublicService) sendToBot(content, dialogID, title string) {
-	CustomerServiceConfigData, err := models.LoadConfig[models.CustomerServiceConfigData](database.DB, models.CSConfigKeySystem)
+func (s *ChatPublicService) sendDooTaskMessage(message *models.Message, conversation *models.Conversations, source *models.CustomerServiceSource) {
+	customerServiceConfigData, err := models.LoadConfig[models.CustomerServiceConfigData](database.DB, models.CSConfigKeySystem)
 	if err != nil {
 		return
 	}
+	// if customerServiceConfigData
+	hasTask := false
+	if conversation.DooTaskDialogID != 0 && conversation.DooTaskTaskID != 0 {
+		hasTask = true
+		s.sendToBot(customerServiceConfigData, message.Content, fmt.Sprintf("%d", conversation.DooTaskDialogID))
+	}
+	content := ""
+	if !hasTask {
+		content = fmt.Sprintf("【%s】\n有一条新消息:\n%s", conversation.Title, message.Content)
+	} else {
+		content = fmt.Sprintf("[任务ID:%s][%s]\n有一条新消息:\n%s", conversation.DooTaskTaskID, conversation.Title, message.Content)
+	}
+	s.sendToBot(customerServiceConfigData, content, fmt.Sprintf("%d", *source.DialogID))
+}
+
+// sendToBot 发送消息到机器人
+func (s *ChatPublicService) sendToBot(CustomerServiceConfigData *models.CustomerServiceConfigData, content, dialogID string) {
 
 	robot := dootask.DootaskRobot{
 		Webhook: config.Cfg.DooTask.WebHook,
@@ -199,7 +223,7 @@ func (s *ChatPublicService) sendToBot(content, dialogID, title string) {
 	}
 
 	robot.Message = &dootask.DootaskMessage{
-		Text:     fmt.Sprintf("[%s]有一条新消息:\n%s", title, content),
+		Text:     content,
 		DialogId: dialogID,
 		Token:    CustomerServiceConfigData.DooTaskIntegration.BotToken,
 		Version:  config.Cfg.DooTask.Version,

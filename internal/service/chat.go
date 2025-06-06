@@ -12,6 +12,7 @@ import (
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/dootask"
+	"support-plugin/internal/pkg/eventbus"
 	"support-plugin/internal/pkg/logger"
 	"support-plugin/internal/pkg/websocket"
 )
@@ -64,6 +65,7 @@ func (s *ChatService) CreateConversationWithDetails(agentID, customerID uint, ti
 	})
 	conversation.Title = title
 
+	// 异步广播到WebSocket客户端
 	go websocket.BroadcastToAllAgents(conversation, websocket.MessageTypeNewConversation)
 
 	return uuidStr, nil
@@ -122,6 +124,32 @@ func (s *ChatService) SendMessageWithDetails(conversationUUID, content, sender, 
 		"updated_at":      now,
 		"last_message_at": now,
 	})
+
+	// 异步发布消息创建事件到事件总线
+	if eventbus.GlobalEventBus != nil {
+		logger.App.Info("消息创建事件正在发布",
+			zap.Uint("messageID", message.ID),
+			zap.Uint("conversationID", conversation.ID),
+			zap.String("sender", sender))
+		messageEvent := eventbus.NewMessageCreatedEvent(message.ID, conversation.ID, content, sender, msgType)
+		if err := eventbus.GlobalEventBus.Publish(messageEvent); err != nil {
+			logger.App.Error("发布消息创建事件失败",
+				zap.Uint("messageID", message.ID),
+				zap.Uint("conversationID", conversation.ID),
+				zap.String("sender", sender),
+				zap.Error(err))
+		} else {
+			logger.App.Info("消息创建事件已发布",
+				zap.Uint("messageID", message.ID),
+				zap.Uint("conversationID", conversation.ID),
+				zap.String("sender", sender))
+		}
+	} else {
+		logger.App.Info("消息创建事件总线未初始化，跳过事件发布",
+			zap.Uint("messageID", message.ID),
+			zap.Uint("conversationID", conversation.ID),
+			zap.String("sender", sender))
+	}
 
 	fmt.Println("发送消息到机器人", sender)
 
@@ -214,6 +242,32 @@ func (s *ChatService) SendMessageWithDetailsByID(conversationUUID int, content, 
 		"updated_at":      now,
 		"last_message_at": now,
 	})
+
+	// 异步发布消息创建事件到事件总线
+	if eventbus.GlobalEventBus != nil {
+		logger.App.Info("消息创建事件正在发布",
+			zap.Uint("messageID", message.ID),
+			zap.Uint("conversationID", conversation.ID),
+			zap.String("sender", sender))
+		messageEvent := eventbus.NewMessageCreatedEvent(message.ID, conversation.ID, content, sender, msgType)
+		if err := eventbus.GlobalEventBus.Publish(messageEvent); err != nil {
+			logger.App.Error("发布消息创建事件失败",
+				zap.Uint("messageID", message.ID),
+				zap.Uint("conversationID", conversation.ID),
+				zap.String("sender", sender),
+				zap.Error(err))
+		} else {
+			logger.App.Info("消息创建事件已发布",
+				zap.Uint("messageID", message.ID),
+				zap.Uint("conversationID", conversation.ID),
+				zap.String("sender", sender))
+		}
+	} else {
+		logger.App.Info("消息创建事件总线未初始化，跳过事件发布",
+			zap.Uint("messageID", message.ID),
+			zap.Uint("conversationID", conversation.ID),
+			zap.String("sender", sender))
+	}
 
 	fmt.Println("发送消息到机器人", sender)
 

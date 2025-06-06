@@ -8,6 +8,7 @@ export interface SystemConfig {
     botId: number | null;
     botToken: string;
     projectId: number | null;
+    createTask: boolean;
   };
 
   // 默认配置值（用于新来源的默认值）

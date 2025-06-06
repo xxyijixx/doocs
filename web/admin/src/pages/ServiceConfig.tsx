@@ -27,6 +27,7 @@ export default function ServiceConfig() {
     onCreateSource,
     onDeleteSource,
     onResetSystemConfig,
+    onUpdateCreateTask,
     handleSystemConfigSubmit,
   } = useServiceConfig();
 
@@ -74,6 +75,7 @@ export default function ServiceConfig() {
             onCreateSource={onCreateSource}
             onDeleteSource={onDeleteSource}
             onEditSource={setEditingSource}
+            onUpdateCreateTask={onUpdateCreateTask}
           />
 
           {/* 基本配置 */}

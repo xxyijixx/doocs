@@ -31,6 +31,7 @@ const defaultSystemConfig: SystemConfig = {
     botId: null,
     botToken: "",
     projectId: null,
+    createTask: false,
   },
   defaultSourceConfig: {
     welcomeMessage: "欢迎来到客服中心，请问有什么可以帮助您的？",
@@ -520,6 +521,22 @@ export const useServiceConfig = () => {
     }));
   };
 
+  // 处理DooTask集成配置变化
+  const handleDooTaskConfigChange = (field: string, value: unknown) => {
+    setSystemConfig((prev) => ({
+      ...prev,
+      dooTaskIntegration: {
+        ...prev.dooTaskIntegration,
+        [field]: value,
+      },
+    }));
+  };
+
+  // 更新createTask配置
+  const onUpdateCreateTask = (enabled: boolean) => {
+    handleDooTaskConfigChange('createTask', enabled);
+  };
+
   return {
     // 状态
     systemConfig,
@@ -551,8 +568,10 @@ export const useServiceConfig = () => {
     onCreateSource,
     onDeleteSource,
     onResetSystemConfig,
+    onUpdateCreateTask,
     handleSystemConfigSubmit,
     handleSystemConfigChange,
     handleDefaultSourceConfigChange,
+    handleDooTaskConfigChange,
   };
 };

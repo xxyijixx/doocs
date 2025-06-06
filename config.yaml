@@ -1,3 +1,5 @@
+app:
+  mode: "dootask"
 dootask:
   url: ${DOOTASK_URL}
   token: ${DOOTASK_TOKEN}

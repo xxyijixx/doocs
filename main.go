@@ -2,11 +2,15 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 
 	"support-plugin/internal/config"
 	"support-plugin/internal/middleware"
 	"support-plugin/internal/pkg/database"
+	"support-plugin/internal/pkg/eventbus"
 	"support-plugin/internal/pkg/initialize"
 	"support-plugin/internal/pkg/logger"
 	"support-plugin/internal/pkg/websocket"
@@ -35,6 +39,12 @@ func main() {
 	// 执行初始化操作
 	initialize.Init()
 
+	// 初始化事件总线
+	eventbus.InitEventBus()
+
+	// 注册所有事件处理器
+	eventbus.RegisterAllEventHandlers()
+
 	// 启动WebSocket管理器
 	go websocket.WebSocketManager.Start()
 
@@ -47,8 +57,28 @@ func main() {
 	// 注册路由
 	routes.RegisterRoutes(r)
 
+	// 设置优雅关闭
+	setupGracefulShutdown()
+
 	// 启动服务器
 	serverAddr := fmt.Sprintf(":%d", config.Cfg.App.Port)
 	fmt.Printf("服务器启动在 http://localhost:%s\n", strconv.Itoa(config.Cfg.App.Port))
 	r.Run(serverAddr)
+}
+
+// setupGracefulShutdown 设置优雅关闭
+func setupGracefulShutdown() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-c
+		fmt.Println("\n正在优雅关闭服务器...")
+
+		// 关闭事件总线
+		eventbus.ShutdownEventBus()
+
+		fmt.Println("服务器已关闭")
+		os.Exit(0)
+	}()
 }
