@@ -48,6 +48,14 @@ export async function getBotList(): Promise<ListResponse<UserBot>> {
   });
 }
 
+export async function updateBot(userBot: UserBot): Promise<ListResponse<UserBot>> {
+  return dooTaskAPI({
+    url: "/api/users/bot/edit",
+    method: "POST",
+    data: JSON.stringify(userBot),
+  });
+}
+
 // 创建项目
 export async function createProject(data: {
   name: string;

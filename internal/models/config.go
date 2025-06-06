@@ -15,6 +15,7 @@ const (
 	CSConfigKeyOther           = "other_config"
 	CSConfigKeyCustomerService = "customer_service_config"
 	CSConfigKeySystem          = "customer_service_system_config"
+	CSConfigKeyDooTaskChat  = "dootask_chat"
 	// 后续扩展可统一添加
 )
 
@@ -117,12 +118,17 @@ type UIData struct {
 	ChatBubblePosition string `json:"chatBubblePosition"` // 'left' | 'right'
 }
 
+type DooTaskChat struct {
+	ChatKey string `json:"chat_key"`
+}
+
 var ConfigTypeRegistry = map[string]func() interface{}{
 	CSConfigKeyWelcome:         func() interface{} { return &WelcomeConfig{} },
 	CSConfigKeyDooTask:         func() interface{} { return &DooTaskConfig{} },
 	CSConfigKeyAuth:            func() interface{} { return &AuthConfig{} },
 	CSConfigKeyCustomerService: func() interface{} { return &CustomerServiceConfigData{} },
 	CSConfigKeySystem:          func() interface{} { return &CustomerServiceConfigData{} },
+	CSConfigKeyDooTaskChat:  func() interface{} { return &DooTaskChat{} },
 }
 
 func LoadConfig[T any](db *gorm.DB, key string) (*T, error) {

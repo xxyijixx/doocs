@@ -8,6 +8,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 export default function ServiceConfig() {
   const {
     systemConfig,
+    dootaskChatConfig,
     sources,
     isLoading,
     isSaving,
@@ -22,6 +23,7 @@ export default function ServiceConfig() {
     setEditingSource,
     onGetUserBotList,
     onCreateUserBot,
+    onUpdateUserBot,
     onCreateProject,
     onSelectUserBot,
     onCreateSource,
@@ -52,11 +54,13 @@ export default function ServiceConfig() {
           {/* 机器人配置 */}
           <BotConfigSection
             systemConfig={systemConfig}
+            dootaskChatConfig={dootaskChatConfig}
             userBots={userBots}
             selectedUserBot={selectedUserBot}
             sourcesCount={sources.length}
             onGetUserBotList={onGetUserBotList}
             onCreateUserBot={onCreateUserBot}
+            onUpdateUserBot={onUpdateUserBot}
             onSelectUserBot={onSelectUserBot}
             onCreateProject={onCreateProject}
             onResetSystemConfig={onResetSystemConfig}

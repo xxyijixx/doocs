@@ -145,7 +145,7 @@ func (h *DooTaskEventHandlers) HandleConversationCreated(ctx context.Context, ev
 		Content:   fmt.Sprintf("来源: %s", source.Name),
 		ColumnID:  source.ColumnID,
 		Assist:    []int{},
-		Owner:     []int{},
+		Owner:     []int{*customerServiceConfigData.DooTaskIntegration.BotId},
 	}
 	// 调用DooTask API创建任务...
 	dootaskService := dootask.NewIDootaskService()

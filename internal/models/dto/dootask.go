@@ -169,6 +169,15 @@ type VersionInfoResp struct {
 	} `json:"publish"`
 }
 
+type UserBotInfo struct {
+	ID         int    `json:"id"`
+	Name       string `json:"name"`
+	Avatar     string `json:"avatar"`
+	ClearDay   int    `json:"clear_day"`
+	WebhookURL string `json:"webhook_url"`
+	SystemName string `json:"system_name"`
+}
+
 func (v *VersionInfoResp) CheckVersion(requiredVersion string) (bool, error) {
 	current, err := v.parseVersion(v.Version)
 	if err != nil {

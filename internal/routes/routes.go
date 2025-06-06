@@ -27,7 +27,7 @@ func RegisterRoutes(r *gin.Engine) {
 		// DooTask相关路由
 		dooTaskRoutes := v1.Group("/dootask")
 		{
-			dooTaskRoutes.POST("/chat", headlers.DooTask.Chat)
+			dooTaskRoutes.POST("/:chatKey/chat", headlers.DooTask.Chat)
 		}
 
 		// 认证相关路由

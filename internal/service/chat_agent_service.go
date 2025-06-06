@@ -11,7 +11,7 @@ type ChatAgentService struct{}
 var ChatAgent = &ChatAgentService{}
 
 // SendMessageByAgent 客服发送消息
-func (s *ChatAgentService) SendMessageByAgent(conversationID uint, content, sender, msgType, metadata string) (*models.Message, error) {
+func (s *ChatAgentService) SendMessageByAgent(conversationID uint, content, msgType, metadata string) (*models.Message, error) {
 	// 查找对话
 	var conversation models.Conversations
 	result := database.DB.Where("id = ?", conversationID).First(&conversation)
@@ -28,7 +28,7 @@ func (s *ChatAgentService) SendMessageByAgent(conversationID uint, content, send
 	message := models.Message{
 		ConversationID: conversationID,
 		Content:        content,
-		Sender:         sender,
+		Sender:         "agent",
 		Type:           msgType,
 		Metadata:       metadata,
 	}
@@ -80,6 +80,16 @@ func (s *ChatAgentService) GetAgentConversations(agentID uint, page, pageSize in
 func (s *ChatAgentService) GetConversationByUUID(uuid string) (*models.Conversations, error) {
 	var conversation models.Conversations
 	result := database.DB.Where("uuid = ?", uuid).First(&conversation)
+	if result.Error != nil {
+		return nil, bizErrors.ErrConversationNotFound
+	}
+	return &conversation, nil
+}
+
+// GetConversationByUUID 根据UUID获取对话信息
+func (s *ChatAgentService) GetConversationByDooTasDialogID(dialogID int) (*models.Conversations, error) {
+	var conversation models.Conversations
+	result := database.DB.Where("dootask_dialog_id = ?", dialogID).First(&conversation)
 	if result.Error != nil {
 		return nil, bizErrors.ErrConversationNotFound
 	}

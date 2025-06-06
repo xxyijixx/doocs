@@ -46,5 +46,9 @@ export interface SystemConfig {
   reserved2: string;
 }
 
+export interface DooTaskChatConfig {
+  chat_key: string;
+}
+
 // 保持向后兼容的别名
 export type CustomerServiceConfig = SystemConfig;

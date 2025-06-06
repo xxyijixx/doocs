@@ -36,7 +36,7 @@ func (h ChatAgentHeadler) SendMessageByAgent(c *gin.Context) {
 	}
 
 	// 发送消息
-	message, err := service.ChatAgent.SendMessageByAgent(uint(req.ID), req.Content, req.Sender, req.Type, req.Metadata)
+	message, err := service.ChatAgent.SendMessageByAgent(uint(req.ID), req.Content, "text", req.Metadata)
 	if err != nil {
 		response.ServerError(c, "发送消息失败", err)
 		return

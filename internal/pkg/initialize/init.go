@@ -11,5 +11,7 @@ func Init() {
 	// 初始化默认客服账号
 	InitDefaultAgent()
 
+	InitDefaultConfig()
+
 	log.Println("初始化操作完成")
 }

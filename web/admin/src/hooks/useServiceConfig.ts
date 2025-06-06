@@ -3,6 +3,7 @@ import { isMicroApp, appReady } from "@dootask/tools";
 import {
   createBot,
   getBotList,
+  updateBot,
   createProject,
   createTask,
   getTaskDialog,
@@ -21,7 +22,7 @@ import {
   getSourceList,
   deleteSource,
 } from "../api/source";
-import type { SystemConfig } from "../types/config";
+import type { SystemConfig, DooTaskChatConfig } from "../types/config";
 import type { CustomerServiceSource } from "../types/source";
 import type { UserBot } from "../types/dootask";
 
@@ -62,9 +63,14 @@ const defaultSystemConfig: SystemConfig = {
   reserved2: "",
 };
 
+const defaultDooTaskChatConfig: DooTaskChatConfig = {
+  chat_key: "",
+}
+
 export const useServiceConfig = () => {
   // 状态管理
   const [systemConfig, setSystemConfig] = useState<SystemConfig>(defaultSystemConfig);
+  const [dootaskChatConfig, setDootaskChatConfig] = useState<DooTaskChatConfig>(defaultDooTaskChatConfig);
   const [sources, setSources] = useState<CustomerServiceSource[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -138,6 +144,17 @@ export const useServiceConfig = () => {
       setSystemConfig(defaultSystemConfig);
       setIsLoading(false);
     }
+
+    try {
+      const dootaskConfigData = await getConfig("dootask_chat");
+      if (dootaskConfigData) {
+        setDootaskChatConfig(dootaskConfigData);
+      } else {
+        setDootaskChatConfig(defaultDooTaskChatConfig);
+      }
+    } catch (error) {
+      console.error("加载配置失败:", error);
+    }
   };
 
   // 加载来源列表
@@ -164,6 +181,35 @@ export const useServiceConfig = () => {
         console.error("获取客服机器人列表失败:", error.message);
       });
   };
+
+  const onUpdateUserBot = (userBot: UserBot) => {
+    if (!isRunInMicroApp) return;
+
+    updateBot(userBot)
+     .then(() => {
+        console.log("机器人更新成功");
+        // 更新本地状态
+        setSelectedUserBot(userBot);
+        setUserBots(prevBots => 
+          prevBots.map(bot => 
+            bot.id === userBot.id ? userBot : bot
+          )
+        );
+        setSaveMessage({
+          type: "success",
+          text: "机器人配置已更新",
+        });
+      })
+     .catch((error) => {
+        console.error("更新机器人失败:", error.message);
+        setSaveMessage({
+          type: "error",
+          text: `更新机器人失败: ${error.message}`,
+        });
+      });
+  }
+
+
 
   // 创建机器人
   const onCreateUserBot = async () => {
@@ -540,6 +586,7 @@ export const useServiceConfig = () => {
   return {
     // 状态
     systemConfig,
+    dootaskChatConfig,
     sources,
     isLoading,
     isSaving,
@@ -565,6 +612,7 @@ export const useServiceConfig = () => {
     onCreateUserBot,
     onCreateProject,
     onSelectUserBot,
+    onUpdateUserBot,
     onCreateSource,
     onDeleteSource,
     onResetSystemConfig,

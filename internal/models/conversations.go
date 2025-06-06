@@ -74,8 +74,8 @@ type Conversations struct {
 	SourceKey       string         `gorm:"column:source_key;default:'widget'" json:"source_key"` // 来源：widget, api, etc.
 	LastMessage     string         `gorm:"column:last_message" json:"last_message"`              // 最后一条消息内容
 	LastMessageAt   *time.Time     `gorm:"column:last_message_at" json:"last_message_at"`        // 最后消息时间
-	DooTaskDialogID int            `gorm:"column:dooask_dialog_id" json:"dootask_dialog_id"`     // Dootask 会话ID
-	DooTaskTaskID   int            `gorm:"column:dooask_task_id" json:"dootask_task_id"`         // Dootask 任务ID
+	DooTaskDialogID int            `gorm:"column:dootask_dialog_id" json:"dootask_dialog_id"`    // Dootask 会话ID
+	DooTaskTaskID   int            `gorm:"column:dootask_task_id" json:"dootask_task_id"`        // Dootask 任务ID
 	CreatedAt       time.Time      `gorm:"column:created_at" json:"created_at"`                  // 创建时间
 	UpdatedAt       time.Time      `gorm:"column:updated_at" json:"updated_at"`                  // 更新时间
 	DeletedAt       gorm.DeletedAt `gorm:"column:deleted_at" json:"deleted_at"`                  // 删除时间（软删除）
