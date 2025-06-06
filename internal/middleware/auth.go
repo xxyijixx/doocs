@@ -37,8 +37,12 @@ func AgentAuthMiddleware() gin.HandlerFunc {
 				return
 			}
 			logger.App.Debug("userInfoResp:", zap.Any("userInfoResp", userInfoResp))
+			
 			c.Set("agent_id", userInfoResp.Userid)
 			c.Set("username", "客服0001")
+			c.Set("dootask_user_info", userInfoResp)
+			c.Set("dootask_user_id", userInfoResp.Userid)
+			c.Set("is_admin", userInfoResp.IsAdmin())
 		} else {
 			authHeader := c.GetHeader("Authorization")
 			if authHeader == "" {
@@ -49,6 +53,25 @@ func AgentAuthMiddleware() gin.HandlerFunc {
 			c.Set("agent_id", 1)
 			c.Set("username", "客服0001")
 		}
+
+		// 将客服信息存储到上下文中
+		// c.Set("agent_id", claims.AgentID)
+		// c.Set("username", claims.Username)
+
+		c.Next()
+	}
+}
+
+func AdminAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if config.Cfg.App.Mode == "dootask" {
+			isAdmin := c.GetBool("is_admin")
+			if !isAdmin {
+				response.Forbidden(c, "权限不足", nil)
+				c.Abort()
+				return
+			}
+		} 
 
 		// 将客服信息存储到上下文中
 		// c.Set("agent_id", claims.AgentID)

@@ -507,6 +507,7 @@ export const useServiceConfig = () => {
             botId: null,
             botToken: "",
             projectId: null,
+            createTask: false,
           },
         }));
         setSelectedUserBot(null);

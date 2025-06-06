@@ -50,6 +50,11 @@ func Unauthorized(c *gin.Context, message string) {
 	Fail(c, http.StatusUnauthorized, message, nil)
 }
 
+// 403 Forbidden
+func Forbidden(c *gin.Context, message string, err error) {
+	Fail(c, http.StatusForbidden, message, err)
+}
+
 // InternalServerError
 func InternalServerError(c *gin.Context, message string, err error) {
 	Fail(c, http.StatusInternalServerError, message, err)

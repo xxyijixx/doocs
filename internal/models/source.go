@@ -24,7 +24,7 @@ type CustomerServiceSource struct {
 
 // TableName 指定表名
 func (CustomerServiceSource) TableName() string {
-	return "customer_service_sources"
+	return "cs_sources"
 }
 
 // CustomerServiceSourceConfig 来源配置结构

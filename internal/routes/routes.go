@@ -47,7 +47,7 @@ func RegisterRoutes(r *gin.Engine) {
 		}
 
 		// 配置相关路由
-		configRoutes := v1.Group("/configs", middleware.AgentAuthMiddleware())
+		configRoutes := v1.Group("/configs", middleware.AgentAuthMiddleware(), middleware.AdminAuthMiddleware())
 		{
 			// 获取所有配置
 			configRoutes.GET("", headlers.Config.GetAllConfigs)
@@ -60,7 +60,7 @@ func RegisterRoutes(r *gin.Engine) {
 		}
 
 		// 客服来源相关路由
-		sourceRoutes := v1.Group("/sources", middleware.AgentAuthMiddleware())
+		sourceRoutes := v1.Group("/sources", middleware.AgentAuthMiddleware(), middleware.AdminAuthMiddleware())
 		{
 			// 创建来源
 			sourceRoutes.POST("", headlers.Source.CreateSource)
@@ -109,12 +109,20 @@ func RegisterRoutes(r *gin.Engine) {
 			}
 		}
 
-		agentRoutes := v1.Group("/agents", middleware.AgentAuthMiddleware())
+		// 客服验证接口（只需要基础认证）
+		agentVerifyRoutes := v1.Group("/agents", middleware.AgentAuthMiddleware())
+		{
+			// 验证客服身份
+			agentVerifyRoutes.GET("/verify", headlers.Agent.Verify)
+		}
+		
+		// 客服管理接口（需要管理员权限）
+		agentRoutes := v1.Group("/agents", middleware.AgentAuthMiddleware(), middleware.AdminAuthMiddleware())
 		{
 			// 获取所有客服
 			agentRoutes.GET("", headlers.Agent.List)
-			// agentRoutes.POST("", headlers.Agent.List)
-			agentRoutes.POST("/edit", headlers.Agent.Edit)
+			// 设置客服ID,提交一组DooTask用户ID，不存在则创建对应的客服人员
+			agentRoutes.PUT("", headlers.Agent.Edit)
 		}
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

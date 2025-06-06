@@ -2,18 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Chat } from './pages/Chat';
 import ServiceConfig from './pages/ServiceConfig';
+import AgentManagement from './pages/AgentManagement';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { webSocketService } from './services/websocket';
 import { useConversationStore } from './store/conversationStore';
 import { useMessageStore } from './store/messageStore';
 import type { Message } from './types/chat';
-import { ThemeToggle } from './components/ThemeToggle';
+// import { ThemeToggle } from './components/ThemeToggle';
+import { PermissionGuard } from './components/PermissionGuard';
+import { useAuth } from './hooks/useAuth';
 import {isMicroApp} from '@dootask/tools';
 
 
 const App: React.FC = () => {
   const { addConversation } = useConversationStore();
   const { addMessage, triggerRefresh: refreshMessages } = useMessageStore();
+  const { isAdmin, isAgent, isLoading } = useAuth();
 
   const initialized = React.useRef(false);
   // 添加状态来跟踪当前选中的会话
@@ -160,20 +164,50 @@ const App: React.FC = () => {
               <h1 className="text-[24px] font-bold text-gray-800 dark:text-white">Doocs</h1>
               <div className="flex items-center gap-4">
                 <nav className="hidden md:flex items-center gap-2">
-                  <NavLink to="/">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-                    </svg>
-                    聊天
-                  </NavLink>
-                  <NavLink to="/config">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                    </svg>
-                    配置
-                  </NavLink>
+                  {/* 聊天页面 - 管理员和客服都可以访问 */}
+                  {(isAdmin || isAgent) && (
+                    <NavLink to="/">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                      </svg>
+                      聊天
+                    </NavLink>
+                  )}
+                  {/* 客服管理页面 - 只有管理员可以访问 */}
+                   {isAdmin && (
+                     <NavLink to="/agents">
+                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                         <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                       </svg>
+                       客服管理
+                     </NavLink>
+                   )}
+                   {/* 配置页面 - 只有管理员可以访问 */}
+                   {isAdmin && (
+                     <NavLink to="/config">
+                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                         <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                       </svg>
+                       配置
+                     </NavLink>
+                   )}
+                  {/* 显示当前用户权限 */}
+                  {!isLoading && (
+                    <div className="flex items-center gap-1 ml-4">
+                      {isAdmin && (
+                        <span className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-xs">
+                          管理员
+                        </span>
+                      )}
+                      {isAgent && (
+                        <span className="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded text-xs">
+                          客服
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </nav>
-                <ThemeToggle />
+                {/* <ThemeToggle /> */}
               </div>
             </div>
           </header>
@@ -181,15 +215,41 @@ const App: React.FC = () => {
           {/* 主内容区 */}
           <main className="flex-1 container mx-auto px-4 py-8 h-[calc(100vh-60px)] overflow-auto">
             <Routes>
-              <Route path="/" element={<Chat onCurrentConversationChange={(conversationId: number) => {
-                console.log('App.tsx selectedConversation改变', conversationId)
-                console.log('设置前currentConversationId:', currentConversationId)
-                setCurrentConversationId(conversationId)
-                currentConversationIdRef.current = conversationId;
-                console.log('设置后应该为:', conversationId)
-              }} />} />
-              <Route path="/config" element={<ServiceConfig />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route 
+                path="/" 
+                element={
+                  <PermissionGuard requireAgent={true}>
+                    <Chat onCurrentConversationChange={(conversationId: number) => {
+                      console.log('App.tsx selectedConversation改变', conversationId)
+                      console.log('设置前currentConversationId:', currentConversationId)
+                      setCurrentConversationId(conversationId)
+                      currentConversationIdRef.current = conversationId;
+                      console.log('设置后应该为:', conversationId)
+                    }} />
+                  </PermissionGuard>
+                } 
+              />
+              <Route 
+                 path="/agents" 
+                 element={
+                   <PermissionGuard requireAdmin={true}>
+                     <AgentManagement />
+                   </PermissionGuard>
+                 } 
+               />
+               <Route 
+                 path="/config" 
+                 element={
+                   <PermissionGuard requireAdmin={true}>
+                     <ServiceConfig />
+                   </PermissionGuard>
+                 } 
+               />
+              <Route path="*" element={
+                <PermissionGuard requireAgent={true}>
+                  <Navigate to="/" replace />
+                </PermissionGuard>
+              } />
             </Routes>
           </main>
         </div>

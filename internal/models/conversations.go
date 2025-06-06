@@ -8,16 +8,17 @@ import (
 
 // Agent 客服人员模型
 type Agent struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	Username  string         `gorm:"column:username;uniqueIndex;not null" json:"username"` // 用户名
-	Name      string         `gorm:"column:name" json:"name"`                              // 显示名称
-	Avatar    string         `gorm:"column:avatar" json:"avatar"`                          // 头像URL
-	Token     string         `gorm:"column:token" json:"-"`                                // 认证令牌，JSON响应中不返回
-	LastLogin *time.Time     `gorm:"column:last_login" json:"last_login"`                  // 最后登录时间
-	Status    string         `gorm:"column:status;default:'active'" json:"status"`         // 状态：active, inactive
-	CreatedAt time.Time      `gorm:"column:created_at" json:"created_at"`                  // 创建时间
-	UpdatedAt time.Time      `gorm:"column:updated_at" json:"updated_at"`                  // 更新时间
-	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at" json:"deleted_at"`                  // 删除时间（软删除）
+	ID            uint           `gorm:"primaryKey" json:"id"`
+	Username      string         `gorm:"column:username;uniqueIndex;not null" json:"username"` // 用户名
+	Name          string         `gorm:"column:name" json:"name"`                              // 显示名称
+	Avatar        string         `gorm:"column:avatar" json:"avatar"`                          // 头像URL
+	Token         string         `gorm:"column:token" json:"-"`                                // 认证令牌，JSON响应中不返回
+	DooTaskUserID int            `gorm:"column:dootask_user_id" json:"dootask_user_id"`        // Dootask 用户ID
+	LastLogin     *time.Time     `gorm:"column:last_login" json:"last_login"`                  // 最后登录时间
+	Status        string         `gorm:"column:status;default:'active'" json:"status"`         // 状态：active, inactive
+	CreatedAt     time.Time      `gorm:"column:created_at" json:"created_at"`                  // 创建时间
+	UpdatedAt     time.Time      `gorm:"column:updated_at" json:"updated_at"`                  // 更新时间
+	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at" json:"deleted_at"`                  // 删除时间（软删除）
 }
 
 // TableName 指定表名
