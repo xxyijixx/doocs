@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  support-plugin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # image: support-plugin:latest
+    ports:
+      - "8888:8888"
+    environment:
+      - DOOTASK_URL=${DOOTASK_URL}
+      - DOOTASK_TOKEN=${DOOTASK_TOKEN}
+      - DOOTASK_WEBHOOK=${DOOTASK_WEBHOOK}
+      - DOOTASK_VERSION=${DOOTASK_VERSION}
+    volumes:
+      - ./logs:/root/logs
+      - ./config.yaml:/root/config.yaml
+    restart: unless-stopped
+    networks:
+      - support-plugin-network
+
+networks:
+  support-plugin-network:
+    driver: bridge
+
+volumes:
+  logs:
+    driver: local

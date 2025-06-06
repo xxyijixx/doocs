@@ -47,7 +47,7 @@ func RegisterRoutes(r *gin.Engine) {
 		}
 
 		// 配置相关路由
-		configRoutes := v1.Group("/configs")
+		configRoutes := v1.Group("/configs", middleware.AgentAuthMiddleware())
 		{
 			// 获取所有配置
 			configRoutes.GET("", headlers.Config.GetAllConfigs)
@@ -56,11 +56,11 @@ func RegisterRoutes(r *gin.Engine) {
 			// 保存配置
 			configRoutes.POST("/:config_key", headlers.Config.SaveConfig)
 			// 删除配置
-			configRoutes.DELETE("/:config_key", headlers.Config.DeleteConfig)
+			// configRoutes.DELETE("/:config_key", headlers.Config.DeleteConfig)
 		}
 
 		// 客服来源相关路由
-		sourceRoutes := v1.Group("/sources")
+		sourceRoutes := v1.Group("/sources", middleware.AgentAuthMiddleware())
 		{
 			// 创建来源
 			sourceRoutes.POST("", headlers.Source.CreateSource)
@@ -107,6 +107,14 @@ func RegisterRoutes(r *gin.Engine) {
 				// 重新打开对话
 				chatProtected.PUT("/conversations/:id/reopen", headlers.ChatAgent.ReopenConversation)
 			}
+		}
+
+		agentRoutes := v1.Group("/agents", middleware.AgentAuthMiddleware())
+		{
+			// 获取所有客服
+			agentRoutes.GET("", headlers.Agent.List)
+			// agentRoutes.POST("", headlers.Agent.List)
+			agentRoutes.POST("/edit", headlers.Agent.Edit)
 		}
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
