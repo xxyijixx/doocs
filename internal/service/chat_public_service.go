@@ -208,7 +208,7 @@ func (s *ChatPublicService) sendDooTaskMessage(message *models.Message, conversa
 	if !hasTask {
 		content = fmt.Sprintf("【%s】\n有一条新消息:\n%s", conversation.Title, message.Content)
 	} else {
-		content = fmt.Sprintf("[任务ID:%s][%s]\n有一条新消息:\n%s", conversation.DooTaskTaskID, conversation.Title, message.Content)
+		content = fmt.Sprintf("[任务ID:%d][%s]\n有一条新消息:\n%s", conversation.DooTaskTaskID, conversation.Title, message.Content)
 	}
 	s.sendToBot(customerServiceConfigData, content, fmt.Sprintf("%d", *source.DialogID))
 }
