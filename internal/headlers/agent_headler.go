@@ -3,10 +3,12 @@ package headlers
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/response"
+	"support-plugin/internal/service"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AgentHeadler struct{}
@@ -25,12 +27,12 @@ var Agent = AgentHeadler{}
 func (a *AgentHeadler) List(c *gin.Context) {
 	db := database.GetDB()
 	var agents []models.Agent
-	
+
 	if err := db.Find(&agents).Error; err != nil {
 		response.ServerError(c, "获取客服列表失败", err)
 		return
 	}
-	
+
 	response.Success(c, "获取客服列表成功", agents)
 }
 
@@ -55,14 +57,14 @@ func (a *AgentHeadler) Edit(c *gin.Context) {
 		response.BadRequest(c, "请求参数错误", err)
 		return
 	}
-	
+
 	db := database.GetDB()
 	var agents []models.Agent
-	
+
 	// 为每个DooTask用户ID创建或更新客服记录
 	for _, userID := range req.DooTaskUserIDs {
 		var agent models.Agent
-		
+
 		// 查找是否已存在该DooTask用户ID的客服
 		err := db.Where("dootask_user_id = ?", userID).First(&agent).Error
 		if err != nil {
@@ -73,7 +75,7 @@ func (a *AgentHeadler) Edit(c *gin.Context) {
 				DooTaskUserID: userID,
 				Status:        "active",
 			}
-			
+
 			if err := db.Create(&agent).Error; err != nil {
 				response.ServerError(c, "创建客服失败", err)
 				return
@@ -86,11 +88,43 @@ func (a *AgentHeadler) Edit(c *gin.Context) {
 				return
 			}
 		}
-		
+
 		agents = append(agents, agent)
 	}
-	
+
 	response.Success(c, "设置客服成功", agents)
+}
+
+// @Summary 移除客服
+// @Description 移除指定的客服
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Response{data=[]models.Agent}
+// @Failure 400 {object} models.Response
+// @Failure 401 {object} models.Response
+// @Failure 500 {object} models.Response
+// @Router /agents/{id} [Delete]
+func (a *AgentHeadler) Delete(c *gin.Context) {
+	agentIDStr := c.Param("id")
+	if agentIDStr == "" {
+		response.Error(c, "", nil)
+		return
+	}
+
+	// 将字符串ID转换为uint类型
+	agentID, err := strconv.ParseUint(agentIDStr, 10, 64)
+	if err != nil {
+		response.Error(c, "Invalid Agent ID format", nil)
+		return
+	}
+
+	err = service.Agent.Delete(uint(agentID))
+	if err != nil {
+		response.Error(c, "", err)
+		return
+	}
+
+	response.Success(c, "删除成功", nil)
 }
 
 // @Summary 验证客服身份
@@ -109,28 +143,28 @@ func (a *AgentHeadler) Verify(c *gin.Context) {
 		response.Unauthorized(c, "未找到用户信息")
 		return
 	}
-	
+
 	userID, ok := dootaskUserID.(int)
 	if !ok {
 		response.BadRequest(c, "用户ID格式错误", nil)
 		return
 	}
-	
+
 	// 检查是否为管理员
 	isAdmin := c.GetBool("is_admin")
-	
+
 	// 检查是否为客服
 	db := database.GetDB()
 	var agent models.Agent
 	err := db.Where("dootask_user_id = ? AND status = ?", userID, "active").First(&agent).Error
 	isAgent := err == nil
-	
+
 	// 如果既不是管理员也不是客服，返回403
 	if !isAdmin && !isAgent {
 		response.Forbidden(c, "您没有访问权限", nil)
 		return
 	}
-	
+
 	// 返回用户权限信息
 	response.Success(c, "验证成功", map[string]interface{}{
 		"is_admin": isAdmin,

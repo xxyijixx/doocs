@@ -126,6 +126,8 @@ func RegisterRoutes(r *gin.Engine) {
 			agentRoutes.GET("", headlers.Agent.List)
 			// 设置客服ID,提交一组DooTask用户ID，不存在则创建对应的客服人员
 			agentRoutes.PUT("", headlers.Agent.Edit)
+
+			agentRoutes.DELETE("/:id", headlers.Agent.Delete)
 		}
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

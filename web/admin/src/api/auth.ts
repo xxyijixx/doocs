@@ -50,3 +50,12 @@ export async function setAgents(dootaskUserIds: number[]): Promise<any[]> {
     body: JSON.stringify({ dootask_user_ids: dootaskUserIds }),
   });
 }
+
+/**
+ * 移除客服
+ */
+export async function removeAgent(agent_id: number): Promise<void> {
+  return apiRequest(`/agents/${agent_id}`, {
+    method: 'DELETE'
+  });
+}

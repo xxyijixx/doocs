@@ -30,6 +30,19 @@ func Fail(c *gin.Context, statusCode int, message string, err error) {
 	c.JSON(statusCode, response)
 }
 
+func Error(c *gin.Context, message string, err error) {
+	response := models.Response{
+		Code:    -1,
+		Message: message,
+	}
+
+	if err != nil {
+		response.Error = err.Error()
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
 // BadRequest 400错误响应
 func BadRequest(c *gin.Context, message string, err error) {
 	Fail(c, http.StatusBadRequest, message, err)

@@ -9,7 +9,7 @@ func Init() {
 	log.Println("开始执行初始化操作...")
 
 	// 初始化默认客服账号
-	InitDefaultAgent()
+	// InitDefaultAgent()
 
 	InitDefaultConfig()
 

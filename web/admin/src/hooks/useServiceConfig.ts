@@ -452,7 +452,7 @@ export const useServiceConfig = () => {
         id: sourceResponse.id,
         sourceKey: sourceResponse.sourceKey,
         name: newSourceName.trim(),
-        projectId: sourceResponse.projetId,
+        projectId: sourceResponse.projectId,
         taskId: taskId,
         dialogId: dialogId,
         ...systemConfig.defaultSourceConfig,

@@ -12,7 +12,7 @@ import (
 func InitDefaultConfig() {
 	db := database.GetDB()
 	var count int64
-	db.Model(models.CSConfig{}).Where("key = ?", models.CSConfigKeyDooTaskChat).Count(&count)
+	db.Model(models.CSConfig{}).Where("config_key = ?", models.CSConfigKeyDooTaskChat).Count(&count)
 
 	if count != 0 {
 		log.Println("已存在默认配置")
@@ -23,8 +23,8 @@ func InitDefaultConfig() {
 		ChatKey: chatKey,
 	}
 	jsonBytes, err := json.Marshal(chatConfig)
-	if err!= nil {
-		return	
+	if err != nil {
+		return
 	}
 	defaultConfig := models.CSConfig{
 		ConfigKey:  models.CSConfigKeyDooTaskChat,

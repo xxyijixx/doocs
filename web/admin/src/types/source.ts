@@ -104,6 +104,6 @@ export interface CreateSourceResponse {
   name: string;
   taskId: number;
   dialogId: number;
-  projetId: number;
+  projectId: number;
   columnId: number;
 }
