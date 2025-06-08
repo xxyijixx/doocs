@@ -75,6 +75,7 @@ export default function ServiceConfig() {
             sources={sources}
             newSourceName={newSourceName}
             isCreatingSource={isCreatingSource}
+            serverConfig={serverConfig}
             setNewSourceName={setNewSourceName}
             onCreateProject={onCreateProject}
             onResetSystemConfig={onResetSystemConfig}
