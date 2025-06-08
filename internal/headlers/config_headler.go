@@ -8,11 +8,33 @@ import (
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/response"
+	"support-plugin/internal/utils/common"
 )
 
 type ConfigHeadler struct{}
 
 var Config = ConfigHeadler{}
+
+// @Summary 获取服务器配置
+// @Description 获取服务器基础配置信息
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Response{data=map[string]interface{}}
+// @Router /server/config [get]
+func (h ConfigHeadler) GetServerConfig(c *gin.Context) {
+	// common.
+	// 返回硬编码的服务器配置
+	serverConfig := models.ServerConfigResp{
+		BaseUrl:   common.GetCurrentDomain(c) + "/apps/cs/api/v1",
+		DockerUrl: "http://customer:8888/api/v1",
+		Mode:      "dev",
+	}
+	// serverConfig := map[string]interface{}{
+	// 	"baseUrl": "http://192.168.0.4",
+	// }
+
+	response.Success(c, "success", serverConfig)
+}
 
 // @Summary 获取配置
 // @Description 根据配置键获取配置信息

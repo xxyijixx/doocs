@@ -14,11 +14,12 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/20/solid";
 import type { UserBot } from "../../types/dootask";
-import type { SystemConfig, DooTaskChatConfig } from "../../types/config";
+import type { SystemConfig, DooTaskChatConfig, ServerConfig } from "../../types/config";
 
 interface BotConfigSectionProps {
   systemConfig: SystemConfig;
   dootaskChatConfig: DooTaskChatConfig;
+  serverConfig: ServerConfig;
   userBots: UserBot[];
   selectedUserBot: UserBot | null;
   sourcesCount: number;
@@ -33,6 +34,7 @@ interface BotConfigSectionProps {
 export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
   systemConfig,
   dootaskChatConfig,
+  serverConfig,
   userBots,
   selectedUserBot,
   sourcesCount,
@@ -41,7 +43,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
   onSelectUserBot,
   onUpdateUserBot, // 解构 onUpdateUserBot
 }) => {
-  const DEFAULT_WEBHOOK_URL = `http://192.168.31.214:8888/api/v1/dootask/${dootaskChatConfig.chat_key}/chat`; // 定义默认的webhook URL
+  const DEFAULT_WEBHOOK_URL = `${serverConfig.base_url}/dootask/${dootaskChatConfig.chat_key}/chat`; // 定义默认的webhook URL
 
   return (
     <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">

@@ -11,7 +11,7 @@ import type { Message } from './types/chat';
 // import { ThemeToggle } from './components/ThemeToggle';
 import { PermissionGuard } from './components/PermissionGuard';
 import { useAuth } from './hooks/useAuth';
-import {isMicroApp} from '@dootask/tools';
+import {isMicroApp, getUserToken} from '@dootask/tools';
 
 
 const App: React.FC = () => {
@@ -35,8 +35,7 @@ const App: React.FC = () => {
       initialized.current = true;
     console.log('初始化WebSocket连接...');
     // TODO: Replace 'test-agent-id' with the actual agent ID from authentication
-    const agentId = '0'; 
-    webSocketService.connect(agentId);
+    webSocketService.connect(getUserToken());
     console.log('WebSocket连接请求已发送，当前状态:', webSocketService.getReadyState());
     if (isMicroApp()) {
       console.log('当前是微应用');

@@ -46,3 +46,9 @@ type AgentInfoResponse struct {
 	Avatar   string `json:"avatar"`   // 头像URL
 	Status   string `json:"status"`   // 状态
 }
+
+type ServerConfigResp struct {
+	BaseUrl   string `json:"base_url"`
+	DockerUrl string `json:"docker_url"`
+	Mode      string `json:"mode"`
+}

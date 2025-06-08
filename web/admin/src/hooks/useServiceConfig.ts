@@ -16,13 +16,13 @@ import {
   createProjectColumn,
   generateMentionMessage,
 } from "../api/dootask";
-import { getConfig, saveConfig } from "../api/cs";
+import { getConfig, saveConfig, getServerConfig } from "../api/cs";
 import {
   createSource,
   getSourceList,
   deleteSource,
 } from "../api/source";
-import type { SystemConfig, DooTaskChatConfig } from "../types/config";
+import type { SystemConfig, DooTaskChatConfig, ServerConfig } from "../types/config";
 import type { CustomerServiceSource } from "../types/source";
 import type { UserBot } from "../types/dootask";
 
@@ -67,10 +67,15 @@ const defaultDooTaskChatConfig: DooTaskChatConfig = {
   chat_key: "",
 }
 
+const defaultServerConfig: ServerConfig = {
+  base_url: "http://localhost"
+}
+
 export const useServiceConfig = () => {
   // 状态管理
   const [systemConfig, setSystemConfig] = useState<SystemConfig>(defaultSystemConfig);
   const [dootaskChatConfig, setDootaskChatConfig] = useState<DooTaskChatConfig>(defaultDooTaskChatConfig);
+  const [serverConfig, setServerConfig] = useState<ServerConfig>(defaultServerConfig);
   const [sources, setSources] = useState<CustomerServiceSource[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -155,6 +160,19 @@ export const useServiceConfig = () => {
     } catch (error) {
       console.error("加载配置失败:", error);
     }
+
+
+    try{
+      const serverConfigData = await getServerConfig();
+      if (serverConfigData) {
+        setServerConfig(serverConfigData)
+      } else {
+        setServerConfig(defaultServerConfig)
+      } 
+    } catch(error) {
+        console.error("加载配置失败:", error);
+      }
+    
   };
 
   // 加载来源列表
@@ -588,6 +606,7 @@ export const useServiceConfig = () => {
     // 状态
     systemConfig,
     dootaskChatConfig,
+    serverConfig,
     sources,
     isLoading,
     isSaving,

@@ -46,6 +46,9 @@ func RegisterRoutes(r *gin.Engine) {
 		// 	}
 		// }
 
+		// 服务器配置相关路由（无需认证）
+		v1.GET("/server/config", middleware.AgentAuthMiddleware(), headlers.Config.GetServerConfig)
+
 		// 配置相关路由
 		configRoutes := v1.Group("/configs", middleware.AgentAuthMiddleware(), middleware.AdminAuthMiddleware())
 		{
@@ -115,7 +118,7 @@ func RegisterRoutes(r *gin.Engine) {
 			// 验证客服身份
 			agentVerifyRoutes.GET("/verify", headlers.Agent.Verify)
 		}
-		
+
 		// 客服管理接口（需要管理员权限）
 		agentRoutes := v1.Group("/agents", middleware.AgentAuthMiddleware(), middleware.AdminAuthMiddleware())
 		{

@@ -2,8 +2,10 @@ package websocket
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"support-plugin/internal/pkg/dootask"
 	"support-plugin/internal/pkg/logger"
 	"time"
 
@@ -50,10 +52,23 @@ func ServeWs(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid client type, must be 'agent' or 'customer'"})
 		return
 	}
-
+	agentID := "0"
 	if clientType == "agent" {
 		// 客服端需要验证Token
 		// TODO: 验证Token
+		token := c.Query("token")
+		if token == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token"})
+			return
+		}
+
+		dootaskService := dootask.NewIDootaskService()
+		userInfoResp, err := dootaskService.GetUserInfo(token)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token 2"})
+			return
+		}
+		agentID = fmt.Sprintf("%d", userInfoResp.Userid)
 	}
 
 	// 升级HTTP连接为WebSocket连接
@@ -63,7 +78,6 @@ func ServeWs(c *gin.Context) {
 		return
 	}
 
-	agentID := c.Query("agent_id")
 	// 创建新的客户端
 	client := &Client{
 		Conn:       conn,

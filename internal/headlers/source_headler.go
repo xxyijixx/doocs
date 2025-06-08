@@ -14,6 +14,7 @@ import (
 	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/logger"
 	"support-plugin/internal/pkg/response"
+	"support-plugin/internal/utils/common"
 )
 
 type SourceHeadler struct{}
@@ -249,13 +250,7 @@ func (h SourceHeadler) DeleteSource(c *gin.Context) {
 // generateSourceKey 生成来源唯一标识
 func generateSourceKey(name string) string {
 	// 生成6位随机字符串
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	randomStr := make([]byte, 20)
-	for i := range randomStr {
-		randomStr[i] = charset[time.Now().UnixNano()%int64(len(charset))]
-		// 添加短暂延时以确保随机性
-		time.Sleep(time.Nanosecond)
-	}
+	randomStr := common.RandString(20)
 	logger.App.Info("正在为来源生成唯一标识", zap.String("name", name), zap.String("key", string(randomStr)))
-	return fmt.Sprintf("CS-%s", string(randomStr))
+	return fmt.Sprintf("CS-%s", randomStr)
 }

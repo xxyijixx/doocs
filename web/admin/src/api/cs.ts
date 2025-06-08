@@ -4,6 +4,7 @@
  */
 
 import { apiRequest } from './request';
+import type { ServerConfig } from '../types/config'
 
 /**
  * 获取配置
@@ -86,5 +87,13 @@ export async function closeConversation(conversationId: number): Promise<void> {
 export async function reopenConversation(conversationId: number): Promise<void> {
   return apiRequest(`/chat/agent/conversations/${conversationId}/reopen`, {
     method: 'PUT',
+  });
+}
+
+
+
+export async function getServerConfig(): Promise<ServerConfig> {
+  return apiRequest('/server/config', {
+    method: 'GET'
   });
 }

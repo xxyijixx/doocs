@@ -50,5 +50,11 @@ export interface DooTaskChatConfig {
   chat_key: string;
 }
 
+// 添加获取服务器配置的API
+export interface ServerConfig {
+  base_url: string;
+  [key: string]: any; // 允许扩展其他配置项
+}
+
 // 保持向后兼容的别名
 export type CustomerServiceConfig = SystemConfig;

@@ -9,6 +9,7 @@ export default function ServiceConfig() {
   const {
     systemConfig,
     dootaskChatConfig,
+    serverConfig,
     sources,
     isLoading,
     isSaving,
@@ -55,6 +56,7 @@ export default function ServiceConfig() {
           <BotConfigSection
             systemConfig={systemConfig}
             dootaskChatConfig={dootaskChatConfig}
+            serverConfig={serverConfig}
             userBots={userBots}
             selectedUserBot={selectedUserBot}
             sourcesCount={sources.length}

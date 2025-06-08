@@ -1,6 +1,8 @@
 // WebSocket service for handling real-time communication
+import { v4 as uuidv4 } from 'uuid';
 
-const WEBSOCKET_URL = 'ws://localhost:8888/api/v1/chat/ws'; // TODO: Update with your actual WebSocket URL and path
+const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL;
+const WEBSOCKET_URL = `${wsBaseUrl || 'ws://localhost:8888'}/api/v1/chat/ws`;
 
 class WebSocketService {
   private socket: WebSocket | null = null;
@@ -9,7 +11,7 @@ class WebSocketService {
   private closeListeners: Array<(event: CloseEvent) => void> = [];
   private errorListeners: Array<(event: Event) => void> = [];
 
-  public connect(agentId: string): void {
+  public connect(token: string): void {
     if (this.socket) {
       if (this.socket.readyState === WebSocket.CONNECTING || this.socket.readyState === WebSocket.OPEN) {
         console.log('WebSocket is already connecting or connected.');
@@ -19,9 +21,9 @@ class WebSocketService {
         this.socket.close(); // Ensure the old socket is properly closed
       }
     }
-
+    const conv_uuid = uuidv4();
     // Append agentId as a query parameter
-    const url = `${WEBSOCKET_URL}?conv_uuid=11&agent_id=${agentId}&client_type=agent`;
+    const url = `${WEBSOCKET_URL}?conv_uuid=${conv_uuid}&client_type=agent&token=${token}`;
     // const url = `${WEBSOCKET_URL}?conv_uuid=3fa8f191-9523-4f97-817c-d821fa5abb45&client_type=customer`;
     this.socket = new WebSocket(url);
 
