@@ -1,44 +1,44 @@
 // 系统配置接口（机器人和聊天配置）
 export interface SystemConfig {
   // 基本设置
-  serviceName: string;
+  service_name: string;
 
   // DooTask集成设置
-  dooTaskIntegration: {
-    botId: number | null;
-    botToken: string;
-    projectId: number | null;
-    createTask: boolean;
+  dootask_integration: {
+    bot_id: number | null;
+    bot_token: string;
+    project_id: number | null;
+    create_task: boolean;
   };
 
   // 默认配置值（用于新来源的默认值）
-  defaultSourceConfig: {
-    welcomeMessage: string;
-    offlineMessage: string;
+  default_source_config: {
+    welcome_message: string;
+    offline_message: string;
 
-    workingHours: {
+    working_hours: {
       enabled: boolean;
-      startTime: string; // 格式: "HH:MM"
-      endTime: string; // 格式: "HH:MM"
-      workDays: number[]; // 0-6, 0表示周日
+      start_time: string; // 格式: "HH:MM"
+      end_time: string; // 格式: "HH:MM"
+      work_days: number[]; // 0-6, 0表示周日
     };
 
-    autoReply: {
+    auto_reply: {
       enabled: boolean;
       delay: number; // 延迟时间（秒）
       message: string;
     };
 
-    agentAssignment: {
+    agent_assignment: {
       method: "round-robin" | "least-busy" | "manual";
       timeout: number; // 超时时间（秒）
-      fallbackAgentId: number | null;
+      fallback_agent_id: number | null;
     };
 
     ui: {
-      primaryColor: string; // 十六进制颜色代码
-      logoUrl: string;
-      chatBubblePosition: "left" | "right";
+      primary_color: string; // 十六进制颜色代码
+      logo_url: string;
+      chat_bubble_position: "left" | "right";
     };
   };
 

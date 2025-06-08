@@ -15,7 +15,7 @@ const (
 	CSConfigKeyOther           = "other_config"
 	CSConfigKeyCustomerService = "customer_service_config"
 	CSConfigKeySystem          = "customer_service_system_config"
-	CSConfigKeyDooTaskChat  = "dootask_chat"
+	CSConfigKeyDooTaskChat     = "dootask_chat"
 	// 后续扩展可统一添加
 )
 
@@ -56,21 +56,21 @@ type AuthConfig struct {
 // config_key = customer_service_config
 type CustomerServiceConfigData struct {
 	// 基本设置
-	ServiceName    string `json:"serviceName"`
-	WelcomeMessage string `json:"welcomeMessage"`
-	OfflineMessage string `json:"offlineMessage"`
+	ServiceName    string `json:"service_name"`
+	WelcomeMessage string `json:"welcome_message"`
+	OfflineMessage string `json:"offline_message"`
 
 	// DooTask集成设置
-	DooTaskIntegration DooTaskIntegrationData `json:"dooTaskIntegration"`
+	DooTaskIntegration DooTaskIntegrationData `json:"dootask_integration"`
 
 	// 工作时间设置
-	WorkingHours WorkingHoursData `json:"workingHours"`
+	WorkingHours WorkingHoursData `json:"working_hours"`
 
 	// 自动回复设置
-	AutoReply AutoReplyData `json:"autoReply"`
+	AutoReply AutoReplyData `json:"auto_reply"`
 
 	// 客服分配设置
-	AgentAssignment AgentAssignmentData `json:"agentAssignment"`
+	AgentAssignment AgentAssignmentData `json:"agent_assignment"`
 
 	// 界面设置
 	UI UIData `json:"ui"`
@@ -81,20 +81,20 @@ type CustomerServiceConfigData struct {
 
 // DooTask集成设置子结构
 type DooTaskIntegrationData struct {
-	BotId      *int   `json:"botId"`
-	BotToken   string `json:"botToken"`
-	ProjectId  *int   `json:"projectId"`
-	TaskId     *int   `json:"taskId"`
-	DialogId   *int   `json:"dialogId"`
-	CreateTask bool   `json:"createTask"`
+	BotId      *int   `json:"bot_id"`
+	BotToken   string `json:"bot_token"`
+	ProjectId  *int   `json:"project_id"`
+	TaskId     *int   `json:"task_id"`
+	DialogId   *int   `json:"dialog_id"`
+	CreateTask bool   `json:"create_task"`
 }
 
 // 工作时间设置子结构
 type WorkingHoursData struct {
 	Enabled   bool   `json:"enabled"`
-	StartTime string `json:"startTime"` // 格式: "HH:MM"
-	EndTime   string `json:"endTime"`   // 格式: "HH:MM"
-	WorkDays  []int  `json:"workDays"`  // 0-6, 0表示周日
+	StartTime string `json:"start_time"` // 格式: "HH:MM"
+	EndTime   string `json:"end_time"`   // 格式: "HH:MM"
+	WorkDays  []int  `json:"work_days"`  // 0-6, 0表示周日
 }
 
 // 自动回复设置子结构
@@ -108,14 +108,14 @@ type AutoReplyData struct {
 type AgentAssignmentData struct {
 	Method          string `json:"method"`  // 'round-robin' | 'least-busy' | 'manual'
 	Timeout         int    `json:"timeout"` // 超时时间（秒）
-	FallbackAgentId *int   `json:"fallbackAgentId"`
+	FallbackAgentId *int   `json:"fallback_agent_id"`
 }
 
 // 界面设置子结构
 type UIData struct {
-	PrimaryColor       string `json:"primaryColor"` // 十六进制颜色代码
-	LogoUrl            string `json:"logoUrl"`
-	ChatBubblePosition string `json:"chatBubblePosition"` // 'left' | 'right'
+	PrimaryColor       string `json:"primary_color"` // 十六进制颜色代码
+	LogoUrl            string `json:"logo_url"`
+	ChatBubblePosition string `json:"chat_bubble_position"` // 'left' | 'right'
 }
 
 type DooTaskChat struct {
@@ -128,7 +128,7 @@ var ConfigTypeRegistry = map[string]func() interface{}{
 	CSConfigKeyAuth:            func() interface{} { return &AuthConfig{} },
 	CSConfigKeyCustomerService: func() interface{} { return &CustomerServiceConfigData{} },
 	CSConfigKeySystem:          func() interface{} { return &CustomerServiceConfigData{} },
-	CSConfigKeyDooTaskChat:  func() interface{} { return &DooTaskChat{} },
+	CSConfigKeyDooTaskChat:     func() interface{} { return &DooTaskChat{} },
 }
 
 func LoadConfig[T any](db *gorm.DB, key string) (*T, error) {

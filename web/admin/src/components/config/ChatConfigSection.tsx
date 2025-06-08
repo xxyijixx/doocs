@@ -65,7 +65,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
             onClick={onCreateProject}
             disabled={
               !selectedUserBot ||
-              !!systemConfig.dooTaskIntegration.projectId
+              !!systemConfig.dootask_integration.project_id
             }
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -92,13 +92,13 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
             <div className="flex items-center">
               <input
                 type="checkbox"
-                id="createTask"
-                checked={systemConfig.dooTaskIntegration.createTask}
+                id="create_task"
+                checked={systemConfig.dootask_integration.create_task}
                 onChange={(e) => onUpdateCreateTask(e.target.checked)}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label
-                htmlFor="createTask"
+                htmlFor="create_task"
                 className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
               >
                 自动创建 DooTask 任务
@@ -134,7 +134,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                 disabled={
                   isCreatingSource ||
                   !selectedUserBot ||
-                  !systemConfig.dooTaskIntegration.projectId ||
+                  !systemConfig.dootask_integration.project_id ||
                   !newSourceName.trim()
                 }
                 className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -165,11 +165,11 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                       <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         <span>来源Key: </span>
                         <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
-                          {source.sourceKey}
+                          {source.source_key}
                         </code>
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        项目ID: {source.projectId} | 任务ID: {source.taskId} | 对话ID: {source.dialogId}
+                        项目ID: {source.project_id} | 任务ID: {source.task_id} | 对话ID: {source.dialog_id}
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -237,7 +237,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
      // 手动配置 baseUrl 和 source
      window.WIDGET_CONFIG = {
          baseUrl: '${serverConfig.base_url}',  // 后端服务地址
-         source: '${selectedSource.sourceKey}',         // 当前来源的source key
+         source: '${selectedSource.source_key}',         // 当前来源的source key
      };
  </script>
  
@@ -255,7 +255,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                    </p>
                    <p className="text-sm text-gray-600 dark:text-gray-400">
                      <strong>Source Key：</strong>
-                     <code className="bg-gray-200 dark:bg-gray-600 px-1 rounded ml-1">{selectedSource.sourceKey}</code>
+                     <code className="bg-gray-200 dark:bg-gray-600 px-1 rounded ml-1">{selectedSource.source_key}</code>
                    </p>
                  </div>
                </div>

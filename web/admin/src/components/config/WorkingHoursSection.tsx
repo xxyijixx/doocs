@@ -23,7 +23,7 @@ export const WorkingHoursSection: React.FC<WorkingHoursSectionProps> = ({
   ];
 
   const handleWorkDayChange = (dayValue: number, checked: boolean) => {
-    const currentWorkDays = systemConfig.defaultSourceConfig.workingHours.workDays;
+    const currentWorkDays = systemConfig.default_source_config.working_hours.work_days;
     let newWorkDays;
     
     if (checked) {
@@ -32,9 +32,9 @@ export const WorkingHoursSection: React.FC<WorkingHoursSectionProps> = ({
       newWorkDays = currentWorkDays.filter(day => day !== dayValue);
     }
     
-    onDefaultSourceConfigChange("workingHours", {
-      ...systemConfig.defaultSourceConfig.workingHours,
-      workDays: newWorkDays,
+    onDefaultSourceConfigChange("working_hours", {
+      ...systemConfig.default_source_config.working_hours,
+      work_days: newWorkDays,
     });
   };
 
@@ -49,10 +49,10 @@ export const WorkingHoursSection: React.FC<WorkingHoursSectionProps> = ({
       <div className="space-y-4">
         <Field className="flex items-center gap-3">
           <Switch
-            checked={systemConfig.defaultSourceConfig.workingHours.enabled}
+            checked={systemConfig.default_source_config.working_hours.enabled}
             onChange={(checked) =>
-              onDefaultSourceConfigChange("workingHours", {
-                ...systemConfig.defaultSourceConfig.workingHours,
+              onDefaultSourceConfigChange("working_hours", {
+                ...systemConfig.default_source_config.working_hours,
                 enabled: checked,
               })
             }
@@ -72,15 +72,15 @@ export const WorkingHoursSection: React.FC<WorkingHoursSectionProps> = ({
             </Label>
             <Input
               type="time"
-              value={systemConfig.defaultSourceConfig.workingHours.startTime}
+              value={systemConfig.default_source_config.working_hours.start_time}
               onChange={(e) =>
-                onDefaultSourceConfigChange("workingHours", {
-                  ...systemConfig.defaultSourceConfig.workingHours,
-                  startTime: e.target.value,
+                onDefaultSourceConfigChange("working_hours", {
+                  ...systemConfig.default_source_config.working_hours,
+                  start_time: e.target.value,
                 })
               }
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={!systemConfig.defaultSourceConfig.workingHours.enabled}
+              disabled={!systemConfig.default_source_config.working_hours.enabled}
             />
           </Field>
 
@@ -90,15 +90,15 @@ export const WorkingHoursSection: React.FC<WorkingHoursSectionProps> = ({
             </Label>
             <Input
               type="time"
-              value={systemConfig.defaultSourceConfig.workingHours.endTime}
+              value={systemConfig.default_source_config.working_hours.end_time}
               onChange={(e) =>
-                onDefaultSourceConfigChange("workingHours", {
-                  ...systemConfig.defaultSourceConfig.workingHours,
-                  endTime: e.target.value,
+                onDefaultSourceConfigChange("working_hours", {
+                  ...systemConfig.default_source_config.working_hours,
+                  end_time: e.target.value,
                 })
               }
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={!systemConfig.defaultSourceConfig.workingHours.enabled}
+              disabled={!systemConfig.default_source_config.working_hours.enabled}
             />
           </Field>
         </div>
@@ -111,11 +111,11 @@ export const WorkingHoursSection: React.FC<WorkingHoursSectionProps> = ({
             {weekDays.map((day) => (
               <Field key={day.value} className="flex items-center gap-2">
                 <Switch
-                  checked={systemConfig.defaultSourceConfig.workingHours.workDays.includes(
+                  checked={systemConfig.default_source_config.working_hours.work_days.includes(
                     day.value
                   )}
                   onChange={(checked) => handleWorkDayChange(day.value, checked)}
-                  disabled={!systemConfig.defaultSourceConfig.workingHours.enabled}
+                  disabled={!systemConfig.default_source_config.working_hours.enabled}
                   className="group relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 data-[checked]:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out group-data-[checked]:translate-x-4" />

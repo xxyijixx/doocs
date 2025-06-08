@@ -36,22 +36,22 @@ export const UIConfigSection: React.FC<UIConfigSectionProps> = ({
           <div className="flex items-center gap-3">
             <Input
               type="color"
-              value={systemConfig.defaultSourceConfig.ui.primaryColor}
+              value={systemConfig.default_source_config.ui.primary_color}
               onChange={(e) =>
                 onDefaultSourceConfigChange("ui", {
-                  ...systemConfig.defaultSourceConfig.ui,
-                  primaryColor: e.target.value,
+                  ...systemConfig.default_source_config.ui,
+                  primary_color: e.target.value,
                 })
               }
               className="h-10 w-10 border-0 p-0 data-[focus]:ring-2 data-[focus]:ring-blue-500"
             />
             <Input
               type="text"
-              value={systemConfig.defaultSourceConfig.ui.primaryColor}
+              value={systemConfig.default_source_config.ui.primary_color}
               onChange={(e) =>
                 onDefaultSourceConfigChange("ui", {
-                  ...systemConfig.defaultSourceConfig.ui,
-                  primaryColor: e.target.value,
+                  ...systemConfig.default_source_config.ui,
+                  primary_color: e.target.value,
                 })
               }
               className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
@@ -67,11 +67,11 @@ export const UIConfigSection: React.FC<UIConfigSectionProps> = ({
           </Label>
           <Input
             type="url"
-            value={systemConfig.defaultSourceConfig.ui.logoUrl}
+            value={systemConfig.default_source_config.ui.logo_url}
             onChange={(e) =>
               onDefaultSourceConfigChange("ui", {
-                ...systemConfig.defaultSourceConfig.ui,
-                logoUrl: e.target.value,
+                ...systemConfig.default_source_config.ui,
+                logo_url: e.target.value,
               })
             }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
@@ -84,11 +84,11 @@ export const UIConfigSection: React.FC<UIConfigSectionProps> = ({
             聊天气泡位置
           </Legend>
           <RadioGroup
-            value={systemConfig.defaultSourceConfig.ui.chatBubblePosition}
+            value={systemConfig.default_source_config.ui.chat_bubble_position}
             onChange={(value) =>
               onDefaultSourceConfigChange("ui", {
-                ...systemConfig.defaultSourceConfig.ui,
-                chatBubblePosition: value,
+                ...systemConfig.default_source_config.ui,
+                chat_bubble_position: value,
               })
             }
             className="flex gap-4"

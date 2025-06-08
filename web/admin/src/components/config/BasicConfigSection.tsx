@@ -29,8 +29,8 @@ export const BasicConfigSection: React.FC<BasicConfigSectionProps> = ({
           </Label>
           <Input
             type="text"
-            value={systemConfig.serviceName}
-            onChange={(e) => onSystemConfigChange("serviceName", e.target.value)}
+            value={systemConfig.service_name}
+            onChange={(e) => onSystemConfigChange("service_name", e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
             placeholder="请输入服务名称"
           />
@@ -41,9 +41,9 @@ export const BasicConfigSection: React.FC<BasicConfigSectionProps> = ({
             默认欢迎消息
           </Label>
           <Textarea
-            value={systemConfig.defaultSourceConfig.welcomeMessage}
+            value={systemConfig.default_source_config.welcome_message}
             onChange={(e) =>
-              onDefaultSourceConfigChange("welcomeMessage", e.target.value)
+              onDefaultSourceConfigChange("welcome_message", e.target.value)
             }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 resize-none"
             rows={3}
@@ -56,9 +56,9 @@ export const BasicConfigSection: React.FC<BasicConfigSectionProps> = ({
             默认离线消息
           </Label>
           <Textarea
-            value={systemConfig.defaultSourceConfig.offlineMessage}
+            value={systemConfig.default_source_config.offline_message}
             onChange={(e) =>
-              onDefaultSourceConfigChange("offlineMessage", e.target.value)
+              onDefaultSourceConfigChange("offline_message", e.target.value)
             }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 resize-none"
             rows={3}

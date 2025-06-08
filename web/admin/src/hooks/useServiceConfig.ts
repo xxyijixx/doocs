@@ -27,36 +27,36 @@ import type { CustomerServiceSource } from "../types/source";
 import type { UserBot } from "../types/dootask";
 
 const defaultSystemConfig: SystemConfig = {
-  serviceName: "客服中心",
-  dooTaskIntegration: {
-    botId: null,
-    botToken: "",
-    projectId: null,
-    createTask: false,
+  service_name: "客服中心",
+  dootask_integration: {
+    bot_id: null,
+    bot_token: "",
+    project_id: null,
+    create_task: false,
   },
-  defaultSourceConfig: {
-    welcomeMessage: "欢迎来到客服中心，请问有什么可以帮助您的？",
-    offlineMessage: "当前客服不在线，请留言，我们会尽快回复您。",
-    workingHours: {
+  default_source_config: {
+    welcome_message: "欢迎来到客服中心，请问有什么可以帮助您的？",
+    offline_message: "当前客服不在线，请留言，我们会尽快回复您。",
+    working_hours: {
       enabled: true,
-      startTime: "09:00",
-      endTime: "18:00",
-      workDays: [1, 2, 3, 4, 5], // 周一到周五
+      start_time: "09:00",
+      end_time: "18:00",
+      work_days: [1, 2, 3, 4, 5], // 周一到周五
     },
-    autoReply: {
+    auto_reply: {
       enabled: true,
       delay: 30,
       message: "您好，客服正在处理其他问题，请稍等片刻。",
     },
-    agentAssignment: {
-      method: "round-robin",
+    agent_assignment: {
+      method: "round-robin", 
       timeout: 60,
-      fallbackAgentId: null,
+      fallback_agent_id: null,
     },
     ui: {
-      primaryColor: "#3B82F6",
-      logoUrl: "",
-      chatBubblePosition: "right",
+      primary_color: "#3B82F6",
+      logo_url: "",
+      chat_bubble_position: "right",
     },
   },
   reserved1: "",
@@ -119,12 +119,12 @@ export const useServiceConfig = () => {
       const configData = await getConfig("customer_service_system_config");
       if (configData) {
         setSystemConfig(configData);
-        if (configData.dooTaskIntegration?.botId && isRunInMicroApp) {
+        if (configData.dootask_integration?.bot_id && isRunInMicroApp) {
           getBotList()
             .then((response) => {
               const bots = response.data.list;
               const selectedBot = bots.find(
-                (bot) => bot.id === configData.dooTaskIntegration.botId
+                (bot) => bot.id === configData.dootask_integration.bot_id
               );
               if (selectedBot) {
                 setSelectedUserBot(selectedBot);
@@ -273,7 +273,7 @@ export const useServiceConfig = () => {
       return;
     }
     
-    if (systemConfig.dooTaskIntegration.projectId) {
+    if (systemConfig.dootask_integration.project_id) {
       setSaveMessage({
         type: "error",
         text: "项目已存在，请先重置后再创建",
@@ -294,10 +294,10 @@ export const useServiceConfig = () => {
       // 更新系统配置
       setSystemConfig((prev) => ({
         ...prev,
-        dooTaskIntegration: {
-          ...prev.dooTaskIntegration,
-          botId: selectedUserBot.id,
-          projectId: projectId,
+        dootask_integration: {
+          ...prev.dootask_integration,
+          bot_id: selectedUserBot.id,
+          project_id: projectId,
         },
       }));
 
@@ -363,10 +363,10 @@ export const useServiceConfig = () => {
             
             setSystemConfig((prev) => ({
               ...prev,
-              dooTaskIntegration: {
-                ...prev.dooTaskIntegration,
-                botId: botId,
-                botToken: botToken,
+              dootask_integration: {
+                ...prev.dootask_integration,
+                bot_id: botId,
+                bot_token: botToken,
               },
             }));
             break;
@@ -398,7 +398,7 @@ export const useServiceConfig = () => {
       return;
     }
     
-    if (!systemConfig.dooTaskIntegration.projectId) {
+    if (!systemConfig.dootask_integration.project_id) {
       setSaveMessage({
         type: "error",
         text: "请先创建项目",
@@ -416,13 +416,13 @@ export const useServiceConfig = () => {
 
     setIsCreatingSource(true);
     try {
-      const columnResponse = await createProjectColumn(systemConfig.dooTaskIntegration.projectId, newSourceName.trim())
+      const columnResponse = await createProjectColumn(systemConfig.dootask_integration.project_id || 0, newSourceName.trim())
       const columnId = columnResponse.data.id;
       console.log(`项目列ID: ${columnId}`);
       const taskName = `智能客服-${newSourceName.trim()}-通知提醒`;
 
       const taskResponse = await createTask({
-        project_id: systemConfig.dooTaskIntegration.projectId,
+        project_id: systemConfig.dootask_integration.project_id || 0,
         name: taskName,
         content: `客服来源：${newSourceName.trim()}`,
       });
@@ -441,21 +441,21 @@ export const useServiceConfig = () => {
 
       const sourceResponse = await createSource({
         name: newSourceName.trim(),
-        taskId: taskId,
-        dialogId: dialogId,
-        projectId: systemConfig.dooTaskIntegration.projectId,
-        columnId: columnId,
-        botId: selectedUserBot.id,
+        task_id: taskId,
+        dialog_id: dialogId,
+        project_id: systemConfig.dootask_integration.project_id || 0,
+        column_id: columnId,
+        bot_id: selectedUserBot.id,
       });
 
       const newSource: CustomerServiceSource = {
         id: sourceResponse.id,
-        sourceKey: sourceResponse.sourceKey,
+        source_key: sourceResponse.source_key,
         name: newSourceName.trim(),
-        projectId: sourceResponse.projectId,
-        taskId: taskId,
-        dialogId: dialogId,
-        ...systemConfig.defaultSourceConfig,
+        project_id: sourceResponse.project_id,
+        task_id: taskId,
+        dialog_id: dialogId,
+        ...systemConfig.default_source_config,
       };
 
       setSources((prev) => [...prev, newSource]);
@@ -463,7 +463,7 @@ export const useServiceConfig = () => {
 
       setSaveMessage({
         type: "success",
-        text: `来源创建成功！来源key: ${sourceResponse.sourceKey}`,
+        text: `来源创建成功！来源key: ${sourceResponse.source_key}`,
       });
     } catch (error) {
       console.error("创建来源失败:", error);
@@ -521,11 +521,11 @@ export const useServiceConfig = () => {
       onConfirm: () => {
         setSystemConfig((prev) => ({
           ...prev,
-          dooTaskIntegration: {
-            botId: null,
-            botToken: "",
-            projectId: null,
-            createTask: false,
+          dootask_integration: {
+            bot_id: null,
+            bot_token: "",
+            project_id: null,
+            create_task: false,
           },
         }));
         setSelectedUserBot(null);
@@ -579,8 +579,8 @@ export const useServiceConfig = () => {
   const handleDefaultSourceConfigChange = (field: string, value: unknown) => {
     setSystemConfig((prev) => ({
       ...prev,
-      defaultSourceConfig: {
-        ...prev.defaultSourceConfig,
+      default_source_config: {
+        ...prev.default_source_config,
         [field]: value,
       },
     }));
@@ -590,8 +590,8 @@ export const useServiceConfig = () => {
   const handleDooTaskConfigChange = (field: string, value: unknown) => {
     setSystemConfig((prev) => ({
       ...prev,
-      dooTaskIntegration: {
-        ...prev.dooTaskIntegration,
+      dootask_integration: {
+        ...prev.dootask_integration,
         [field]: value,
       },
     }));
@@ -599,7 +599,7 @@ export const useServiceConfig = () => {
 
   // 更新createTask配置
   const onUpdateCreateTask = (enabled: boolean) => {
-    handleDooTaskConfigChange('createTask', enabled);
+    handleDooTaskConfigChange('create_task', enabled);
   };
 
   return {

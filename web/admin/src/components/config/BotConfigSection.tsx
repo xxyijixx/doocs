@@ -65,13 +65,13 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
                 机器人ID:
               </span>
               <span className="ml-2 font-mono">
-                {systemConfig.dooTaskIntegration.botId || "未设置"}
+                {systemConfig.dootask_integration.bot_id || "未设置"}
               </span>
             </div>
             <div>
               <span className="text-gray-500 dark:text-gray-400">项目ID:</span>
               <span className="ml-2 font-mono">
-                {systemConfig.dooTaskIntegration.projectId || "未设置"}
+                {systemConfig.dootask_integration.project_id || "未设置"}
               </span>
             </div>
             <div>
@@ -153,7 +153,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
           </Button>
         </div>
         {/* Webhook 配置状态和操作 */}
-        {systemConfig.dooTaskIntegration.createTask && (
+        {systemConfig.dootask_integration.create_task && (
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />

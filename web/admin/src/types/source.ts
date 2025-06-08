@@ -5,39 +5,39 @@
 // 客服来源配置
 export interface CustomerServiceSource {
   id?: number;
-  sourceKey: string; // 后端生成的来源标识key
+  source_key: string; // 后端生成的来源标识key
   name: string; // 来源名称
-  projectId: number | null; // 对应的项目ID
-  taskId: number | null; // 对应的任务ID
-  dialogId: number | null; // 对应的对话ID
+  project_id: number | null; // 对应的项目ID
+  task_id: number | null; // 对应的任务ID
+  dialog_id: number | null; // 对应的对话ID
   
   // 来源特定的配置（从系统配置继承默认值）
-  welcomeMessage: string;
-  offlineMessage: string;
+  welcome_message: string;
+  offline_message: string;
   
-  workingHours: {
+  working_hours: {
     enabled: boolean;
-    startTime: string; // 格式: "HH:MM"
-    endTime: string; // 格式: "HH:MM"
-    workDays: number[]; // 0-6, 0表示周日
+    start_time: string; // 格式: "HH:MM"
+    end_time: string; // 格式: "HH:MM"
+    work_days: number[]; // 0-6, 0表示周日
   };
   
-  autoReply: {
+  auto_reply: {
     enabled: boolean;
     delay: number; // 延迟时间（秒）
     message: string;
   };
   
-  agentAssignment: {
+  agent_assignment: {
     method: 'round-robin' | 'least-busy' | 'manual';
     timeout: number; // 超时时间（秒）
-    fallbackAgentId: number | null;
+    fallback_agent_id: number | null;
   };
   
   ui: {
-    primaryColor: string; // 十六进制颜色代码
-    logoUrl: string;
-    chatBubblePosition: 'left' | 'right';
+    primary_color: string; // 十六进制颜色代码
+    logo_url: string;
+    chat_bubble_position: 'left' | 'right';
   };
   
   createdAt?: string;
@@ -47,42 +47,42 @@ export interface CustomerServiceSource {
 // 系统配置（机器人和聊天配置）
 export interface SystemConfig {
   // 基本设置
-  serviceName: string;
+  service_name: string;
   
   // DooTask集成设置
-  dooTaskIntegration: {
-    botId: number | null;
-    projectId: number | null;
+  dootask_integration: {
+    bot_id: number | null;
+    project_id: number | null;
   };
   
   // 默认配置值（用于新来源的默认值）
-  defaultSourceConfig: {
-    welcomeMessage: string;
-    offlineMessage: string;
+  default_source_config: {
+    welcome_message: string;
+    offline_message: string;
     
-    workingHours: {
+    working_hours: {
       enabled: boolean;
-      startTime: string;
-      endTime: string;
-      workDays: number[];
+      start_time: string;
+      end_time: string;
+      work_days: number[];
     };
     
-    autoReply: {
+    auto_reply: {
       enabled: boolean;
       delay: number;
       message: string;
     };
     
-    agentAssignment: {
+    agent_assignment: {
       method: 'round-robin' | 'least-busy' | 'manual';
       timeout: number;
-      fallbackAgentId: number | null;
+      fallback_agent_id: number | null;
     };
     
     ui: {
-      primaryColor: string;
-      logoUrl: string;
-      chatBubblePosition: 'left' | 'right';
+      primary_color: string;
+      logo_url: string;
+      chat_bubble_position: 'left' | 'right';
     };
   };
 }
@@ -90,20 +90,20 @@ export interface SystemConfig {
 // 创建来源请求参数
 export interface CreateSourceRequest {
   name: string;
-  taskId: number;
-  dialogId: number;
-  projectId: number;
-  columnId: number;
-  botId: number;
+  task_id: number;
+  dialog_id: number;
+  project_id: number;
+  column_id: number;
+  bot_id: number;
 }
 
 // 创建来源响应
 export interface CreateSourceResponse {
   id: number;
-  sourceKey: string;
+  source_key: string;
   name: string;
-  taskId: number;
-  dialogId: number;
-  projectId: number;
+  task_id: number;
+  dialog_id: number;
+  project_id: number;
   columnId: number;
 }

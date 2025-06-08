@@ -23,10 +23,10 @@ export const AutoReplySection: React.FC<AutoReplySectionProps> = ({
       <div className="space-y-4">
         <Field className="flex items-center gap-3">
           <Switch
-            checked={systemConfig.defaultSourceConfig.autoReply.enabled}
+            checked={systemConfig.default_source_config.auto_reply.enabled}
             onChange={(checked) =>
-              onDefaultSourceConfigChange("autoReply", {
-                ...systemConfig.defaultSourceConfig.autoReply,
+              onDefaultSourceConfigChange("auto_reply", {
+                ...systemConfig.default_source_config.auto_reply,
                 enabled: checked,
               })
             }
@@ -46,15 +46,15 @@ export const AutoReplySection: React.FC<AutoReplySectionProps> = ({
           <Input
             type="number"
             min="0"
-            value={systemConfig.defaultSourceConfig.autoReply.delay}
+            value={systemConfig.default_source_config.auto_reply.delay}
             onChange={(e) =>
-              onDefaultSourceConfigChange("autoReply", {
-                ...systemConfig.defaultSourceConfig.autoReply,
+              onDefaultSourceConfigChange("auto_reply", {
+                ...systemConfig.default_source_config.auto_reply,
                 delay: parseInt(e.target.value),
               })
             }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!systemConfig.defaultSourceConfig.autoReply.enabled}
+            disabled={!systemConfig.default_source_config.auto_reply.enabled}
           />
         </Field>
 
@@ -63,16 +63,16 @@ export const AutoReplySection: React.FC<AutoReplySectionProps> = ({
             自动回复消息
           </Label>
           <Textarea
-            value={systemConfig.defaultSourceConfig.autoReply.message}
+            value={systemConfig.default_source_config.auto_reply.message}
             onChange={(e) =>
-              onDefaultSourceConfigChange("autoReply", {
-                ...systemConfig.defaultSourceConfig.autoReply,
+              onDefaultSourceConfigChange("auto_reply", {
+                ...systemConfig.default_source_config.auto_reply,
                 message: e.target.value,
               })
             }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
             rows={3}
-            disabled={!systemConfig.defaultSourceConfig.autoReply.enabled}
+            disabled={!systemConfig.default_source_config.auto_reply.enabled}
           />
         </Field>
 
@@ -88,10 +88,10 @@ export const AutoReplySection: React.FC<AutoReplySectionProps> = ({
             </Label>
             <div className="relative">
               <Select
-                value={systemConfig.defaultSourceConfig.agentAssignment.method}
+                value={systemConfig.default_source_config.agent_assignment.method}
                 onChange={(e) =>
-                  onDefaultSourceConfigChange("agentAssignment", {
-                    ...systemConfig.defaultSourceConfig.agentAssignment,
+                  onDefaultSourceConfigChange("agent_assignment", {
+                    ...systemConfig.default_source_config.agent_assignment,
                     method: e.target.value as "round-robin" | "least-busy" | "manual",
                   })
                 }
@@ -112,10 +112,10 @@ export const AutoReplySection: React.FC<AutoReplySectionProps> = ({
             <Input
               type="number"
               min="0"
-              value={systemConfig.defaultSourceConfig.agentAssignment.timeout}
+              value={systemConfig.default_source_config.agent_assignment.timeout}
               onChange={(e) =>
-                onDefaultSourceConfigChange("agentAssignment", {
-                  ...systemConfig.defaultSourceConfig.agentAssignment,
+                onDefaultSourceConfigChange("agent_assignment", {
+                  ...systemConfig.default_source_config.agent_assignment,
                   timeout: parseInt(e.target.value),
                 })
               }
@@ -131,15 +131,15 @@ export const AutoReplySection: React.FC<AutoReplySectionProps> = ({
               type="number"
               min="0"
               value={
-                systemConfig.defaultSourceConfig.agentAssignment
-                  .fallbackAgentId || ""
+                systemConfig.default_source_config.agent_assignment
+                  .fallback_agent_id || ""
               }
               onChange={(e) => {
                 const value =
                   e.target.value === "" ? null : parseInt(e.target.value);
-                onDefaultSourceConfigChange("agentAssignment", {
-                  ...systemConfig.defaultSourceConfig.agentAssignment,
-                  fallbackAgentId: value,
+                onDefaultSourceConfigChange("agent_assignment", {
+                  ...systemConfig.default_source_config.agent_assignment,
+                  fallback_agent_id: value,
                 });
               }}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white data-[focus]:ring-2 data-[focus]:ring-blue-500"
