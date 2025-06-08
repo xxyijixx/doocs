@@ -25,7 +25,7 @@ func (h ConfigHeadler) GetServerConfig(c *gin.Context) {
 	// common.
 	// 返回硬编码的服务器配置
 	serverConfig := models.ServerConfigResp{
-		BaseUrl:   common.GetCurrentDomain(c) + "/apps/cs/api/v1",
+		BaseUrl:   common.GetCurrentDomain(c) + "/apps/cs",
 		DockerUrl: "http://customer:8888/api/v1",
 		Mode:      "dev",
 	}

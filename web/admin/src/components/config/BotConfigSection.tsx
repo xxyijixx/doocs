@@ -43,7 +43,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
   onSelectUserBot,
   onUpdateUserBot, // 解构 onUpdateUserBot
 }) => {
-  const DEFAULT_WEBHOOK_URL = `${serverConfig.base_url}/dootask/${dootaskChatConfig.chat_key}/chat`; // 定义默认的webhook URL
+  const DEFAULT_WEBHOOK_URL = `${serverConfig.base_url}/api/v1/dootask/${dootaskChatConfig.chat_key}/chat`; // 定义默认的webhook URL
 
   return (
     <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
