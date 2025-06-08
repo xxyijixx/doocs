@@ -5,5 +5,12 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
+    library: 'ChatWidget',
+    libraryTarget: 'umd',
+    globalObject: 'this'
   },
+  mode: 'production',
+  optimization: {
+    minimize: true
+  }
 };

@@ -3,11 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Widget</title>
+    <title>Chat Widget - Local Integration Test</title>
 </head>
 <body>
-    <h1>Chat Widget Test Page</h1>
-    <p>This page is for testing the chat widget integration.</p>
-    <script src="index.js"></script>
+    <h1>Chat Widget - Local Integration Test</h1>
+    <p>This page demonstrates the second integration method: Local Application Integration (Vue/React etc.)</p>
+    
+    <!-- 配置全局参数 -->
+    <script>
+        // 手动配置 baseUrl 和 source
+        window.WIDGET_CONFIG = {
+            baseUrl: 'http://192.168.0.2:8888',  // 替换为实际的后端服务地址
+            source: 'CS-bn8H2nXyhwkZaD6cpy2T',         // 替换为实际的source key
+        };
+    </script>
+    
+    <!-- 引入本地构建的widget脚本 -->
+    <!-- <script src="../dist/bundle.js"></script> -->
+    <script src="http://192.168.0.2/apps/cs/widget/bundle.js" defer></script>
+    
 </body>
 </html>

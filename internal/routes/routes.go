@@ -147,6 +147,40 @@ func RegisterRoutes(r *gin.Engine) {
 			path = "/index.html"
 		}
 
+		// 优先处理 widget/script.js
+		// if path == "/widget/bundle.js" {
+		// 	file, err := web.WidgetDist.ReadFile("widget/dist/bundle.js")
+		// 	if err != nil {
+		// 		c.String(http.StatusNotFound, "Widget script not found")
+		// 		return
+		// 	}
+		// 	c.Data(http.StatusOK, "application/javascript", file)
+		// 	return
+		// }
+		// 优先处理 widget/script.js
+		if path == "/widget/bundle.js" {
+
+			file, err := web.WidgetDist.ReadFile("widget/dist/bundle.js")
+			if err != nil {
+				c.String(http.StatusNotFound, "Widget script not found")
+				return
+			}
+
+			// 检查是否有下载或预览参数
+			download := c.Query("download")
+			preview := c.Query("preview")
+
+			if download == "true" {
+				c.Header("Content-Disposition", "attachment; filename=\"bundle.js\"")
+				c.Data(http.StatusOK, "application/javascript", file)
+			} else if preview == "true" {
+				c.Data(http.StatusOK, "text/plain; charset=utf-8", file)
+			} else {
+				c.Data(http.StatusOK, "application/javascript", file)
+			}
+			return
+		}
+
 		filePath := "dist" + path
 
 		// 尝试读取文件
