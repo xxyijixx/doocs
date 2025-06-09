@@ -18,13 +18,13 @@ interface ApiConfig {
 }
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-
+const basePath = import.meta.env.VITE_BASE_PATH
 /**
  * 默认API配置
  */
 const DEFAULT_CONFIG: ApiConfig = {
 //   baseURL: 'http://192.168.31.214:8888/api/v1',
-  baseURL: `${apiBaseUrl || 'http://localhost:8888'}/api/v1`,
+  baseURL: `${apiBaseUrl || ''}${basePath || ''}/api/v1`,
   timeout: 10000,
 };
 

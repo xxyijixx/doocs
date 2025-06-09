@@ -29,7 +29,7 @@ type DooTaskConfig struct {
 	Url     string `mapstructure:"url" default:"http://nginx"`
 	Token   string `mapstructure:"token" default:""`
 	Version string `mapstructure:"version" default:"1.0.0"`
-	WebHook string `mapstructure:"webhook" default:""`
+	WebHook string `mapstructure:"webhook" default:"http://nginx/api/dialog/msg/sendtext"`
 }
 
 type LoggerConfig struct {

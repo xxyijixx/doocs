@@ -2,7 +2,9 @@
 import { v4 as uuidv4 } from 'uuid';
 
 const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL;
-const WEBSOCKET_URL = `${wsBaseUrl || 'ws://localhost:8888'}/api/v1/chat/ws`;
+const basePath = import.meta.env.VITE_BASE_PATH;
+// const WEBSOCKET_URL = `${wsBaseUrl || 'ws://localhost:8888'}/api/v1/chat/ws`;
+const WEBSOCKET_URL = `${wsBaseUrl || `ws://${window.location.host}`}${basePath || ''}/api/v1/chat/ws`;
 
 class WebSocketService {
   private socket: WebSocket | null = null;

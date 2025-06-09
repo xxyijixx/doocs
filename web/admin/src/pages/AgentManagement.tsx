@@ -2,12 +2,12 @@
  * 客服管理页面
  */
 
-import { useState, useEffect } from 'react';
-import { getAgentList, setAgents, removeAgent } from '../api/auth';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { MessageAlert } from '../components/common/MessageAlert';
-import { PlusIcon, UserIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { methods } from '@dootask/tools';
+import { useState, useEffect } from "react";
+import { getAgentList, setAgents, removeAgent } from "../api/auth";
+import { LoadingSpinner } from "../components/common/LoadingSpinner";
+import { MessageAlert } from "../components/common/MessageAlert";
+import { PlusIcon, UserIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { methods } from "@dootask/tools";
 
 interface Agent {
   id: number;
@@ -24,7 +24,10 @@ export default function AgentManagement() {
   const [agents, setAgentsState] = useState<Agent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [isSelectingUsers, setIsSelectingUsers] = useState(false);
   const [removingAgentId, setRemovingAgentId] = useState<number | null>(null);
 
@@ -34,9 +37,13 @@ export default function AgentManagement() {
       setIsLoading(true);
       const data = await getAgentList();
       setAgentsState(data || []);
-    } catch (error: any) {
-      console.error('加载客服列表失败:', error);
-      setMessage({ type: 'error', text: error.message || '加载客服列表失败' });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("加载客服列表失败:", error);
+        setMessage({ type: "error", text: error.message || "加载客服列表失败" });
+      } else {
+        console.error("未知错误", error);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -51,15 +58,19 @@ export default function AgentManagement() {
     try {
       setRemovingAgentId(agentId);
       setMessage(null);
-      
+
       await removeAgent(agentId);
-      setMessage({ type: 'success', text: `成功移除客服 "${agentName}"` });
-      
+      setMessage({ type: "success", text: `成功移除客服 "${agentName}"` });
+
       // 重新加载客服列表
       await loadAgents();
-    } catch (error: any) {
-      console.error('移除客服失败:', error);
-      setMessage({ type: 'error', text: error.message || '移除客服失败' });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("移除客服失败:", error);
+        setMessage({ type: "error", text: error.message || "移除客服失败" });
+      } else {
+        console.error("未知错误", error);
+      }
     } finally {
       setRemovingAgentId(null);
     }
@@ -70,33 +81,40 @@ export default function AgentManagement() {
     try {
       setIsSelectingUsers(true);
       setMessage(null);
-      
+
       // 使用DooTask的用户选择器
       const selectedUsers = await methods.selectUsers({
         multiple: true,
-        title: '选择客服人员',
-        placeholder: '请选择要设置为客服的用户'
+        title: "选择客服人员",
+        placeholder: "请选择要设置为客服的用户",
       });
 
       if (!selectedUsers || selectedUsers.length === 0) {
-        setMessage({ type: 'error', text: '未选择任何用户' });
+        setMessage({ type: "error", text: "未选择任何用户" });
         return;
       }
-      console.log("selectedUsers", selectedUsers)
+      console.log("selectedUsers", selectedUsers);
 
       setIsSaving(true);
-      
+
       // 提取用户ID列表
       const userIds = selectedUsers.map((user: number) => user);
 
       await setAgents(userIds);
-      setMessage({ type: 'success', text: `成功设置 ${selectedUsers.length} 个用户为客服` });
-      
+      setMessage({
+        type: "success",
+        text: `成功设置 ${selectedUsers.length} 个用户为客服`,
+      });
+
       // 重新加载客服列表
       await loadAgents();
-    } catch (error: any) {
-      console.error('设置客服失败:', error);
-      setMessage({ type: 'error', text: error.message || '设置客服失败' });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("设置客服失败:", error);
+        setMessage({ type: "error", text: error.message || "设置客服失败" });
+      } else {
+        console.error("未知错误", error);
+      }
     } finally {
       setIsSelectingUsers(false);
       setIsSaving(false);
@@ -115,7 +133,9 @@ export default function AgentManagement() {
     <div className="h-full py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">客服管理</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            客服管理
+          </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             管理客服人员，设置DooTask用户为客服。
           </p>
@@ -124,9 +144,7 @@ export default function AgentManagement() {
         {/* 消息提示 */}
         {message && (
           <div className="mb-6">
-            <MessageAlert
-              message={message}
-            />
+            <MessageAlert message={message} />
           </div>
         )}
 
@@ -147,17 +165,49 @@ export default function AgentManagement() {
               >
                 {isSelectingUsers ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     选择中...
                   </>
                 ) : isSaving ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     设置中...
                   </>
@@ -179,7 +229,7 @@ export default function AgentManagement() {
               客服列表 ({agents.length})
             </h2>
           </div>
-          
+
           {agents.length === 0 ? (
             <div className="p-8 text-center">
               <UserIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -191,7 +241,10 @@ export default function AgentManagement() {
           ) : (
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
               {agents.map((agent) => (
-                <div key={agent.id} className="p-6 flex items-center justify-between">
+                <div
+                  key={agent.id}
+                  className="p-6 flex items-center justify-between"
+                >
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
                       {agent.avatar ? (
@@ -221,23 +274,44 @@ export default function AgentManagement() {
                   <div className="flex items-center space-x-3">
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        agent.status === 'active'
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                        agent.status === "active"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
                       }`}
                     >
-                      {agent.status === 'active' ? '活跃' : '非活跃'}
+                      {agent.status === "active" ? "活跃" : "非活跃"}
                     </span>
                     <button
-                      onClick={() => handleRemoveAgent(agent.id, agent.name || agent.username)}
+                      onClick={() =>
+                        handleRemoveAgent(
+                          agent.id,
+                          agent.name || agent.username
+                        )
+                      }
                       disabled={removingAgentId === agent.id}
                       className="inline-flex items-center p-2 text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
                       title="移除客服"
                     >
                       {removingAgentId === agent.id ? (
-                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <svg
+                          className="animate-spin h-4 w-4"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
                         </svg>
                       ) : (
                         <TrashIcon className="h-4 w-4" />

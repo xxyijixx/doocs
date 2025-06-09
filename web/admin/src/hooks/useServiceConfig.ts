@@ -24,7 +24,7 @@ import {
 } from "../api/source";
 import type { SystemConfig, DooTaskChatConfig, ServerConfig } from "../types/config";
 import type { CustomerServiceSource } from "../types/source";
-import type { UserBot } from "../types/dootask";
+import type { UserBot, ProjectUser } from "../types/dootask";
 
 const defaultSystemConfig: SystemConfig = {
   service_name: "客服中心",
@@ -310,7 +310,7 @@ export const useServiceConfig = () => {
       
       // 提取项目用户的userid
       if (projectInfo.data && projectInfo.data.project_user) {
-        projectInfo.data.project_user.forEach((user: any) => {
+        projectInfo.data.project_user.forEach((user: ProjectUser) => {
           if (user.userid) {
             projectUserIds.push(user.userid);
           }
@@ -344,7 +344,7 @@ export const useServiceConfig = () => {
     if (!isRunInMicroApp) return {projectUserIds: [], result: false};
     const projectInfo = await getProjectInfo(projectId);
     const projectUserIds: number[] = [];
-    projectInfo.data.project_user.forEach((user: any) => {
+    projectInfo.data.project_user.forEach((user: ProjectUser) => {
       if (user.userid) {
         projectUserIds.push(user.userid);
       }

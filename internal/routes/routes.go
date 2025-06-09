@@ -181,7 +181,7 @@ func RegisterRoutes(r *gin.Engine) {
 			return
 		}
 
-		filePath := "dist" + path
+		filePath := "admin/dist" + path
 
 		// 尝试读取文件
 		file, err := web.Dist.ReadFile(filePath)

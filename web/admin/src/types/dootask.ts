@@ -26,3 +26,12 @@ export interface UserBot {
     system_name: string;
   }
   
+export interface ProjectUser {
+  id: number
+  project_id: number
+  userid: number
+  owner: number
+  top_at: unknown
+  created_at: string
+  updated_at: string
+}

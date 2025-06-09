@@ -2,10 +2,10 @@ package web
 
 import "embed"
 
-//go:embed dist/index.html
+//go:embed admin/dist/index.html
 var IndexByte []byte
 
-//go:embed dist/*
+//go:embed admin/dist/*
 var Dist embed.FS
 
 //go:embed widget/dist/*

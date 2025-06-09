@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     define: {
       // 将 API base URL 暴露给前端代码
-      __API_BASE_URL__: JSON.stringify(env.VITE_API_BASE_URL || 'http://localhost:8888')
+      __API_BASE_URL__: JSON.stringify(env.VITE_API_BASE_URL || '')
     }
   }
 })
