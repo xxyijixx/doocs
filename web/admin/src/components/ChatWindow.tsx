@@ -175,7 +175,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   return (
     <section className="flex flex-col h-full bg-white dark:bg-gray-800">
       {/* 顶部标题栏 */}
-      <div className="flex items-center justify-between px-8 py-4 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+      <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           {onBackClick && (
             <Button
@@ -220,7 +220,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             leaveFrom="transform opacity-100 scale-100"
             leaveTo="transform opacity-0 scale-95"
           >
-            <MenuItems className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+            <MenuItems className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-lg shadow-xl border border-gray-200 dark:border-gray-600 focus:outline-none z-10">
               <MenuItem>
                 {({ focus }) => (
                   <button
@@ -309,10 +309,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   )}
                   <div className="flex flex-col max-w-xs lg:max-w-md">
                     <div
-                      className={`px-4 py-3 rounded-2xl shadow-sm ${
+                      className={`px-4 py-3 rounded-2xl ${
                         message.sender === "agent"
-                          ? "bg-blue-500 text-white rounded-br-md"
-                          : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md"
+                          ? "bg-blue-500 text-white rounded-br-md shadow-md shadow-blue-500/20"
+                          : "bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md shadow-sm border border-gray-200 dark:border-gray-600"
                       }`}
                     >
                       <p className="text-sm leading-relaxed">{message.content}</p>
@@ -341,7 +341,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* 输入框 */}
-      <div className="px-8 py-4 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+      <div className="px-8 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm">
         <div className="flex gap-3 items-end">
           <Field className="flex-1">
             <Input
@@ -352,7 +352,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 e.key === "Enter" && !e.shiftKey && handleSendMessage(e)
               }
               placeholder="输入消息... (Enter 发送，Shift+Enter 换行)"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200 resize-none"
+              className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 dark:focus:border-transparent bg-white dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200 resize-none shadow-sm"
               disabled={sending}
               style={{ minHeight: "48px" }}
             />
@@ -360,7 +360,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <Button
             onClick={handleSendMessage}
             disabled={sending || !newMessage.trim()}
-            className="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 shadow-sm hover:shadow-md"
+            className="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30"
           >
             {sending ? (
               <>
