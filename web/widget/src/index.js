@@ -99,9 +99,93 @@ async function sendMessage(uuid, content) {
     }
 }
 
+// 主题配置
+const THEMES = {
+    colorful: {
+        // 彩色渐变主题（现有样式）
+        toggleButton: {
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
+            hoverBoxShadow: '0 12px 35px rgba(102, 126, 234, 0.6)'
+        },
+        header: {
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white'
+        },
+        messagesArea: {
+            background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)'
+        },
+        customerMessage: {
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+        },
+        agentMessage: {
+            background: '#ffffff',
+            color: '#374151',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            border: '1px solid #e5e7eb'
+        },
+        systemMessage: {
+            background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+            color: 'white',
+            boxShadow: '0 4px 12px rgba(251, 191, 36, 0.3)'
+        },
+        sendButton: {
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            hoverBoxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)'
+        },
+        agentAvatar: {
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+        }
+    },
+    minimal: {
+        // 素色简约主题
+        toggleButton: {
+            background: '#374151',
+            boxShadow: '0 4px 12px rgba(55, 65, 81, 0.3)',
+            hoverBoxShadow: '0 6px 20px rgba(55, 65, 81, 0.4)'
+        },
+        header: {
+            background: '#f9fafb',
+            color: '#374151',
+            borderBottom: '1px solid #e5e7eb'
+        },
+        messagesArea: {
+            background: '#ffffff'
+        },
+        customerMessage: {
+            background: '#374151',
+            color: 'white',
+            boxShadow: '0 2px 4px rgba(55, 65, 81, 0.1)'
+        },
+        agentMessage: {
+            background: '#f3f4f6',
+            color: '#374151',
+            boxShadow: 'none',
+            border: '1px solid #e5e7eb'
+        },
+        systemMessage: {
+            background: '#f59e0b',
+            color: 'white',
+            boxShadow: '0 2px 4px rgba(245, 158, 11, 0.2)'
+        },
+        sendButton: {
+            background: '#374151',
+            hoverBoxShadow: '0 4px 12px rgba(55, 65, 81, 0.3)'
+        },
+        agentAvatar: {
+            background: '#6b7280',
+            boxShadow: '0 2px 4px rgba(107, 114, 128, 0.2)'
+        }
+    }
+};
+
 async function initializeChatWidget(options) {
     let baseUrl = 'http://localhost:8888'; // Default value
     let source = 'widget'; // Default value
+    let theme = 'colorful'; // Default theme
 
     if (options) {
         if (options.baseUrl) {
@@ -110,8 +194,12 @@ async function initializeChatWidget(options) {
         if (options.source) {
             source = options.source;
         }
+        if (options.theme && THEMES[options.theme]) {
+            theme = options.theme;
+        }
     }
 
+    const currentTheme = THEMES[theme];
     API_BASE_URL = baseUrl;
 
     if (!conversationUuid) {
@@ -205,10 +293,10 @@ async function initializeChatWidget(options) {
             width: 56px;
             height: 56px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: ${currentTheme.toggleButton.background};
             color: white;
             border: none;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: ${currentTheme.toggleButton.boxShadow};
             cursor: pointer;
             z-index: 1001;
             display: flex;
@@ -221,12 +309,12 @@ async function initializeChatWidget(options) {
         // Add hover effects
         toggleButton.addEventListener('mouseenter', () => {
             toggleButton.style.transform = 'scale(1.1)';
-            toggleButton.style.boxShadow = '0 12px 35px rgba(102, 126, 234, 0.6)';
+            toggleButton.style.boxShadow = currentTheme.toggleButton.hoverBoxShadow;
         });
         
         toggleButton.addEventListener('mouseleave', () => {
             toggleButton.style.transform = 'scale(1)';
-            toggleButton.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.4)';
+            toggleButton.style.boxShadow = currentTheme.toggleButton.boxShadow;
         });
         
         toggleButton.onclick = () => {
@@ -244,13 +332,14 @@ async function initializeChatWidget(options) {
     chatContainer.innerHTML = `
         <div style="
             padding: 20px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: ${currentTheme.header.background};
+            color: ${currentTheme.header.color};
             font-weight: 600;
             text-align: center;
             font-size: 16px;
             position: relative;
             border-radius: 16px 16px 0 0;
+            ${currentTheme.header.borderBottom ? `border-bottom: ${currentTheme.header.borderBottom};` : ''}
         ">
             <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -301,7 +390,7 @@ async function initializeChatWidget(options) {
             flex-grow: 1;
             padding: 20px;
             overflow-y: auto;
-            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            background: ${currentTheme.messagesArea.background};
             scroll-behavior: smooth;
         "></div>
         <div style="
@@ -325,7 +414,7 @@ async function initializeChatWidget(options) {
             " placeholder="输入您的消息..." onfocus="this.style.borderColor='#667eea'; this.style.background='#ffffff'" onblur="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc'">
             <button id="send-button" style="
                 padding: 12px 20px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: ${currentTheme.sendButton.background};
                 color: white;
                 border: none;
                 border-radius: 24px;
@@ -338,7 +427,7 @@ async function initializeChatWidget(options) {
                 gap: 6px;
                 min-width: 80px;
                 justify-content: center;
-            " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+            " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='${currentTheme.sendButton.hoverBoxShadow}'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="currentColor"/>
                 </svg>
@@ -390,40 +479,40 @@ async function initializeChatWidget(options) {
         
         if (isSystem) {
             bubbleStyle = `
-                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-                color: white;
+                background: ${currentTheme.systemMessage.background};
+                color: ${currentTheme.systemMessage.color};
                 padding: 12px 16px;
                 border-radius: 16px;
                 max-width: 85%;
                 word-wrap: break-word;
-                box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+                box-shadow: ${currentTheme.systemMessage.boxShadow};
                 font-size: 13px;
                 text-align: center;
                 font-weight: 500;
             `;
         } else if (isCustomer) {
             bubbleStyle = `
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
+                background: ${currentTheme.customerMessage.background};
+                color: ${currentTheme.customerMessage.color};
                 padding: 12px 16px;
                 border-radius: 18px 18px 4px 18px;
                 max-width: 75%;
                 word-wrap: break-word;
-                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+                box-shadow: ${currentTheme.customerMessage.boxShadow};
                 font-size: 14px;
                 line-height: 1.4;
             `;
         } else {
             // Agent message
             bubbleStyle = `
-                background: #ffffff;
-                color: #374151;
+                background: ${currentTheme.agentMessage.background};
+                color: ${currentTheme.agentMessage.color};
                 padding: 12px 16px;
                 border-radius: 18px 18px 18px 4px;
                 max-width: 75%;
                 word-wrap: break-word;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                border: 1px solid #e5e7eb;
+                ${currentTheme.agentMessage.boxShadow ? `box-shadow: ${currentTheme.agentMessage.boxShadow};` : ''}
+                ${currentTheme.agentMessage.border ? `border: ${currentTheme.agentMessage.border};` : ''}
                 font-size: 14px;
                 line-height: 1.4;
             `;
@@ -433,13 +522,13 @@ async function initializeChatWidget(options) {
                     width: 32px;
                     height: 32px;
                     border-radius: 50%;
-                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    background: ${currentTheme.agentAvatar.background};
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     margin-right: 8px;
                     flex-shrink: 0;
-                    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+                    box-shadow: ${currentTheme.agentAvatar.boxShadow};
                 ">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM12 14.9C10.8 14.9 9.8 15.9 9.8 17.1C9.8 18.3 10.8 19.3 12 19.3C13.2 19.3 14.2 18.3 14.2 17.1C14.2 15.9 13.2 14.9 12 14.9ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9H21Z" fill="white"/>
@@ -657,7 +746,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (autoInit) {
         const config = {
             baseUrl: globalConfig.baseUrl || 'http://192.168.31.214:8888', // 默认值
-            source: globalConfig.source || 'CS-4A6euKS8gwMUaqyOWcks' // 默认值
+            source: globalConfig.source || 'CS-4A6euKS8gwMUaqyOWcks', // 默认值
+            theme: globalConfig.theme || 'colorful'
         };
         initializeChatWidget(config);
     }
