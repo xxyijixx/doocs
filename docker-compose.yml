@@ -13,9 +13,9 @@ services:
       - DOOTASK_TOKEN=${DOOTASK_TOKEN}
       - DOOTASK_WEBHOOK=${DOOTASK_WEBHOOK}
       - DOOTASK_VERSION=${DOOTASK_VERSION}
-    volumes:
-      - ./logs:/root/logs
-      - ./config.yaml:/root/config.yaml
+    # volumes:
+    #   - ./docker/logs:/root/logs
+    #   - ./docker/config.yaml:/root/config.yaml
     restart: unless-stopped
     networks:
       - support-plugin-network

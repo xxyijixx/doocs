@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 	"strings"
+	"support-plugin/internal/config"
 	"support-plugin/internal/headlers"
 	"support-plugin/internal/middleware"
 	"support-plugin/internal/pkg/websocket"
@@ -140,7 +141,7 @@ func RegisterRoutes(r *gin.Engine) {
 	// 	c.File("./web/admin/dist/index.html")
 	// })
 	// 静态文件服务
-	r.GET("/apps/cs/*filepath", func(c *gin.Context) {
+	r.GET(config.Cfg.App.Base+"/*filepath", func(c *gin.Context) {
 		path := c.Param("filepath")
 
 		if path == "/" || path == "" {

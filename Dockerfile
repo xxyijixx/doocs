@@ -17,6 +17,9 @@ FROM node:20-alpine AS admin-builder
 
 WORKDIR /app/web/admin
 
+# 设置构建时环境变量
+ENV VITE_BASE_PATH=/apps/cs
+
 # 复制 admin package.json 和相关文件
 COPY web/admin/package*.json ./
 RUN npm install
@@ -43,12 +46,12 @@ RUN go mod download
 # 复制源代码
 COPY . .
 
-# 创建 internal/web/dist 目录并复制前端构建产物
-RUN mkdir -p internal/web/dist
-COPY --from=admin-builder /app/web/admin/dist/ internal/web/dist/
-
-# 复制 widget 构建产物（如果需要的话）
-COPY --from=widget-builder /app/web/widget/dist/ web/widget/dist/
+# 创建目录
+RUN mkdir -p internal/web/admin/dist internal/web/widget/dist
+# 复制 admin 构建产物
+COPY --from=admin-builder /app/web/admin/dist/ internal/web/admin/dist/
+# 复制 widget 构建产物
+COPY --from=widget-builder /app/web/widget/dist/ internal/web/widget/dist/
 
 # 构建 Go 应用
 RUN make build

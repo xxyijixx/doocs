@@ -47,8 +47,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     docker run -d \
         --name $PROJECT_NAME \
         -p 8888:8888 \
-        -v $(pwd)/logs:/root/logs \
-        -v $(pwd)/config.yaml:/root/config.yaml \
+        -v $(pwd)/docker/logs:/root/logs \
+        -v $(pwd)/docker/config.yaml:/root/config.yaml \
         $IMAGE_NAME
     
     if [ $? -eq 0 ]; then

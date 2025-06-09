@@ -1,5 +1,6 @@
 app:
   mode: "dootask"
+  # base: "/apps/dev-cs"
 dootask:
   url: ${DOOTASK_URL}
   token: ${DOOTASK_TOKEN}
