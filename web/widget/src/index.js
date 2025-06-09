@@ -110,7 +110,10 @@ const THEMES = {
         },
         header: {
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white'
+            color: 'white',
+            buttonBackground: 'rgba(255, 255, 255, 0.2)',
+            buttonHoverBackground: 'rgba(255, 255, 255, 0.3)',
+            buttonColor: 'white'
         },
         messagesArea: {
             background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)'
@@ -150,7 +153,10 @@ const THEMES = {
         header: {
             background: '#f9fafb',
             color: '#374151',
-            borderBottom: '1px solid #e5e7eb'
+            borderBottom: '1px solid #e5e7eb',
+            buttonBackground: 'rgba(55, 65, 81, 0.1)',
+            buttonHoverBackground: 'rgba(55, 65, 81, 0.2)',
+            buttonColor: '#374151'
         },
         messagesArea: {
             background: '#ffffff'
@@ -349,9 +355,9 @@ async function initializeChatWidget(options) {
             </div>
             <div style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; gap: 8px;">
                 <button id="minimize-button" style="
-                    background: rgba(255, 255, 255, 0.2);
+                    background: ${currentTheme.header.buttonBackground};
                     border: none;
-                    color: white;
+                    color: ${currentTheme.header.buttonColor};
                     width: 32px;
                     height: 32px;
                     border-radius: 50%;
@@ -361,15 +367,15 @@ async function initializeChatWidget(options) {
                     justify-content: center;
                     transition: all 0.2s ease;
                     font-size: 18px;
-                " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                " onmouseover="this.style.background='${currentTheme.header.buttonHoverBackground}'" onmouseout="this.style.background='${currentTheme.header.buttonBackground}'">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M19 13H5V11H19V13Z" fill="currentColor"/>
                     </svg>
                 </button>
                 <button id="close-button" style="
-                    background: rgba(255, 255, 255, 0.2);
+                    background: ${currentTheme.header.buttonBackground};
                     border: none;
-                    color: white;
+                    color: ${currentTheme.header.buttonColor};
                     width: 32px;
                     height: 32px;
                     border-radius: 50%;
@@ -379,7 +385,7 @@ async function initializeChatWidget(options) {
                     justify-content: center;
                     transition: all 0.2s ease;
                     font-size: 18px;
-                " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                " onmouseover="this.style.background='${currentTheme.header.buttonHoverBackground}'" onmouseout="this.style.background='${currentTheme.header.buttonBackground}'">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
                     </svg>
