@@ -131,43 +131,107 @@ async function initializeChatWidget(options) {
     // For now, let's just add a simple indicator
     // Check if the chat container already exists to prevent multiple creations
     let chatContainer = document.getElementById('chat-widget-container');
+    let toggleButton    = document.getElementById('chat-toggle-button');
     if (!chatContainer) {
         chatContainer = document.createElement('div');
         chatContainer.id = 'chat-widget-container';
-        chatContainer.style.position = 'fixed';
-        chatContainer.style.bottom = '20px';
-        chatContainer.style.right = '20px';
-        chatContainer.style.width = '320px';
-        chatContainer.style.height = '450px';
-        chatContainer.style.backgroundColor = '#ffffff';
-        chatContainer.style.border = 'none';
-        chatContainer.style.borderRadius = '12px';
-        chatContainer.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
-        chatContainer.style.zIndex = '1000';
-        chatContainer.style.display = 'flex';
-        chatContainer.style.flexDirection = 'column';
-        chatContainer.style.overflow = 'hidden';
-        chatContainer.style.fontFamily = 'Arial, sans-serif';
+        chatContainer.style.cssText = `
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 360px;
+            height: 500px;
+            background: #ffffff;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 25px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        `;
+        
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInUp {
+                from {
+                    transform: translateY(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes messageSlideIn {
+                from {
+                    transform: translateY(20px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
         document.body.appendChild(chatContainer);
 
         // Add a button to toggle chat visibility
-        const toggleButton = document.createElement('button');
-        toggleButton.innerText = '💬';
-        toggleButton.style.position = 'fixed';
-        toggleButton.style.bottom = '30px';
-        toggleButton.style.right = '30px';
-        toggleButton.style.width = '60px';
-        toggleButton.style.height = '60px';
-        toggleButton.style.borderRadius = '50%';
-        toggleButton.style.backgroundColor = '#007bff';
-        toggleButton.style.color = 'white';
-        toggleButton.style.fontSize = '24px';
-        toggleButton.style.border = 'none';
-        toggleButton.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
-        toggleButton.style.cursor = 'pointer';
-        toggleButton.style.zIndex = '1001';
+        toggleButton = document.createElement('button');
+        toggleButton.id = 'chat-toggle-button';
+        toggleButton.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z" fill="currentColor"/>
+                <circle cx="7" cy="10" r="1" fill="currentColor"/>
+                <circle cx="12" cy="10" r="1" fill="currentColor"/>
+                <circle cx="17" cy="10" r="1" fill="currentColor"/>
+            </svg>
+        `;
+        toggleButton.style.cssText = `
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        `;
+        
+        // Add hover effects
+        toggleButton.addEventListener('mouseenter', () => {
+            toggleButton.style.transform = 'scale(1.1)';
+            toggleButton.style.boxShadow = '0 12px 35px rgba(102, 126, 234, 0.6)';
+        });
+        
+        toggleButton.addEventListener('mouseleave', () => {
+            toggleButton.style.transform = 'scale(1)';
+            toggleButton.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.4)';
+        });
+        
         toggleButton.onclick = () => {
             chatContainer.style.display = 'flex';
+            chatContainer.style.animation = 'slideInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
             toggleButton.style.display = 'none';
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         };
@@ -175,18 +239,111 @@ async function initializeChatWidget(options) {
 
         // Initially hide the chat window
         chatContainer.style.display = 'none';
-        toggleButton.innerText = 'Open Chat';
     }
 
     chatContainer.innerHTML = `
-        <div style="padding: 15px; background-color: #007bff; color: white; border-bottom: 1px solid #0056b3; font-weight: bold; text-align: center; font-size: 16px; position: relative;">
-            Support Chat
-            <button id="close-button" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+        <div style="
+            padding: 20px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            font-size: 16px;
+            position: relative;
+            border-radius: 16px 16px 0 0;
+        ">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H11V21H5V3H13V9H21Z" fill="currentColor"/>
+                </svg>
+                Support Chat
+            </div>
+            <div style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; gap: 8px;">
+                <button id="minimize-button" style="
+                    background: rgba(255, 255, 255, 0.2);
+                    border: none;
+                    color: white;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s ease;
+                    font-size: 18px;
+                " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 13H5V11H19V13Z" fill="currentColor"/>
+                    </svg>
+                </button>
+                <button id="close-button" style="
+                    background: rgba(255, 255, 255, 0.2);
+                    border: none;
+                    color: white;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s ease;
+                    font-size: 18px;
+                " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+                    </svg>
+                </button>
+            </div>
         </div>
-        <div id="messages-container" style="flex-grow: 1; padding: 15px; overflow-y: auto; background-color: #f8f9fa;"></div>
-        <div style="padding: 15px; border-top: 1px solid #e9ecef; display: flex; align-items: center; background-color: #f0f2f5;">
-            <input type="text" id="message-input" style="flex-grow: 1; padding: 10px; border: 1px solid #ced4da; border-radius: 20px; font-size: 14px; outline: none;" placeholder="Type your message...">
-            <button id="send-button" style="margin-left: 10px; padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 14px; transition: background-color 0.2s;">Send</button>
+        <div id="messages-container" style="
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            scroll-behavior: smooth;
+        "></div>
+        <div style="
+            padding: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            gap: 12px;
+            border-radius: 0 0 16px 16px;
+        ">
+            <input type="text" id="message-input" style="
+                flex-grow: 1;
+                padding: 12px 16px;
+                border: 2px solid #e2e8f0;
+                border-radius: 24px;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.2s ease;
+                background: #f8fafc;
+            " placeholder="输入您的消息..." onfocus="this.style.borderColor='#667eea'; this.style.background='#ffffff'" onblur="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc'">
+            <button id="send-button" style="
+                padding: 12px 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 24px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                min-width: 80px;
+                justify-content: center;
+            " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="currentColor"/>
+                </svg>
+                发送
+            </button>
         </div>
     `;
 
@@ -195,21 +352,109 @@ async function initializeChatWidget(options) {
     const sendButton = chatContainer.querySelector('#send-button');
     const closeButton = chatContainer.querySelector('#close-button');
 
+    const minimizeButton = chatContainer.querySelector('#minimize-button');
+
+    // 最小化按钮事件 - 收起聊天窗口
+    minimizeButton.onclick = () => {
+        chatContainer.style.animation = 'slideInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) reverse';
+        setTimeout(() => {
+            chatContainer.style.display = 'none';
+            toggleButton.style.display = 'flex';
+            toggleButton.style.animation = 'fadeIn 0.2s ease-out';
+        }, 250);
+    };
+
+    // 关闭按钮事件 - 完全关闭聊天窗口
     closeButton.onclick = () => {
-        chatContainer.style.display = 'none';
-        toggleButton.style.display = 'block';
+        chatContainer.style.animation = 'slideInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) reverse';
+        setTimeout(() => {
+            chatContainer.style.display = 'none';
+            toggleButton.style.display = 'none';
+            toggleButton.style.animation = 'fadeIn 0.2s ease-out';
+        }, 250);
     };
 
     function addMessageToChat(message) {
         const messageElement = document.createElement('div');
-        messageElement.style.marginBottom = '10px';
-        messageElement.style.display = 'flex';
-        messageElement.style.justifyContent = message.sender === 'customer' ? 'flex-end' : 'flex-start';
+        messageElement.style.cssText = `
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: ${message.sender === 'customer' ? 'flex-end' : 'flex-start'};
+            animation: messageSlideIn 0.3s ease-out;
+        `;
+        
+        const isCustomer = message.sender === 'customer';
+        const isSystem = message.sender === 'system';
+        
+        let bubbleStyle, avatarHtml = '';
+        
+        if (isSystem) {
+            bubbleStyle = `
+                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                color: white;
+                padding: 12px 16px;
+                border-radius: 16px;
+                max-width: 85%;
+                word-wrap: break-word;
+                box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+                font-size: 13px;
+                text-align: center;
+                font-weight: 500;
+            `;
+        } else if (isCustomer) {
+            bubbleStyle = `
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 12px 16px;
+                border-radius: 18px 18px 4px 18px;
+                max-width: 75%;
+                word-wrap: break-word;
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+                font-size: 14px;
+                line-height: 1.4;
+            `;
+        } else {
+            // Agent message
+            bubbleStyle = `
+                background: #ffffff;
+                color: #374151;
+                padding: 12px 16px;
+                border-radius: 18px 18px 18px 4px;
+                max-width: 75%;
+                word-wrap: break-word;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                border: 1px solid #e5e7eb;
+                font-size: 14px;
+                line-height: 1.4;
+            `;
+            
+            avatarHtml = `
+                <div style="
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-right: 8px;
+                    flex-shrink: 0;
+                    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+                ">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM12 14.9C10.8 14.9 9.8 15.9 9.8 17.1C9.8 18.3 10.8 19.3 12 19.3C13.2 19.3 14.2 18.3 14.2 17.1C14.2 15.9 13.2 14.9 12 14.9ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9H21Z" fill="white"/>
+                    </svg>
+                </div>
+            `;
+        }
+        
         messageElement.innerHTML = `
-            <div style="background-color: ${message.sender === 'customer' ? '#dcf8c6' : '#e9ecef'}; color: ${message.sender === 'customer' ? '#333' : '#333'}; padding: 10px 15px; border-radius: 18px; max-width: 75%; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,0.05);">
+            ${!isCustomer && !isSystem ? avatarHtml : ''}
+            <div style="${bubbleStyle}">
                 ${message.content}
             </div>
         `;
+        
         messagesContainer.appendChild(messageElement);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
