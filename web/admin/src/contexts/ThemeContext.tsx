@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
+import {getThemeName} from '@dootask/tools';
 type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
@@ -17,7 +17,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (storedPrefs) {
         return storedPrefs as Theme;
       }
-
+      const theme = getThemeName()
+      if (theme) {
+        console.log("DooTask获取到的主题信息", theme)
+        return theme as Theme;
+      }
       const userMedia = window.matchMedia('(prefers-color-scheme: dark)');
       if (userMedia.matches) {
         return 'dark';
@@ -40,15 +44,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const root = window.document.documentElement;
     
-    // 移除旧主题类
-    root.classList.remove('light', 'dark');
-    // 添加新主题类
-    root.classList.add(theme);
-    
-    // 保存到localStorage
-    localStorage.setItem('theme', theme);
-    
-    console.log(`主题已更新为: ${theme}，classList:`, root.classList);
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+
   }, [theme]);
 
   return (
