@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"support-plugin/internal/config"
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/response"
@@ -25,7 +26,7 @@ func (h ConfigHeadler) GetServerConfig(c *gin.Context) {
 	// common.
 	// 返回硬编码的服务器配置
 	serverConfig := models.ServerConfigResp{
-		BaseUrl:   common.GetCurrentDomain(c) + "/apps/cs",
+		BaseUrl:   common.GetCurrentDomain(c) + config.Cfg.App.Base,
 		DockerUrl: "http://customer:8888/api/v1",
 		Mode:      "dev",
 	}
