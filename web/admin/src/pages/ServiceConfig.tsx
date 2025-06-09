@@ -26,6 +26,8 @@ export default function ServiceConfig() {
     onCreateUserBot,
     onUpdateUserBot,
     onCreateProject,
+    onCheckProjectUser,
+    onAddBotToProject,
     onSelectUserBot,
     onCreateSource,
     onDeleteSource,
@@ -66,6 +68,8 @@ export default function ServiceConfig() {
             onSelectUserBot={onSelectUserBot}
             onCreateProject={onCreateProject}
             onResetSystemConfig={onResetSystemConfig}
+            onCheckProjectUser={onCheckProjectUser}
+            onAddBotToProject={onAddBotToProject}
           />
 
           {/* 聊天配置 */}

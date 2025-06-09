@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Listbox,
   ListboxButton,
@@ -12,6 +12,7 @@ import {
   BoltIcon,
   // SparklesIcon,
   ExclamationTriangleIcon,
+  UserPlusIcon,
 } from "@heroicons/react/20/solid";
 import type { UserBot } from "../../types/dootask";
 import type { SystemConfig, DooTaskChatConfig, ServerConfig } from "../../types/config";
@@ -28,7 +29,9 @@ interface BotConfigSectionProps {
   onCreateProject: () => void;
   onResetSystemConfig: () => void;
   onSelectUserBot: (bot: UserBot | null) => void;
-  onUpdateUserBot: (bot: UserBot) => void; // 添加 onUpdateUserBot 属性
+  onUpdateUserBot: (bot: UserBot) => void;
+  onCheckProjectUser: (projectId: number, userId: number) => Promise<{projectUserIds: number[], result: boolean}>;
+  onAddBotToProject: (projectId: number, botId: number, currentUserIds: number[]) => Promise<void>;
 }
 
 export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
@@ -41,9 +44,70 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
   // onGetUserBotList,
   onCreateUserBot,
   onSelectUserBot,
-  onUpdateUserBot, // 解构 onUpdateUserBot
+  onUpdateUserBot,
+  onCheckProjectUser,
+  onAddBotToProject,
 }) => {
-  const DEFAULT_WEBHOOK_URL = `${serverConfig.base_url}/api/v1/dootask/${dootaskChatConfig.chat_key}/chat`; // 定义默认的webhook URL
+  const DEFAULT_WEBHOOK_URL = `${serverConfig.base_url}/api/v1/dootask/${dootaskChatConfig.chat_key}/chat`;
+  
+  // 项目成员检查状态
+  const [botInProject, setBotInProject] = useState<boolean | null>(null);
+  const [projectUserIds, setProjectUserIds] = useState<number[]>([]);
+  const [isCheckingProject, setIsCheckingProject] = useState(false);
+  const [isAddingToProject, setIsAddingToProject] = useState(false);
+  
+  // 检查机器人是否在项目中
+  const checkBotInProject = async (bot: UserBot | null) => {
+    if (!bot || !systemConfig.dootask_integration.project_id) {
+      setBotInProject(null);
+      setProjectUserIds([]);
+      return;
+    }
+    
+    setIsCheckingProject(true);
+    try {
+      const result = await onCheckProjectUser(systemConfig.dootask_integration.project_id, bot.id);
+      setBotInProject(result.result);
+      setProjectUserIds(result.projectUserIds);
+    } catch (error) {
+      console.error('检查项目成员失败:', error);
+      setBotInProject(null);
+      setProjectUserIds([]);
+    } finally {
+      setIsCheckingProject(false);
+    }
+  };
+  
+  // 将机器人添加到项目
+  const handleAddBotToProject = async () => {
+    if (!selectedUserBot || !systemConfig.dootask_integration.project_id) return;
+    
+    setIsAddingToProject(true);
+    try {
+      await onAddBotToProject(
+        systemConfig.dootask_integration.project_id,
+        selectedUserBot.id,
+        projectUserIds
+      );
+      // 重新检查项目成员状态
+      await checkBotInProject(selectedUserBot);
+    } catch (error) {
+      console.error('添加机器人到项目失败:', error);
+    } finally {
+      setIsAddingToProject(false);
+    }
+  };
+  
+  // 处理机器人选择
+  const handleSelectUserBot = (bot: UserBot | null) => {
+    onSelectUserBot(bot);
+    checkBotInProject(bot);
+  };
+  
+  // 组件加载时检查当前选中的机器人
+  useEffect(() => {
+    checkBotInProject(selectedUserBot);
+  }, [selectedUserBot, systemConfig.dootask_integration.project_id]);
 
   return (
     <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
@@ -94,7 +158,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
           </Button> */}
 
           <div className="relative">
-            <Listbox value={selectedUserBot} onChange={onSelectUserBot}>
+            <Listbox value={selectedUserBot} onChange={handleSelectUserBot}>
               <ListboxButton className="relative w-48 cursor-default rounded-md bg-white dark:bg-gray-700 py-2 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm">
                 <span className="flex items-center">
                   {selectedUserBot?.avatar && (
@@ -152,6 +216,42 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
             创建机器人
           </Button>
         </div>
+        
+        {/* 项目成员检查状态 */}
+        {selectedUserBot && systemConfig.dootask_integration.project_id && !botInProject && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+                {isCheckingProject ? (
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    正在检查机器人是否在项目中...
+                  </p>
+                ) : botInProject === false ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <ExclamationTriangleIcon className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      <p className="text-sm text-orange-800 dark:text-orange-200">
+                        机器人 <strong>{selectedUserBot.name}(id:{selectedUserBot.id})</strong> 不在当前项目中
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleAddBotToProject}
+                      disabled={isAddingToProject}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-700 data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <UserPlusIcon className="h-4 w-4" />
+                      {isAddingToProject ? '添加中...' : '将机器人添加到项目'}
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    无法检查项目成员状态
+                  </p>
+                )}
+              </div>
+          </div>
+        )}
+        
         {/* Webhook 配置状态和操作 */}
         {systemConfig.dootask_integration.create_task && (
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">

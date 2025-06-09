@@ -339,6 +339,50 @@ export const useServiceConfig = () => {
     }
   };
 
+  // 检查指定项目中是否包含指定用户
+  const onCheckProjectUser = async (projectId: number, userId: number): Promise<{projectUserIds: number[], result: boolean}> => {
+    if (!isRunInMicroApp) return {projectUserIds: [], result: false};
+    const projectInfo = await getProjectInfo(projectId);
+    const projectUserIds: number[] = [];
+    projectInfo.data.project_user.forEach((user: any) => {
+      if (user.userid) {
+        projectUserIds.push(user.userid);
+      }
+    });
+    if (projectUserIds.includes(userId)) {
+      return {projectUserIds: projectUserIds, result: true};
+    } else {
+      return {projectUserIds: projectUserIds, result: false};
+    }
+  }
+
+  // 将机器人添加到项目
+  const onAddBotToProject = async (projectId: number, botId: number, currentUserIds: number[]): Promise<void> => {
+    if (!isRunInMicroApp) {
+      throw new Error('不在微应用环境中，无法执行此操作');
+    }
+    
+    try {
+      // 将机器人ID添加到现有用户ID列表中
+      const updatedUserIds = [...currentUserIds, botId];
+      
+      // 调用API更新项目用户
+      await updateProjectUser(projectId, updatedUserIds);
+      
+      setSaveMessage({
+        type: "success",
+        text: "机器人已成功添加到项目中",
+      });
+    } catch (error) {
+      console.error("添加机器人到项目失败:", error);
+      setSaveMessage({
+        type: "error",
+        text: `添加机器人到项目失败: ${error instanceof Error ? error.message : '未知错误'}`,
+      });
+      throw error;
+    }
+  };
+
   // 创建并获取机器人Token
   const onCreateAndGetUserBotToken = async (botId: number) => {
     try {
@@ -631,6 +675,8 @@ export const useServiceConfig = () => {
     onGetUserBotList,
     onCreateUserBot,
     onCreateProject,
+    onCheckProjectUser,
+    onAddBotToProject,
     onSelectUserBot,
     onUpdateUserBot,
     onCreateSource,
