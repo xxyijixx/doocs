@@ -233,16 +233,20 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                 <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md">
                   <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
 {`<!-- 配置全局参数 -->
- <script>
-     // 手动配置 baseUrl 和 source
-     window.WIDGET_CONFIG = {
-         baseUrl: '${serverConfig.base_url}',  // 后端服务地址
-         source: '${selectedSource.source_key}',         // 当前来源的source key
-     };
- </script>
- 
- <!-- 引入widget脚本 -->
- <script src="${serverConfig.base_url}/widget/bundle.js" defer></script>`}
+<script>
+    // 手动配置 baseUrl 和 source
+    window.WIDGET_CONFIG = {
+        // 后端服务地址
+        baseUrl: '${serverConfig.base_url}',
+        
+        // 当前来源的source key 
+        source: '${selectedSource.source_key}'
+    };
+</script>
+
+<!-- 引入widget脚本 -->
+<script src="${serverConfig.base_url}/widget/bundle.js" defer></script>
+`}
                   </pre>
                 </div>
               </div>

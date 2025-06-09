@@ -1,14 +1,6 @@
 import { isMicroApp, getUserToken } from '@dootask/tools';
-
-/**
- * API响应接口
- */
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-}
-
+import {  ApiError, NetworkError } from '../types/api';
+import type { ApiResponse} from '../types/api';
 /**
  * API配置
  */
@@ -42,29 +34,58 @@ export async function apiRequest<T = any>(
 ): Promise<T> {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   
-  // 构建请求头
-  const headers = new Headers({
-    'Content-Type': 'application/json',
-    ...options.headers,
-  });
+  try {
+    // 构建请求头
+    const headers = new Headers({
+      'Content-Type': 'application/json',
+      ...options.headers,
+    });
 
-  // 添加认证头
-  headers.set('Authorization', 'Bearer 123456');
-  if (isMicroApp()) {
-    headers.set('Token', getUserToken());
+    // 添加认证头
+    headers.set('Authorization', 'Bearer 123456');
+    if (isMicroApp()) {
+      headers.set('Token', getUserToken());
+    }
+
+    const response = await fetch(`${finalConfig.baseURL}${url}`, {
+      ...options,
+      headers,
+    });
+
+    // 检查HTTP状态码
+    if (!response.ok) {
+      throw new NetworkError(
+        `网络请求失败: ${response.status} ${response.statusText}`,
+        response.status,
+        response.statusText
+      );
+    }
+
+    const result: ApiResponse<T> = await response.json();
+    
+    // 检查业务状态码
+    if (result.code !== 200) {
+      throw new ApiError(
+        result.code,
+        result.message || '请求失败',
+        result.error
+      );
+    }
+
+    return result.data as T;
+  } catch (error) {
+    // 重新抛出已知的错误类型
+    if (error instanceof ApiError || error instanceof NetworkError) {
+      throw error;
+    }
+    
+    // 处理其他未知错误
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new NetworkError('网络连接失败，请检查网络设置');
+    }
+    
+    throw new NetworkError('请求处理失败，请稍后重试');
   }
-
-  const response = await fetch(`${finalConfig.baseURL}${url}`, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    throw new Error(`请求失败: ${response.status} ${response.statusText}`);
-  }
-
-  const result = await response.json();
-  return result.data;
 }
 
 /**

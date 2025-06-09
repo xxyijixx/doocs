@@ -1,5 +1,4 @@
 import { useServiceConfig } from "../hooks/useServiceConfig";
-import { MessageAlert } from "../components/common/MessageAlert";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { BotConfigSection } from "../components/config/BotConfigSection";
 import { ChatConfigSection } from "../components/config/ChatConfigSection";
@@ -13,7 +12,6 @@ export default function ServiceConfig() {
     sources,
     isLoading,
     isSaving,
-    saveMessage,
     userBots,
     selectedUserBot,
     newSourceName,
@@ -51,8 +49,6 @@ export default function ServiceConfig() {
         </div>
 
         <form onSubmit={handleSystemConfigSubmit} className="space-y-6">
-          {/* 消息提示 */}
-          <MessageAlert message={saveMessage}/>
 
           {/* 机器人配置 */}
           <BotConfigSection

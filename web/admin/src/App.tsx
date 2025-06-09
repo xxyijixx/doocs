@@ -4,6 +4,8 @@ import { Chat } from './pages/Chat';
 import ServiceConfig from './pages/ServiceConfig';
 import AgentManagement from './pages/AgentManagement';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { ToastProvider, useToast } from './components/Toast';
+import { setGlobalErrorConfig } from './utils/errorHandler';
 import { webSocketService } from './services/websocket';
 import { useConversationStore } from './store/conversationStore';
 import { useMessageStore } from './store/messageStore';
@@ -138,122 +140,202 @@ const App: React.FC = () => {
     }
   }, [addMessage, refreshMessages]); // 添加 messageStore 的方法作为依赖项
 
-  // 导航链接组件
-  const NavLink: React.FC<{to: string, children: React.ReactNode}> = ({ to, children }) => (
-    <a 
-      href={to} 
-      className="px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 flex items-center gap-2"
-      onClick={(e) => {
-        e.preventDefault();
-        window.history.pushState({}, '', to);
-        window.dispatchEvent(new Event('popstate'));
-      }}
-    >
-      {children}
-    </a>
-  );
+  // NavLink component removed as it's not being used
 
   return (
     <ThemeProvider>
-      <Router>
-        <div className="h-full flex flex-col p-[24px]">
-          {/* 顶部导航栏 */}
-          <header className="">
-            <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-              <h1 className="text-[24px] font-bold text-gray-800 dark:text-white">Doocs</h1>
-              <div className="flex items-center gap-4">
-                <nav className="hidden md:flex items-center gap-2">
-                  {/* 聊天页面 - 管理员和客服都可以访问 */}
-                  {(isAdmin || isAgent) && (
-                    <NavLink to="/">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-                      </svg>
-                      聊天
-                    </NavLink>
-                  )}
-                  {/* 客服管理页面 - 只有管理员可以访问 */}
-                   {isAdmin && (
-                     <NavLink to="/agents">
-                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                         <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                       </svg>
-                       客服管理
-                     </NavLink>
-                   )}
-                   {/* 配置页面 - 只有管理员可以访问 */}
-                   {isAdmin && (
-                     <NavLink to="/config">
-                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                         <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                       </svg>
-                       配置
-                     </NavLink>
-                   )}
-                  {/* 显示当前用户权限 */}
-                  {!isLoading && (
-                    <div className="flex items-center gap-1 ml-4">
-                      {isAdmin && (
-                        <span className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-xs">
-                          管理员
-                        </span>
-                      )}
-                      {isAgent && (
-                        <span className="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded text-xs">
-                          客服
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </nav>
-                {/* <ThemeToggle /> */}
-              </div>
-            </div>
-          </header>
-          
-          {/* 主内容区 */}
-          <main className="flex-1 container mx-auto px-4 py-8 h-[calc(100vh-60px)] overflow-auto">
-            <Routes>
-              <Route 
-                path="/" 
-                element={
-                  <PermissionGuard requireAgent={true}>
-                    <Chat onCurrentConversationChange={(conversationId: number) => {
-                      console.log('App.tsx selectedConversation改变', conversationId)
-                      console.log('设置前currentConversationId:', currentConversationId)
-                      setCurrentConversationId(conversationId)
-                      currentConversationIdRef.current = conversationId;
-                      console.log('设置后应该为:', conversationId)
-                    }} />
-                  </PermissionGuard>
-                } 
-              />
-              <Route 
-                 path="/agents" 
-                 element={
-                   <PermissionGuard requireAdmin={true}>
-                     <AgentManagement />
-                   </PermissionGuard>
-                 } 
-               />
-               <Route 
-                 path="/config" 
-                 element={
-                   <PermissionGuard requireAdmin={true}>
-                     <ServiceConfig />
-                   </PermissionGuard>
-                 } 
-               />
-              <Route path="*" element={
-                <PermissionGuard requireAgent={true}>
-                  <Navigate to="/" replace />
-                </PermissionGuard>
-              } />
-            </Routes>
-          </main>
-        </div>
-      </Router>
+      <ToastProvider>
+        <AppWithErrorHandling 
+          currentConversationId={currentConversationId}
+          currentConversationIdRef={currentConversationIdRef}
+          setCurrentConversationId={setCurrentConversationId}
+          isAdmin={isAdmin}
+          isAgent={isAgent}
+          isLoading={isLoading}
+        />
+      </ToastProvider>
     </ThemeProvider>
+  );
+};
+
+// 分离出带错误处理的应用组件
+interface AppWithErrorHandlingProps {
+  currentConversationId: number;
+  currentConversationIdRef: React.MutableRefObject<number>;
+  setCurrentConversationId: (id: number) => void;
+  isAdmin: boolean;
+  isAgent: boolean;
+  isLoading: boolean;
+}
+
+function AppWithErrorHandling({
+  currentConversationId,
+  currentConversationIdRef,
+  setCurrentConversationId,
+  isAdmin,
+  isAgent,
+  isLoading
+}: AppWithErrorHandlingProps) {
+  const toast = useToast();
+
+  // 配置全局错误处理
+  useEffect(() => {
+    setGlobalErrorConfig({
+      showToast: (message, type) => {
+        switch (type) {
+          case 'error':
+            toast.showError(message);
+            break;
+          case 'warning':
+            toast.showWarning(message);
+            break;
+          case 'info':
+            toast.showInfo(message);
+            break;
+          default:
+            toast.showSuccess(message);
+            break;
+        }
+      },
+      showApiError: (error) => {
+        // 可以根据错误码进行特殊处理
+        if (error.code === 401) {
+          toast.showWarning('登录已过期，请重新登录');
+        } else {
+          toast.showError(error.message, error.originalError);
+        }
+      },
+      showNetworkError: (error) => {
+        toast.showError('网络错误', error.message);
+      },
+    });
+  }, [toast]);
+
+  // NavLink component removed as it's not being used
+
+  return (
+    <Router>
+      <div className="h-full flex flex-col p-[24px]">
+        {/* 顶部导航栏 */}
+        <header className="">
+          <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 className="text-[24px] font-bold text-gray-800 dark:text-white">Doocs</h1>
+            <div className="flex items-center gap-4">
+              <nav className="hidden md:flex items-center gap-2">
+                {/* 聊天页面 - 管理员和客服都可以访问 */}
+                {(isAdmin || isAgent) && (
+                  <a 
+                    href="/" 
+                    className="px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 flex items-center gap-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.history.pushState({}, '', '/');
+                      window.dispatchEvent(new Event('popstate'));
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                    </svg>
+                    聊天
+                  </a>
+                )}
+                {/* 客服管理页面 - 只有管理员可以访问 */}
+                 {isAdmin && (
+                   <a 
+                     href="/agents" 
+                     className="px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 flex items-center gap-2"
+                     onClick={(e) => {
+                       e.preventDefault();
+                       window.history.pushState({}, '', '/agents');
+                       window.dispatchEvent(new Event('popstate'));
+                     }}
+                   >
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                       <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                     </svg>
+                     客服管理
+                   </a>
+                 )}
+                 {/* 配置页面 - 只有管理员可以访问 */}
+                 {isAdmin && (
+                   <a 
+                     href="/config" 
+                     className="px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 flex items-center gap-2"
+                     onClick={(e) => {
+                       e.preventDefault();
+                       window.history.pushState({}, '', '/config');
+                       window.dispatchEvent(new Event('popstate'));
+                     }}
+                   >
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                       <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                     </svg>
+                     配置
+                   </a>
+                 )}
+                {/* 显示当前用户权限 */}
+                {!isLoading && (
+                  <div className="flex items-center gap-1 ml-4">
+                    {isAdmin && (
+                      <span className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-xs">
+                        管理员
+                      </span>
+                    )}
+                    {isAgent && (
+                      <span className="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded text-xs">
+                        客服
+                      </span>
+                    )}
+                  </div>
+                )}
+              </nav>
+              {/* <ThemeToggle /> */}
+            </div>
+          </div>
+        </header>
+        
+        {/* 主内容区 */}
+        <main className="flex-1 container mx-auto px-4 py-8 h-[calc(100vh-60px)] overflow-auto">
+          <Routes>
+            <Route 
+              path="/" 
+              element={
+                <PermissionGuard requireAgent={true}>
+                  <Chat onCurrentConversationChange={(conversationId: number) => {
+                    console.log('App.tsx selectedConversation改变', conversationId)
+                    console.log('设置前currentConversationId:', currentConversationId)
+                    setCurrentConversationId(conversationId)
+                    currentConversationIdRef.current = conversationId;
+                    console.log('设置后应该为:', conversationId)
+                  }} />
+                </PermissionGuard>
+              } 
+            />
+            <Route 
+               path="/agents" 
+               element={
+                 <PermissionGuard requireAdmin={true}>
+                   <AgentManagement />
+                 </PermissionGuard>
+               } 
+             />
+             <Route 
+               path="/config" 
+               element={
+                 <PermissionGuard requireAdmin={true}>
+                   <ServiceConfig />
+                 </PermissionGuard>
+               } 
+             />
+            <Route path="*" element={
+              <PermissionGuard requireAgent={true}>
+                <Navigate to="/" replace />
+              </PermissionGuard>
+            } />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 };
 

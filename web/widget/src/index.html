@@ -10,17 +10,17 @@
     <p>This page demonstrates the second integration method: Local Application Integration (Vue/React etc.)</p>
     
     <!-- 配置全局参数 -->
-    <script>
-        // 手动配置 baseUrl 和 source
-        window.WIDGET_CONFIG = {
-            baseUrl: 'http://192.168.0.2:8888',  // 替换为实际的后端服务地址
-            source: 'CS-weEGAm5hywzf0ha1aOwk',         // 替换为实际的source key
-        };
-    </script>
-    
-    <!-- 引入本地构建的widget脚本 -->
-    <!-- <script src="../dist/bundle.js"></script> -->
-    <script src="http://192.168.0.2/apps/cs/widget/bundle.js" defer></script>
+<!-- 配置全局参数 -->
+<script>
+    // 手动配置 baseUrl 和 source
+    window.WIDGET_CONFIG = {
+        baseUrl: 'http://192.168.31.214/apps/cs',  // 后端服务地址
+        source: 'CS-hONuJKsMnJqYIV6mRUVM',         // 当前来源的source key
+    };
+</script>
+
+<!-- 引入widget脚本 -->
+<script src="http://192.168.31.214/apps/cs/widget/bundle.js" defer></script>
     
 </body>
 </html>

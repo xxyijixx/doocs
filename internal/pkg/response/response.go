@@ -7,10 +7,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const StatusSuccess = 200
+const StatusError = 0
+
 // Success 成功响应
 func Success(c *gin.Context, message string, data interface{}) {
 	c.JSON(http.StatusOK, models.Response{
-		Code:    http.StatusOK,
+		Code:    StatusSuccess,
 		Message: message,
 		Data:    data,
 	})
@@ -32,7 +35,7 @@ func Fail(c *gin.Context, statusCode int, message string, err error) {
 
 func Error(c *gin.Context, message string, err error) {
 	response := models.Response{
-		Code:    -1,
+		Code:    StatusError,
 		Message: message,
 	}
 

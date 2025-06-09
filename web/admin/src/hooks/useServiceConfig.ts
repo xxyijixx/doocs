@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useToast } from '../components/Toast';
 import { isMicroApp, appReady } from "@dootask/tools";
 import {
   createBot,
@@ -72,6 +73,9 @@ const defaultServerConfig: ServerConfig = {
 }
 
 export const useServiceConfig = () => {
+
+  const toast = useToast();
+
   // 状态管理
   const [systemConfig, setSystemConfig] = useState<SystemConfig>(defaultSystemConfig);
   const [dootaskChatConfig, setDootaskChatConfig] = useState<DooTaskChatConfig>(defaultDooTaskChatConfig);
@@ -79,10 +83,7 @@ export const useServiceConfig = () => {
   const [sources, setSources] = useState<CustomerServiceSource[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [saveMessage, setSaveMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+
   const [isRunInMicroApp, setIsRunInMicroApp] = useState<boolean>(isMicroApp());
   const [userBots, setUserBots] = useState<UserBot[]>([]);
   const [selectedUserBot, setSelectedUserBot] = useState<UserBot | null>(null);
@@ -213,17 +214,11 @@ export const useServiceConfig = () => {
             bot.id === userBot.id ? userBot : bot
           )
         );
-        setSaveMessage({
-          type: "success",
-          text: "机器人配置已更新",
-        });
+        toast.showSuccess("机器人配置已更新");
       })
      .catch((error) => {
         console.error("更新机器人失败:", error.message);
-        setSaveMessage({
-          type: "error",
-          text: `更新机器人失败: ${error.message}`,
-        });
+        toast.showError(`更新机器人失败: ${error.message}`);
       });
   }
 
@@ -240,24 +235,22 @@ export const useServiceConfig = () => {
         name: "客服机器人",
       });
       const botId = createBotResponse.data.id;
-      console.log(`客服机器人ID: ${botId}`);
-
+     
       const openUserDialogResponse = await openUserDialog(botId);
       const userBotDialogID = openUserDialogResponse.data.id;
-      console.log(`对话ID: ${userBotDialogID}`);
 
       if (userBotDialogID <= 0) {
-        console.error("对话ID无效");
-        return;
+        throw new Error("对话ID无效");
       }
 
       await sendMessage({
         dialog_id: userBotDialogID,
         text: "/token",
       });
-      console.log("消息发送成功");
+      toast.showSuccess(`机器人创建成功，机器人ID: ${botId}`);
     } catch (error: unknown) {
       console.error("创建或发送消息失败:", (error as Error).message);
+      toast.showError(`创建失败: ${(error as Error).message}`);
     }
   };
 
@@ -266,18 +259,12 @@ export const useServiceConfig = () => {
     if (!isRunInMicroApp) return;
     
     if (!selectedUserBot) {
-      setSaveMessage({
-        type: "error",
-        text: "请先选择一个机器人",
-      });
+      toast.showError("请先选择一个机器人");
       return;
     }
     
     if (systemConfig.dootask_integration.project_id) {
-      setSaveMessage({
-        type: "error",
-        text: "项目已存在，请先重置后再创建",
-      });
+      toast.showError("项目已存在，请先重置后再创建");
       return;
     }
 
@@ -289,7 +276,6 @@ export const useServiceConfig = () => {
       });
       
       const projectId = response.data.id;
-      console.log(`项目ID: ${projectId}`);
 
       // 更新系统配置
       setSystemConfig((prev) => ({
@@ -325,17 +311,11 @@ export const useServiceConfig = () => {
       // 更新项目用户
       await updateProjectUser(projectId, projectUserIds);
       
-      setSaveMessage({
-        type: "success",
-        text: `项目创建成功，项目ID: ${projectId}`,
-      });
+      toast.showSuccess(`项目创建成功，项目ID: ${projectId}`);
       
     } catch (error) {
       console.error("创建项目失败:", error);
-      setSaveMessage({
-        type: "error",
-        text: `创建项目失败: ${error instanceof Error ? error.message : '未知错误'}`,
-      });
+      toast.showError(`创建项目失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   };
 
@@ -369,16 +349,10 @@ export const useServiceConfig = () => {
       // 调用API更新项目用户
       await updateProjectUser(projectId, updatedUserIds);
       
-      setSaveMessage({
-        type: "success",
-        text: "机器人已成功添加到项目中",
-      });
+      toast.showSuccess("机器人已成功添加到项目中");
     } catch (error) {
       console.error("添加机器人到项目失败:", error);
-      setSaveMessage({
-        type: "error",
-        text: `添加机器人到项目失败: ${error instanceof Error ? error.message : '未知错误'}`,
-      });
+      toast.showError(`添加机器人到项目失败: ${error instanceof Error ? error.message : '未知错误'}`);
       throw error;
     }
   };
@@ -435,26 +409,17 @@ export const useServiceConfig = () => {
     if (!isRunInMicroApp) return;
     
     if (!selectedUserBot) {
-      setSaveMessage({
-        type: "error",
-        text: "请先选择一个机器人",
-      });
+      toast.showError("请先选择一个机器人");
       return;
     }
     
     if (!systemConfig.dootask_integration.project_id) {
-      setSaveMessage({
-        type: "error",
-        text: "请先创建项目",
-      });
+      toast.showError("请先创建项目");
       return;
     }
     
     if (!newSourceName.trim()) {
-      setSaveMessage({
-        type: "error",
-        text: "请输入来源名称",
-      });
+      toast.showError("请输入来源名称");
       return;
     }
 
@@ -462,7 +427,7 @@ export const useServiceConfig = () => {
     try {
       const columnResponse = await createProjectColumn(systemConfig.dootask_integration.project_id || 0, newSourceName.trim())
       const columnId = columnResponse.data.id;
-      console.log(`项目列ID: ${columnId}`);
+
       const taskName = `智能客服-${newSourceName.trim()}-通知提醒`;
 
       const taskResponse = await createTask({
@@ -472,11 +437,9 @@ export const useServiceConfig = () => {
       });
 
       const taskId = taskResponse.data.id;
-      console.log(`任务ID: ${taskId}`);
 
       const dialogResponse = await getTaskDialog(taskId);
       const dialogId = dialogResponse.data.dialog_id;
-      console.log(`任务对话: ${dialogId}`);
 
       await sendMessage({
         dialog_id: dialogId,
@@ -505,18 +468,12 @@ export const useServiceConfig = () => {
       setSources((prev) => [...prev, newSource]);
       setNewSourceName("");
 
-      setSaveMessage({
-        type: "success",
-        text: `来源创建成功！来源key: ${sourceResponse.source_key}`,
-      });
+      toast.showSuccess(`来源创建成功！\n来源key: ${sourceResponse.source_key}`);
     } catch (error) {
       console.error("创建来源失败:", error);
-      setSaveMessage({
-        type: "error",
-        text: `创建来源失败: ${
-          error instanceof Error ? error.message : "未知错误"
-        }`,
-      });
+      toast.showError(`创建来源失败: ${
+        error instanceof Error ? error.message : "未知错误"
+      }`);
     } finally {
       setIsCreatingSource(false);
     }
@@ -534,18 +491,12 @@ export const useServiceConfig = () => {
             await deleteSource(source.id);
           }
           setSources((prev) => prev.filter((s) => s.id !== source.id));
-          setSaveMessage({
-            type: "success",
-            text: "来源删除成功",
-          });
+          toast.showSuccess("来源删除成功");
         } catch (error) {
           console.error("删除来源失败:", error);
-          setSaveMessage({
-            type: "error",
-            text: `删除来源失败: ${
-              error instanceof Error ? error.message : "未知错误"
-            }`,
-          });
+          toast.showError(`删除来源失败: ${
+            error instanceof Error ? error.message : "未知错误"
+          }`);
         }
       }
     });
@@ -573,10 +524,7 @@ export const useServiceConfig = () => {
           },
         }));
         setSelectedUserBot(null);
-        setSaveMessage({
-          type: "success",
-          text: "系统配置已重置",
-        });
+        toast.showSuccess("系统配置已重置");
       }
     });
   };
@@ -585,24 +533,18 @@ export const useServiceConfig = () => {
   const handleSystemConfigSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setSaveMessage(null);
+
 
     try {
       await saveConfig("customer_service_system_config", systemConfig);
       console.log("保存系统配置:", systemConfig);
 
-      setSaveMessage({
-        type: "success",
-        text: "系统配置已成功保存！",
-      });
+      toast.showSuccess("系统配置已成功保存！");
     } catch (error) {
       console.error("保存系统配置失败:", error);
-      setSaveMessage({
-        type: "error",
-        text: `保存系统配置失败: ${
-          error instanceof Error ? error.message : "未知错误"
-        }`,
-      });
+      toast.showError(`保存系统配置失败: ${
+        error instanceof Error ? error.message : "未知错误"
+      }`);
     } finally {
       setIsSaving(false);
     }
@@ -654,7 +596,7 @@ export const useServiceConfig = () => {
     sources,
     isLoading,
     isSaving,
-    saveMessage,
+
     isRunInMicroApp,
     userBots,
     selectedUserBot,
@@ -665,7 +607,6 @@ export const useServiceConfig = () => {
     // 设置状态
     setNewSourceName,
     setEditingSource,
-    setSaveMessage,
     
     // 确认对话框状态
     confirmDialog,

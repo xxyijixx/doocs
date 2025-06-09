@@ -165,6 +165,7 @@ func (a *AgentHeadler) Verify(c *gin.Context) {
 		return
 	}
 
+	// response.Error(c, "yanzhenghshibai", nil)
 	// 返回用户权限信息
 	response.Success(c, "验证成功", map[string]interface{}{
 		"is_admin": isAdmin,
