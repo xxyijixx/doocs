@@ -40,6 +40,25 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTheme(newTheme);
   };
 
+  // 监听getThemeName()的变化
+  useEffect(() => {
+    const checkThemeChange = () => {
+      const currentTheme = getThemeName();
+      if (currentTheme && currentTheme !== theme) {
+        console.log(`检测到DooTask主题变化: ${theme} -> ${currentTheme}`);
+        setTheme(currentTheme as Theme);
+      }
+    };
+
+    // 设置定时器检查主题变化
+    const interval = setInterval(checkThemeChange, 1000);
+
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [theme]);
+
   // 当主题变化时，更新DOM和localStorage
   useEffect(() => {
     const root = window.document.documentElement;
