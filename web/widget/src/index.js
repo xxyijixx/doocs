@@ -1,7 +1,51 @@
-const CONVERSATION_UUID_KEY = 'conversation_uuid';
+const CONVERSATION_UUID_KEY = 'chat_conversation_uuid';
 let conversationUuid = localStorage.getItem(CONVERSATION_UUID_KEY);
 let API_BASE_URL = '';
 let socket = null; // WebSocket连接
+let currentLanguage = 'zh'; // 默认语言
+
+// 国际化文本配置
+const I18N_TEXTS = {
+    zh: {
+        supportChat: 'Support Chat',
+        inputPlaceholder: '输入您的消息...',
+        sendButton: '发送',
+        newConversationButton: '开始新会话',
+        // 系统消息
+        conversationExpired: '会话已失效，正在重新连接...',
+        conversationClosed: '此会话已关闭，无法发送新消息',
+        messageSendFailed: '消息发送失败，请稍后重试',
+        sourceNotFound: '来源配置错误，请联系管理员',
+        invalidParams: '参数错误，请检查输入内容',
+        unknownError: '发送消息时出现未知错误，请稍后重试',
+        initializingConversation: '正在初始化新会话...',
+        conversationClosedStatus: '此会话已关闭',
+        loadMessagesError: '加载消息时出现错误，请刷新页面重试',
+        newConversationCreated: '新会话已创建，您可以开始对话了'
+    },
+    en: {
+        supportChat: 'Support Chat',
+        inputPlaceholder: 'Type your message...',
+        sendButton: 'Send',
+        newConversationButton: 'Start New Chat',
+        // 系统消息
+        conversationExpired: 'Session expired, reconnecting...',
+        conversationClosed: 'This conversation is closed, cannot send new messages',
+        messageSendFailed: 'Failed to send message, please try again later',
+        sourceNotFound: 'Source configuration error, please contact administrator',
+        invalidParams: 'Parameter error, please check your input',
+        unknownError: 'Unknown error occurred while sending message, please try again later',
+        initializingConversation: 'Initializing new conversation...',
+        conversationClosedStatus: 'This conversation is closed',
+        loadMessagesError: 'Error loading messages, please refresh the page and try again',
+        newConversationCreated: 'New conversation created, you can start chatting now'
+    }
+};
+
+// 获取国际化文本
+function t(key) {
+    return I18N_TEXTS[currentLanguage]?.[key] || I18N_TEXTS.zh[key] || key;
+}
 
 async function createNewConversation(source) {
     try {
@@ -219,6 +263,7 @@ async function initializeChatWidget(options) {
     let baseUrl = 'http://localhost:8888'; // Default value
     let source = 'widget'; // Default value
     let theme = 'colorful'; // Default theme
+    let language = 'zh'; // Default language
 
     if (options) {
         if (options.baseUrl) {
@@ -229,6 +274,10 @@ async function initializeChatWidget(options) {
         }
         if (options.theme && THEMES[options.theme]) {
             theme = options.theme;
+        }
+        if (options.language && (options.language === 'zh' || options.language === 'en')) {
+            language = options.language;
+            currentLanguage = language;
         }
     }
 
@@ -378,7 +427,7 @@ async function initializeChatWidget(options) {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H11V21H5V3H13V9H21Z" fill="currentColor"/>
                 </svg>
-                Support Chat
+                ${t('supportChat')}
             </div>
             <div style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; gap: 8px;">
                 <button id="minimize-button" style="
@@ -444,7 +493,7 @@ async function initializeChatWidget(options) {
                 outline: none;
                 transition: all 0.2s ease;
                 background: #f8fafc;
-            " placeholder="输入您的消息..." onfocus="this.style.borderColor='#667eea'; this.style.background='#ffffff'" onblur="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc'">
+            " placeholder="${t('inputPlaceholder')}" onfocus="this.style.borderColor='#667eea'; this.style.background='#ffffff'" onblur="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc'">
             <button id="send-button" style="
                 padding: 12px 20px;
                 background: ${currentTheme.sendButton.background};
@@ -464,7 +513,7 @@ async function initializeChatWidget(options) {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="currentColor"/>
                 </svg>
-                发送
+                ${t('sendButton')}
             </button>
         </div>
     `;
@@ -594,7 +643,7 @@ async function initializeChatWidget(options) {
                 if (sentMessage.error === 'conversation_not_found') {
                     // 会话不存在，尝试创建新会话
                     addMessageToChat({ 
-                        content: '会话已失效，正在重新连接...', 
+                        content: t('conversationExpired'), 
                         sender: 'system' 
                     });
                     // 重新初始化会话
@@ -607,29 +656,29 @@ async function initializeChatWidget(options) {
                     }
                 } else if (sentMessage.error === 'conversation_closed') {
                     addMessageToChat({ 
-                        content: '此会话已关闭，无法发送新消息', 
+                        content: t('conversationClosed'), 
                         sender: 'system' 
                     });
                     // 显示新建会话按钮
                     showNewConversationButton();
                 } else if (sentMessage.error === 'message_send_failed') {
                     addMessageToChat({ 
-                        content: '消息发送失败，请稍后重试', 
+                        content: t('messageSendFailed'), 
                         sender: 'system' 
                     });
                 } else if (sentMessage.error === 'source_not_found') {
                     addMessageToChat({ 
-                        content: '来源配置错误，请联系管理员', 
+                        content: t('sourceNotFound'), 
                         sender: 'system' 
                     });
                 } else if (sentMessage.error === 'invalid_params') {
                     addMessageToChat({ 
-                        content: '参数错误，请检查输入内容', 
+                        content: t('invalidParams'), 
                         sender: 'system' 
                     });
                 } else {
                     addMessageToChat({ 
-                        content: '发送消息时出现未知错误，请稍后重试', 
+                        content: t('unknownError'), 
                         sender: 'system' 
                     });
                 }
@@ -650,7 +699,7 @@ async function initializeChatWidget(options) {
             if (messages.error === 'conversation_not_found') {
                 // 会话不存在，创建新会话
                 addMessageToChat({ 
-                    content: '正在初始化新会话...', 
+                    content: t('initializingConversation'), 
                     sender: 'system' 
                 });
                 const newUuid = await createNewConversation(source || 'widget');
@@ -660,24 +709,24 @@ async function initializeChatWidget(options) {
                 }
             } else if (messages.error === 'conversation_closed') {
                 addMessageToChat({ 
-                    content: '此会话已关闭', 
+                    content: t('conversationClosedStatus'), 
                     sender: 'system' 
                 });
                 // 显示新建会话按钮
                 showNewConversationButton();
             } else if (messages.error === 'source_not_found') {
                 addMessageToChat({ 
-                    content: '来源配置错误，请联系管理员', 
+                    content: t('sourceNotFound'), 
                     sender: 'system' 
                 });
             } else if (messages.error === 'invalid_params') {
                 addMessageToChat({ 
-                    content: '参数错误，无法加载消息', 
+                    content: t('invalidParams'), 
                     sender: 'system' 
                 });
             } else {
                 addMessageToChat({ 
-                    content: '加载消息时出现错误，请刷新页面重试', 
+                    content: t('loadMessagesError'), 
                     sender: 'system' 
                 });
             }
@@ -699,7 +748,7 @@ async function initializeChatWidget(options) {
 
         const newConversationBtn = document.createElement('button');
         newConversationBtn.id = 'new-conversation-btn';
-        newConversationBtn.textContent = '开始新会话';
+        newConversationBtn.textContent = t('newConversationButton');
         newConversationBtn.style.cssText = `
             width: 100%;
             padding: 10px;
@@ -724,7 +773,7 @@ async function initializeChatWidget(options) {
                 // 移除新建会话按钮
                 newConversationBtn.remove();
                 addMessageToChat({ 
-                    content: '新会话已创建，您可以开始对话了', 
+                    content: t('newConversationCreated'), 
                     sender: 'system' 
                 });
             }
@@ -815,7 +864,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const config = {
             baseUrl: globalConfig.baseUrl || 'http://192.168.31.214:8888', // 默认值
             source: globalConfig.source || 'CS-4A6euKS8gwMUaqyOWcks', // 默认值
-            theme: globalConfig.theme || 'colorful'
+            theme: globalConfig.theme || 'colorful',
+            language: globalConfig.language || 'zh' // 默认语言
         };
         initializeChatWidget(config);
     }
