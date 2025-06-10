@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	"support-plugin/internal/config"
+	"support-plugin/internal/i18n"
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/dootask"
@@ -33,7 +34,10 @@ func (s *ChatPublicService) CreateConversation(agentID, customerID uint, title, 
 	}
 	if err := database.DB.Model(&models.CustomerServiceSource{}).Where("source_key =?", source).First(&csSource).Error; err != nil {
 		logger.App.Error("来源不存在", zap.String("source", source), zap.Error(err))
-		return "", bizErrors.ErrSourceNotFound
+		return "", &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeSourceNotFound,
+			Message: "Token is required",
+		}
 	}
 
 	// 创建对话记录

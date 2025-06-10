@@ -20,7 +20,14 @@ async function createNewConversation(source) {
             localStorage.setItem(CONVERSATION_UUID_KEY, data.data.uuid);
             return data.data.uuid;
         } else {
-            console.error('Failed to create conversation:', data.msg);
+            // 处理创建会话的错误情况
+            if (data.error === 'SOURCE_NOT_FOUND') {
+                console.error('Failed to create conversation: Source not found');
+            } else if (data.error === 'INVALID_PARAMS') {
+                console.error('Failed to create conversation: Invalid parameters');
+            } else {
+                console.error('Failed to create conversation:', data.message || data.msg);
+            }
             return null;
         }
     } catch (error) {
@@ -41,16 +48,24 @@ async function getMessages(uuid) {
             return data.data.items;
         } else {
             // 处理会话不存在或已关闭的情况
-            if (data.message === '对话不存在' || (data.data && data.data.error_code === 'CONVERSATION_NOT_FOUND')) {
+            if (data.error === 'CONVERSATION_NOT_FOUND') {
                 console.warn('会话不存在，需要创建新会话');
                 // 清除本地存储的会话UUID
                 localStorage.removeItem(CONVERSATION_UUID_KEY);
                 conversationUuid = null;
                 return { error: 'conversation_not_found' };
             }
-            if (data.message === '对话已关闭' || (data.data && data.data.error_code === 'CONVERSATION_CLOSED')) {
+            if (data.error === 'CONVERSATION_CLOSED') {
                 console.warn('会话已关闭');
                 return { error: 'conversation_closed' };
+            }
+            if (data.error === 'SOURCE_NOT_FOUND') {
+                console.warn('来源不存在');
+                return { error: 'source_not_found' };
+            }
+            if (data.error === 'INVALID_PARAMS') {
+                console.warn('参数错误');
+                return { error: 'invalid_params' };
             }
             console.error('Failed to get messages:', data.message);
             return [];
@@ -79,16 +94,28 @@ async function sendMessage(uuid, content) {
             return data.data;
         } else {
             // 处理会话不存在或已关闭的情况
-            if (data.message === '对话不存在' || (data.data && data.data.error_code === 'CONVERSATION_NOT_FOUND')) {
+            if (data.error === 'CONVERSATION_NOT_FOUND') {
                 console.warn('会话不存在，需要创建新会话');
                 // 清除本地存储的会话UUID
                 localStorage.removeItem(CONVERSATION_UUID_KEY);
                 conversationUuid = null;
                 return { error: 'conversation_not_found' };
             }
-            if (data.message === '对话已关闭' || (data.data && data.data.error_code === 'CONVERSATION_CLOSED')) {
+            if (data.error === 'CONVERSATION_CLOSED') {
                 console.warn('会话已关闭');
                 return { error: 'conversation_closed' };
+            }
+            if (data.error === 'MESSAGE_SEND_FAILED') {
+                console.warn('消息发送失败');
+                return { error: 'message_send_failed' };
+            }
+            if (data.error === 'SOURCE_NOT_FOUND') {
+                console.warn('来源不存在');
+                return { error: 'source_not_found' };
+            }
+            if (data.error === 'INVALID_PARAMS') {
+                console.warn('参数错误');
+                return { error: 'invalid_params' };
             }
             console.error('Failed to send message:', data.message);
             return null;
@@ -585,6 +612,26 @@ async function initializeChatWidget(options) {
                     });
                     // 显示新建会话按钮
                     showNewConversationButton();
+                } else if (sentMessage.error === 'message_send_failed') {
+                    addMessageToChat({ 
+                        content: '消息发送失败，请稍后重试', 
+                        sender: 'system' 
+                    });
+                } else if (sentMessage.error === 'source_not_found') {
+                    addMessageToChat({ 
+                        content: '来源配置错误，请联系管理员', 
+                        sender: 'system' 
+                    });
+                } else if (sentMessage.error === 'invalid_params') {
+                    addMessageToChat({ 
+                        content: '参数错误，请检查输入内容', 
+                        sender: 'system' 
+                    });
+                } else {
+                    addMessageToChat({ 
+                        content: '发送消息时出现未知错误，请稍后重试', 
+                        sender: 'system' 
+                    });
                 }
             }
         }
@@ -618,6 +665,21 @@ async function initializeChatWidget(options) {
                 });
                 // 显示新建会话按钮
                 showNewConversationButton();
+            } else if (messages.error === 'source_not_found') {
+                addMessageToChat({ 
+                    content: '来源配置错误，请联系管理员', 
+                    sender: 'system' 
+                });
+            } else if (messages.error === 'invalid_params') {
+                addMessageToChat({ 
+                    content: '参数错误，无法加载消息', 
+                    sender: 'system' 
+                });
+            } else {
+                addMessageToChat({ 
+                    content: '加载消息时出现错误，请刷新页面重试', 
+                    sender: 'system' 
+                });
             }
         } else if (Array.isArray(messages)) {
             messages.forEach(msg => {

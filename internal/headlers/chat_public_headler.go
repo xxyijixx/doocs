@@ -3,6 +3,7 @@ package headlers
 import (
 	"strconv"
 
+	"support-plugin/internal/i18n"
 	"support-plugin/internal/models"
 	bizErrors "support-plugin/internal/pkg/errors"
 	"support-plugin/internal/pkg/response"
@@ -30,18 +31,23 @@ func (h ChatPublicHeadler) CreateConversation(c *gin.Context) {
 	var req models.CreateConversationRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误", err)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
 	// 创建对话
 	uuid, err := service.ChatPublic.CreateConversation(req.AgentID, req.CustomerID, req.Title, req.Source)
 	if err != nil {
-		response.ServerError(c, "创建对话失败", err)
+		// 检查是否为i18n错误
+		if i18nErr, ok := err.(*i18n.ErrorInfo); ok {
+			response.UnauthorizedWithCode(c, i18nErr.Code)
+		} else {
+			response.ServerError(c, "", nil)
+		}
 		return
 	}
 
-	response.Success(c, "创建对话成功", models.ConversationResponse{
+	response.SuccessWithCode(c, models.ConversationResponse{
 		UUID: uuid,
 	})
 }
@@ -60,14 +66,19 @@ func (h ChatPublicHeadler) SendMessage(c *gin.Context) {
 	var req models.SendMessageRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误", err)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
 	// 发送消息
 	message, err := service.ChatPublic.SendMessage(req.UUID, req.Content, req.Sender, req.Type, req.Metadata)
 	if err != nil {
-		response.BadRequest(c, "发送消息失败", err)
+		// 检查是否为i18n错误
+		if i18nErr, ok := err.(*i18n.ErrorInfo); ok {
+			response.BadRequestWithCode(c, i18nErr.Code)
+		} else {
+			response.BadRequestWithCode(c, i18n.ErrCodeMessageSendFailed)
+		}
 		return
 	}
 
@@ -80,7 +91,7 @@ func (h ChatPublicHeadler) SendMessage(c *gin.Context) {
 		"created_at": message.CreatedAt,
 	}
 
-	response.Success(c, "发送消息成功", simplifiedMessage)
+	response.SuccessWithCode(c, simplifiedMessage)
 }
 
 // @Summary 获取对话消息列表
@@ -98,7 +109,7 @@ func (h ChatPublicHeadler) GetMessages(c *gin.Context) {
 	// 获取路径参数
 	uuid := c.Param("uuid")
 	if uuid == "" {
-		response.BadRequest(c, "缺少对话UUID", nil)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
@@ -119,7 +130,12 @@ func (h ChatPublicHeadler) GetMessages(c *gin.Context) {
 	// 获取消息列表
 	messages, total, err := service.ChatPublic.GetMessages(uuid, page, pageSize)
 	if err != nil {
-		response.BadRequest(c, "获取消息失败", err)
+		// 检查是否为i18n错误
+		if i18nErr, ok := err.(*i18n.ErrorInfo); ok {
+			response.BadRequestWithCode(c, i18nErr.Code)
+		} else {
+			response.ServerError(c, "", err)
+		}
 		return
 	}
 
@@ -135,7 +151,13 @@ func (h ChatPublicHeadler) GetMessages(c *gin.Context) {
 		}
 	}
 
-	response.SuccessWithPagination(c, "获取消息成功", simplifiedMessages, total, page, pageSize)
+	// 使用通用成功消息的分页响应
+	lang := c.GetHeader("Accept-Language")
+	if lang == "" {
+		lang = "zh-CN"
+	}
+	message := i18n.T(i18n.Language(lang), string(i18n.ErrCodeSuccess))
+	response.SuccessWithPagination(c, message, simplifiedMessages, total, page, pageSize)
 }
 
 // @Summary 获取对话信息
@@ -151,19 +173,24 @@ func (h ChatPublicHeadler) GetConversation(c *gin.Context) {
 	// 获取路径参数
 	uuid := c.Param("uuid")
 	if uuid == "" {
-		response.BadRequest(c, "缺少对话UUID", nil)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
 	// 获取对话信息
 	conversation, err := service.ChatPublic.GetConversation(uuid)
 	if err != nil {
+		// 检查是否为i18n错误
+		if i18nErr, ok := err.(*i18n.ErrorInfo); ok {
+			response.BadRequestWithCode(c, i18nErr.Code)
+			return
+		}
 		// 检查是否是业务错误
 		if bizErr, ok := bizErrors.IsBusinessError(err); ok {
 			response.BadRequest(c, bizErr.Message, bizErr)
 			return
 		}
-		response.ServerError(c, "获取对话失败", err)
+		response.ServerError(c, "", err)
 		return
 	}
 
@@ -178,5 +205,5 @@ func (h ChatPublicHeadler) GetConversation(c *gin.Context) {
 		"created_at":      conversation.CreatedAt,
 	}
 
-	response.Success(c, "获取对话成功", simplifiedConversation)
+	response.SuccessWithCode(c, simplifiedConversation)
 }
