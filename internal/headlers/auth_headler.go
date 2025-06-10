@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"support-plugin/internal/i18n"
 	"support-plugin/internal/middleware"
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
@@ -29,7 +30,7 @@ func (h AuthHeadler) Login(c *gin.Context) {
 	// 解析请求参数
 	var req models.AgentLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误", err)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
@@ -37,13 +38,13 @@ func (h AuthHeadler) Login(c *gin.Context) {
 	var agent models.Agent
 	result := database.DB.Where("username = ?", req.Username).First(&agent)
 	if result.Error != nil {
-		response.Unauthorized(c, "用户名或密码错误")
+		response.UnauthorizedWithCode(c, i18n.ErrCodeInvalidCredentials)
 		return
 	}
 
 	// 检查客服状态
 	if agent.Status != "active" {
-		response.Unauthorized(c, "账号已被禁用")
+		response.UnauthorizedWithCode(c, i18n.ErrCodeAccountDisabled)
 		return
 	}
 
@@ -63,7 +64,7 @@ func (h AuthHeadler) GetCurrentAgent(c *gin.Context) {
 	// 获取当前客服ID
 	agentID, exists := middleware.GetCurrentAgentID(c)
 	if !exists {
-		response.Unauthorized(c, "未认证")
+		response.UnauthorizedWithCode(c, i18n.ErrCodeUnauthenticated)
 		return
 	}
 
@@ -99,7 +100,7 @@ func (h AuthHeadler) CreateAgent(c *gin.Context) {
 	// 解析请求参数
 	var agent models.Agent
 	if err := c.ShouldBindJSON(&agent); err != nil {
-		response.BadRequest(c, "参数错误", err)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
@@ -107,7 +108,7 @@ func (h AuthHeadler) CreateAgent(c *gin.Context) {
 	var count int64
 	database.DB.Model(&models.Agent{}).Where("username = ?", agent.Username).Count(&count)
 	if count > 0 {
-		response.BadRequest(c, "用户名已存在", nil)
+		response.BadRequestWithCode(c, i18n.ErrCodeUsernameExists)
 		return
 	}
 

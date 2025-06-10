@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"support-plugin/internal/i18n"
 )
 
 // UserInfoResp 返回用户信息
@@ -205,14 +207,20 @@ func (v *VersionInfoResp) CheckVersion(requiredVersion string) (bool, error) {
 func (v *VersionInfoResp) parseVersion(version string) ([]int, error) {
 	parts := strings.Split(version, ".")
 	if len(parts) != 3 {
-		return nil, fmt.Errorf("版本号格式不正确: %s", version)
+		return nil, &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeVersionFormatError,
+			Message: fmt.Sprintf("版本号格式不正确: %s", version),
+		}
 	}
 
 	var numbers []int
 	for _, part := range parts {
 		num, err := strconv.Atoi(part)
 		if err != nil {
-			return nil, fmt.Errorf("解析版本号失败: %s", version)
+			return nil, &i18n.ErrorInfo{
+				Code:    i18n.ErrCodeVersionParseError,
+				Message: fmt.Sprintf("解析版本号失败: %s", version),
+			}
 		}
 		numbers = append(numbers, num)
 	}

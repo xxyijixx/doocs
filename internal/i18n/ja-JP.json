@@ -1,0 +1,66 @@
+{
+  "SUCCESS": "操作が成功しました",
+  "INTERNAL_ERROR": "内部サーバーエラー",
+  "INVALID_PARAMETER": "パラメータエラー",
+  "UNAUTHORIZED": "認証されていないアクセス",
+  "FORBIDDEN": "権限が不足しています",
+  "NOT_FOUND": "リソースが見つかりません",
+  "REQUEST_TIMEOUT": "リクエストタイムアウト",
+  "TOO_MANY_REQUESTS": "リクエストが多すぎます",
+  
+  "TOKEN_INVALID": "無効なトークン",
+  "TOKEN_EXPIRED": "トークンの有効期限が切れています",
+  "LOGIN_FAILED": "ユーザー名またはパスワードが間違っています",
+  "ACCOUNT_DISABLED": "アカウントが無効になっています",
+  "PERMISSION_DENIED": "権限が拒否されました",
+  "INVALID_CREDENTIALS": "ユーザー名またはパスワードが間違っています",
+  "UNAUTHENTICATED": "認証されていません",
+  "USERNAME_EXISTS": "ユーザー名は既に存在します",
+  "INVALID_PARAMS": "パラメータエラー",
+  
+  "CONVERSATION_NOT_FOUND": "会話が見つかりません",
+  "CONVERSATION_CLOSED": "会話は終了しています",
+  "CONVERSATION_EXISTS": "会話は既に存在します",
+  
+  "MESSAGE_SEND_FAILED": "メッセージの送信に失敗しました",
+  "MESSAGE_NOT_FOUND": "メッセージが見つかりません",
+  "MESSAGE_FORMAT_ERROR": "メッセージフォーマットエラー",
+  
+  "SOURCE_NOT_FOUND": "ソースが見つかりません",
+  "SOURCE_DISABLED": "ソースが無効になっています",
+  "SOURCE_CONFIG_ERROR": "ソース設定エラー",
+  
+  "AGENT_NOT_FOUND": "エージェントが見つかりません",
+  "AGENT_OFFLINE": "エージェントはオフラインです",
+  "AGENT_BUSY": "エージェントは忙しいです",
+  
+  "DOOTASK_DATA_FORMAT_ERROR": "DooTaskデータフォーマットエラー",
+  "DOOTASK_RESPONSE_FORMAT_ERROR": "DooTaskレスポンスフォーマットエラー",
+  "DOOTASK_REQUEST_FAILED": "DooTaskリクエストが失敗しました",
+  "DOOTASK_UNMARSHAL_RESPONSE_ERROR": "DooTaskレスポンスの解析に失敗しました：%s",
+  "DOOTASK_REQUEST_FAILED_WITH_ERROR": "DooTaskリクエストが失敗しました：%s",
+  
+  "DATABASE_ERROR": "データベースエラー",
+  "RECORD_NOT_FOUND": "レコードが見つかりません",
+  "DUPLICATE_RECORD": "レコードは既に存在します",
+  
+  "FILE_NOT_FOUND": "ファイルが見つかりません",
+  "FILE_UPLOAD_FAILED": "ファイルのアップロードに失敗しました",
+  "FILE_FORMAT_ERROR": "ファイルフォーマットエラー",
+  "FILE_SIZE_EXCEEDED": "ファイルサイズが制限を超えています",
+  
+  "CONFIG_ERROR": "設定エラー",
+  "CONFIG_NOT_FOUND": "設定が見つかりません",
+  
+  "NETWORK_ERROR": "ネットワークエラー",
+  "CONNECTION_FAILED": "接続に失敗しました",
+  "CONNECTION_TIMEOUT": "接続がタイムアウトしました",
+
+  "EVENT_BUS_CLOSED": "イベントバスが閉じられています",
+  "EVENT_QUEUE_FULL": "イベントキューが満杯です",
+  "EVENT_TYPE_ERROR": "イベントタイプエラー",
+  "EVENT_PROCESS_FAILED": "イベント処理に失敗しました",
+
+  "VERSION_FORMAT_ERROR": "バージョン形式エラー",
+  "VERSION_PARSE_ERROR": "バージョン解析に失敗しました"
+}

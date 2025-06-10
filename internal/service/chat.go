@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -9,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	"support-plugin/internal/config"
+	"support-plugin/internal/i18n"
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/dootask"
@@ -82,13 +82,19 @@ func (s *ChatService) SendMessageWithDetails(conversationUUID, content, sender, 
 	var conversation models.Conversations
 	result := database.DB.Where("uuid = ?", conversationUUID).First(&conversation)
 	if result.Error != nil {
-		return nil, errors.New("对话不存在")
+		return nil, &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeConversationNotFound,
+			Message: "对话不存在",
+		}
 	}
 	// 查找来源
 	var csSource models.CustomerServiceSource
 	result = database.DB.Where("source_key =?", conversation.SourceKey).First(&csSource)
 	if result.Error != nil {
-		return nil, errors.New("来源不存在")
+		return nil, &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeSourceNotFound,
+			Message: "来源不存在",
+		}
 	}
 	dialogID := ""
 	if csSource.DialogID != nil {
@@ -200,13 +206,19 @@ func (s *ChatService) SendMessageWithDetailsByID(conversationUUID int, content, 
 	var conversation models.Conversations
 	result := database.DB.Where("id = ?", conversationUUID).First(&conversation)
 	if result.Error != nil {
-		return nil, errors.New("对话不存在")
+		return nil, &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeConversationNotFound,
+			Message: "对话不存在",
+		}
 	}
 	// 查找来源
 	var csSource models.CustomerServiceSource
 	result = database.DB.Where("source_key =?", conversation.SourceKey).First(&csSource)
 	if result.Error != nil {
-		return nil, errors.New("来源不存在")
+		return nil, &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeSourceNotFound,
+			Message: "来源不存在",
+		}
 	}
 	dialogID := ""
 	if csSource.DialogID != nil {
@@ -318,7 +330,10 @@ func (s *ChatService) GetMessageListByConversationUUID(conversationUUID string, 
 	var conversation models.Conversations
 	result := database.DB.Where("uuid = ?", conversationUUID).First(&conversation)
 	if result.Error != nil {
-		return nil, 0, errors.New("对话不存在")
+		return nil, 0, &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeConversationNotFound,
+			Message: "对话不存在",
+		}
 	}
 
 	// 计算总数
@@ -350,7 +365,10 @@ func (s *ChatService) GetMessageListByConversationID(conversationID, page, pageS
 	var conversation models.Conversations
 	result := database.DB.Where("id = ?", conversationID).First(&conversation)
 	if result.Error != nil {
-		return nil, 0, errors.New("对话不存在")
+		return nil, 0, &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeConversationNotFound,
+			Message: "对话不存在",
+		}
 	}
 
 	// 计算总数
@@ -381,7 +399,10 @@ func (s *ChatService) GetConversationByUUID(uuid string) (*models.Conversations,
 	var conversation models.Conversations
 	result := database.DB.Where("uuid = ?", uuid).First(&conversation)
 	if result.Error != nil {
-		return nil, errors.New("对话不存在")
+		return nil, &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeConversationNotFound,
+			Message: "对话不存在",
+		}
 	}
 
 	return &conversation, nil

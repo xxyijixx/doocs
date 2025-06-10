@@ -1,6 +1,9 @@
 package errors
 
-// 业务错误代码
+import "support-plugin/internal/i18n"
+
+// 为了向后兼容，保留原有的错误代码常量
+// 新代码建议直接使用 i18n.ErrorCode
 const (
 	// 对话相关错误
 	ErrCodeConversationNotFound = "CONVERSATION_NOT_FOUND"
@@ -88,4 +91,46 @@ func HasCode(err error, code string) bool {
 		return bizErr.Code == code
 	}
 	return false
+}
+
+// ConvertToI18nError 将旧的BusinessError转换为新的i18n.ErrorInfo
+func ConvertToI18nError(bizErr *BusinessError, lang i18n.Language) *i18n.ErrorInfo {
+	if bizErr == nil {
+		return nil
+	}
+	
+	// 尝试将旧的错误代码映射到新的错误代码
+	var errorCode i18n.ErrorCode
+	switch bizErr.Code {
+	case ErrCodeConversationNotFound:
+		errorCode = i18n.ErrCodeConversationNotFound
+	case ErrCodeConversationClosed:
+		errorCode = i18n.ErrCodeConversationClosed
+	case ErrCodeSourceNotFound:
+		errorCode = i18n.ErrCodeSourceNotFound
+	case ErrCodeMessageSendFailed:
+		errorCode = i18n.ErrCodeMessageSendFailed
+	case ErrCodeUnauthorized:
+		errorCode = i18n.ErrCodeUnauthorized
+	case ErrCodeTokenInvalid:
+		errorCode = i18n.ErrCodeTokenInvalid
+	default:
+		// 如果没有映射，使用通用错误
+		errorCode = i18n.ErrCodeInternalError
+	}
+	
+	if bizErr.Data != nil {
+		return i18n.NewErrorWithData(errorCode, lang, bizErr.Data)
+	}
+	return i18n.NewError(errorCode, lang)
+}
+
+// NewI18nBusinessError 创建新的支持i18n的业务错误（推荐使用）
+func NewI18nBusinessError(code i18n.ErrorCode, lang i18n.Language, args ...interface{}) *i18n.ErrorInfo {
+	return i18n.NewError(code, lang, args...)
+}
+
+// NewI18nBusinessErrorWithData 创建带数据的支持i18n的业务错误（推荐使用）
+func NewI18nBusinessErrorWithData(code i18n.ErrorCode, lang i18n.Language, data interface{}, args ...interface{}) *i18n.ErrorInfo {
+	return i18n.NewErrorWithData(code, lang, data, args...)
 }

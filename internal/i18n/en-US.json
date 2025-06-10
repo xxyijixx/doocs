@@ -1,0 +1,66 @@
+{
+  "SUCCESS": "Operation successful",
+  "INTERNAL_ERROR": "Internal server error",
+  "INVALID_PARAMETER": "Invalid parameter",
+  "UNAUTHORIZED": "Unauthorized access",
+  "FORBIDDEN": "Insufficient permissions",
+  "NOT_FOUND": "Resource not found",
+  "REQUEST_TIMEOUT": "Request timeout",
+  "TOO_MANY_REQUESTS": "Too many requests",
+  
+  "TOKEN_INVALID": "Invalid token",
+  "TOKEN_EXPIRED": "Token expired",
+  "LOGIN_FAILED": "Invalid username or password",
+  "ACCOUNT_DISABLED": "Account has been disabled",
+  "PERMISSION_DENIED": "Permission denied",
+  "INVALID_CREDENTIALS": "Invalid username or password",
+  "UNAUTHENTICATED": "Unauthenticated",
+  "USERNAME_EXISTS": "Username already exists",
+  "INVALID_PARAMS": "Invalid parameters",
+  
+  "CONVERSATION_NOT_FOUND": "Conversation not found",
+  "CONVERSATION_CLOSED": "Conversation is closed",
+  "CONVERSATION_EXISTS": "Conversation already exists",
+  
+  "MESSAGE_SEND_FAILED": "Failed to send message",
+  "MESSAGE_NOT_FOUND": "Message not found",
+  "MESSAGE_FORMAT_ERROR": "Message format error",
+  
+  "SOURCE_NOT_FOUND": "Source not found",
+  "SOURCE_DISABLED": "Source is disabled",
+  "SOURCE_CONFIG_ERROR": "Source configuration error",
+  
+  "AGENT_NOT_FOUND": "Agent not found",
+  "AGENT_OFFLINE": "Agent is offline",
+  "AGENT_BUSY": "Agent is busy",
+  
+  "DOOTASK_DATA_FORMAT_ERROR": "DooTask data format error",
+  "DOOTASK_RESPONSE_FORMAT_ERROR": "DooTask response format error",
+  "DOOTASK_REQUEST_FAILED": "DooTask request failed",
+  "DOOTASK_UNMARSHAL_RESPONSE_ERROR": "DooTask failed to parse response: %s",
+  "DOOTASK_REQUEST_FAILED_WITH_ERROR": "DooTask request failed: %s",
+  
+  "DATABASE_ERROR": "Database error",
+  "RECORD_NOT_FOUND": "Record not found",
+  "DUPLICATE_RECORD": "Record already exists",
+  
+  "FILE_NOT_FOUND": "File not found",
+  "FILE_UPLOAD_FAILED": "File upload failed",
+  "FILE_FORMAT_ERROR": "File format error",
+  "FILE_SIZE_EXCEEDED": "File size exceeded limit",
+  
+  "CONFIG_ERROR": "Configuration error",
+  "CONFIG_NOT_FOUND": "Configuration not found",
+  
+  "NETWORK_ERROR": "Network error",
+  "CONNECTION_FAILED": "Connection failed",
+  "CONNECTION_TIMEOUT": "Connection timeout",
+
+  "EVENT_BUS_CLOSED": "Event bus is closed",
+  "EVENT_QUEUE_FULL": "Event queue is full",
+  "EVENT_TYPE_ERROR": "Event type error",
+  "EVENT_PROCESS_FAILED": "Event processing failed",
+
+  "VERSION_FORMAT_ERROR": "Version format error",
+  "VERSION_PARSE_ERROR": "Version parsing failed"
+}

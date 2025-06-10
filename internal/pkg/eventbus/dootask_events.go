@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"support-plugin/internal/i18n"
 	"support-plugin/internal/models"
 	"support-plugin/internal/models/dto"
 	"support-plugin/internal/pkg/database"
@@ -102,7 +103,10 @@ func NewDooTaskEventHandlers() *DooTaskEventHandlers {
 func (h *DooTaskEventHandlers) HandleConversationCreated(ctx context.Context, event Event) error {
 	convEvent, ok := event.(*ConversationCreatedEvent)
 	if !ok {
-		return fmt.Errorf("事件类型错误: 期望 ConversationCreatedEvent")
+		return &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeEventTypeError,
+			Message: "事件类型错误: 期望 ConversationCreatedEvent",
+		}
 	}
 
 	logger.App.Info("处理对话创建事件", zap.Uint("conversationID", convEvent.ConversationID))
@@ -179,7 +183,10 @@ func (h *DooTaskEventHandlers) HandleConversationCreated(ctx context.Context, ev
 func (h *DooTaskEventHandlers) HandleMessageCreated(ctx context.Context, event Event) error {
 	msgEvent, ok := event.(*MessageCreatedEvent)
 	if !ok {
-		return fmt.Errorf("事件类型错误: 期望 MessageCreatedEvent")
+		return &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeEventTypeError,
+			Message: "事件类型错误: 期望 MessageCreatedEvent",
+		}
 	}
 
 	logger.App.Info("处理消息创建事件",

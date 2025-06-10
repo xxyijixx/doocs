@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	"support-plugin/internal/config"
+	"support-plugin/internal/i18n"
 	"support-plugin/internal/pkg/dootask"
 	"support-plugin/internal/pkg/logger"
 	"support-plugin/internal/pkg/response"
@@ -32,12 +33,17 @@ func AgentAuthMiddleware() gin.HandlerFunc {
 			dootaskService := dootask.NewIDootaskService()
 			userInfoResp, err := dootaskService.GetUserInfo(dootaskToken)
 			if err != nil {
-				response.Unauthorized(c, err.Error())
+				// 检查是否为i18n错误
+				if i18nErr, ok := err.(*i18n.ErrorInfo); ok {
+					response.UnauthorizedWithCode(c, i18nErr.Code)
+				} else {
+					response.UnauthorizedWithCode(c, i18n.ErrCodeUnauthorized)
+				}
 				c.Abort()
 				return
 			}
 			logger.App.Debug("userInfoResp:", zap.Any("userInfoResp", userInfoResp))
-			
+
 			c.Set("agent_id", userInfoResp.Userid)
 			c.Set("username", "客服0001")
 			c.Set("dootask_user_info", userInfoResp)
@@ -46,7 +52,7 @@ func AgentAuthMiddleware() gin.HandlerFunc {
 		} else {
 			authHeader := c.GetHeader("Authorization")
 			if authHeader == "" {
-				response.Unauthorized(c, "未提供认证令牌")
+				response.UnauthorizedWithCode(c, i18n.ErrCodeTokenInvalid)
 				c.Abort()
 				return
 			}
@@ -67,11 +73,11 @@ func AdminAuthMiddleware() gin.HandlerFunc {
 		if config.Cfg.App.Mode == "dootask" {
 			isAdmin := c.GetBool("is_admin")
 			if !isAdmin {
-				response.Forbidden(c, "权限不足", nil)
-				c.Abort()
-				return
-			}
-		} 
+			response.ForbiddenWithCode(c, i18n.ErrCodePermissionDenied)
+			c.Abort()
+			return
+		}
+		}
 
 		// 将客服信息存储到上下文中
 		// c.Set("agent_id", claims.AgentID)

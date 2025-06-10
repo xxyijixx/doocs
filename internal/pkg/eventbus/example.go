@@ -3,6 +3,7 @@ package eventbus
 import (
 	"context"
 	"fmt"
+	"support-plugin/internal/i18n"
 	"time"
 )
 
@@ -64,7 +65,10 @@ func ExampleCustomEventHandler() {
 	customHandler := func(ctx context.Context, event Event) error {
 		customEvent, ok := event.(*CustomEvent)
 		if !ok {
-			return fmt.Errorf("事件类型错误")
+			return &i18n.ErrorInfo{
+				Code:    i18n.ErrCodeEventTypeError,
+				Message: "Event type error",
+			}
 		}
 
 		fmt.Printf("处理自定义业务事件: %s\n", customEvent.BusinessData)
@@ -94,7 +98,10 @@ func ExampleCustomEventHandler() {
 func ExampleErrorHandling() {
 	// 注册一个会失败的处理器
 	GlobalEventBus.Subscribe("error.test", func(ctx context.Context, event Event) error {
-		return fmt.Errorf("模拟处理失败")
+		return &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeInternalError,
+			Message: "Simulated processing failure",
+		}
 	})
 
 	// 注册一个正常的处理器

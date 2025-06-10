@@ -2,11 +2,11 @@ package eventbus
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
 	"go.uber.org/zap"
+	"support-plugin/internal/i18n"
 	"support-plugin/internal/pkg/logger"
 )
 
@@ -78,9 +78,15 @@ func (eb *EventBus) Publish(event Event) error {
 		logger.App.Debug("事件已发布到队列", zap.String("eventType", event.GetType()))
 		return nil
 	case <-eb.ctx.Done():
-		return fmt.Errorf("事件总线已关闭")
+		return &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeEventBusClosed,
+			Message: "事件总线已关闭",
+		}
 	default:
-		return fmt.Errorf("事件队列已满")
+		return &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeEventQueueFull,
+			Message: "事件队列已满",
+		}
 	}
 }
 

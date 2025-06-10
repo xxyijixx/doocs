@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"support-plugin/internal/i18n"
 )
 
 const (
@@ -139,7 +140,10 @@ func LoadConfig[T any](db *gorm.DB, key string) (*T, error) {
 
 	constructor, ok := ConfigTypeRegistry[key]
 	if !ok {
-		return nil, fmt.Errorf("unregistered config key: %s", key)
+		return nil, &i18n.ErrorInfo{
+			Code:    i18n.ErrCodeConfigNotFound,
+			Message: fmt.Sprintf("unregistered config key: %s", key),
+		}
 	}
 
 	target := constructor()

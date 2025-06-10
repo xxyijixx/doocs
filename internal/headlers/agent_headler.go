@@ -3,6 +3,7 @@ package headlers
 import (
 	"strconv"
 
+	"support-plugin/internal/i18n"
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
 	"support-plugin/internal/pkg/response"
@@ -54,7 +55,7 @@ type EditRequest struct {
 func (a *AgentHeadler) Edit(c *gin.Context) {
 	var req EditRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误", err)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
@@ -140,13 +141,13 @@ func (a *AgentHeadler) Verify(c *gin.Context) {
 	// 获取当前用户信息
 	dootaskUserID, exists := c.Get("dootask_user_id")
 	if !exists {
-		response.Unauthorized(c, "未找到用户信息")
+		response.UnauthorizedWithCode(c, i18n.ErrCodeUnauthenticated)
 		return
 	}
 
 	userID, ok := dootaskUserID.(int)
 	if !ok {
-		response.BadRequest(c, "用户ID格式错误", nil)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
@@ -161,7 +162,7 @@ func (a *AgentHeadler) Verify(c *gin.Context) {
 
 	// 如果既不是管理员也不是客服，返回403
 	if !isAdmin && !isAgent {
-		response.Forbidden(c, "您没有访问权限", nil)
+		response.ForbiddenWithCode(c, i18n.ErrCodePermissionDenied)
 		return
 	}
 

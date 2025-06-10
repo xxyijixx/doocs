@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"support-plugin/internal/i18n"
 	"support-plugin/internal/middleware"
 	"support-plugin/internal/models"
 	bizErrors "support-plugin/internal/pkg/errors"
@@ -31,7 +32,7 @@ func (h ChatAgentHeadler) SendMessageByAgent(c *gin.Context) {
 	var req models.SendMessageByAgentRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误", err)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
@@ -62,7 +63,7 @@ func (h ChatAgentHeadler) GetAgentConversations(c *gin.Context) {
 	// 获取当前客服ID
 	agentID, exists := middleware.GetCurrentAgentID(c)
 	if !exists {
-		response.Unauthorized(c, "未认证")
+		response.UnauthorizedWithCode(c, i18n.ErrCodeUnauthenticated)
 		return
 	}
 
@@ -96,14 +97,14 @@ func (h ChatAgentHeadler) GetConversationByUUID(c *gin.Context) {
 	// 获取对话UUID
 	uuid := c.Param("uuid")
 	if uuid == "" {
-		response.BadRequest(c, "缺少对话UUID", nil)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
 	// 获取对话信息
 	conversation, err := service.ChatAgent.GetConversationByUUID(uuid)
 	if err != nil {
-		response.BadRequest(c, "对话不存在", err)
+		response.BadRequestWithCode(c, i18n.ErrCodeConversationNotFound)
 		return
 	}
 
@@ -127,7 +128,7 @@ func (h ChatAgentHeadler) GetMessageListByConversationID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		response.BadRequest(c, "对话ID格式错误", err)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
@@ -158,7 +159,7 @@ func (h ChatAgentHeadler) CloseConversation(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		response.BadRequest(c, "对话ID格式错误", err)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
@@ -172,7 +173,7 @@ func (h ChatAgentHeadler) CloseConversation(c *gin.Context) {
 	// agent := agentInfo.(models.Agent)
 	agentID, exists := middleware.GetCurrentAgentID(c)
 	if !exists {
-		response.Unauthorized(c, "未授权访问")
+		response.UnauthorizedWithCode(c, i18n.ErrCodeUnauthenticated)
 		return
 	}
 
@@ -205,14 +206,14 @@ func (h ChatAgentHeadler) ReopenConversation(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		response.BadRequest(c, "对话ID格式错误", err)
+		response.BadRequestWithCode(c, i18n.ErrCodeInvalidParams)
 		return
 	}
 
 	// 获取当前客服信息
 	agentID, exists := middleware.GetCurrentAgentID(c)
 	if !exists {
-		response.Unauthorized(c, "未授权访问")
+		response.UnauthorizedWithCode(c, i18n.ErrCodeUnauthenticated)
 		return
 	}
 
