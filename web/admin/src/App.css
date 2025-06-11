@@ -10,28 +10,33 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background: #151c28; /* 你的深色背景 */
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
-#root, .app-main-container { /* 视你的根节点 class 或 id 而定 */
+#root, .app-main-container {
   min-height: 100vh;
-  background: transparent; /* 避免内容区覆盖全局背景 */
+  background: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* 可选：让内容宽度适配大屏 */
-  /* max-width: 1200px; */
-  /* margin: 0 auto; */
 }
 
-.scroll-content { /* 你的内容外层容器 class */
+.scroll-content {
   width: 100%;
-  max-width: 600px; /* 或你需要的宽度 */
+  max-width: 600px;
   margin: 32px auto;
   overflow-y: auto;
-  /* 可选：内容区圆角和阴影 */
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  background: #1e2633; /* 内容区背景 */
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
   padding: 24px;
+}
+
+/* 暗黑模式下增强阴影效果 */
+.dark .scroll-content {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.3);
+  border: 1px solid hsl(var(--border));
 }

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./globals.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -16,16 +17,14 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background: #151c28; /* 你的深色背景 */
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
-#root { /* 视你的根节点 class 或 id 而定 */
+#root {
   min-height: 100vh;
   height: 100vh;
-  background: transparent; /* 避免内容区覆盖全局背景 */
-  /* 可选：让内容宽度适配大屏 */
-  /* max-width: 1200px; */
-  /* margin: 0 auto; */
+  background: transparent;
 }
 
 
