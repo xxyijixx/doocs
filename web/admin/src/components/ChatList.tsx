@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { chatApi } from '../api/chat';
 import type { Conversation } from '../types/chat';
 import { Listbox, Transition } from '@headlessui/react';
@@ -11,6 +12,7 @@ interface ChatListProps {
 }
 
 export const ChatList: React.FC<ChatListProps> = ({ onSelectConversation, selectedUuid }) => {
+  const { t } = useTranslation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +24,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onSelectConversation, select
         setConversations(response.items);
         setError(null);
       } catch (err) {
-        setError('获取会话列表失败');
+        setError(t('chat.fetchConversationsFailed'));
         console.error(err);
       } finally {
         setLoading(false);
@@ -38,7 +40,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onSelectConversation, select
     return (
       <div className="flex flex-col justify-center items-center h-full space-y-4">
         <CogIcon className="w-8 h-8 text-blue-500 animate-spin" />
-        <span className="text-gray-500 dark:text-gray-400">加载会话列表...</span>
+        <span className="text-gray-500 dark:text-gray-400">{t('chat.loadingConversations')}</span>
       </div>
     );
   }
@@ -57,7 +59,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onSelectConversation, select
       {/* 标题区域 */}
       <div className="flex items-center gap-3 mb-6">
         <ChatBubbleLeftRightIcon className="w-6 h-6 text-blue-500" />
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">会话列表</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('chat.conversationList')}</h2>
         <span className="ml-auto text-sm text-gray-500 dark:text-gray-400">({conversations.length})</span>
       </div>
 
@@ -68,7 +70,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onSelectConversation, select
             <span className="flex items-center gap-2">
               <ChatBubbleLeftRightIcon className="w-4 h-4 text-gray-400" />
               <span className="block truncate text-gray-900 dark:text-white">
-                {selectedConversation ? (selectedConversation.title || `会话 ${selectedConversation.id}`) : '选择会话'}
+                {selectedConversation ? (selectedConversation.title || `${t('chat.conversation')} ${selectedConversation.id}`) : t('chat.selectConversation')}
               </span>
             </span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -96,7 +98,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onSelectConversation, select
                       <span className={`flex items-center gap-2 ${selected ? 'font-medium' : 'font-normal'}`}>
                         <ChatBubbleLeftRightIcon className="w-4 h-4 text-gray-400" />
                         <span className="block truncate">
-                          {conversation.title || `会话 ${conversation.id}`}
+                          {conversation.title || `${t('chat.conversation')} ${conversation.id}`}
                         </span>
                       </span>
                       {selected ? (
@@ -117,7 +119,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onSelectConversation, select
         {conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-400">
             <ChatBubbleLeftRightIcon className="w-12 h-12 mb-3 text-gray-300 dark:text-gray-600" />
-            <p>暂无会话</p>
+            <p>{t('chat.noConversations')}</p>
           </div>
         ) : (
           conversations.map((conversation) => (
@@ -144,12 +146,12 @@ export const ChatList: React.FC<ChatListProps> = ({ onSelectConversation, select
                         ? 'text-blue-900 dark:text-blue-100' 
                         : 'text-gray-900 dark:text-white'
                     }`}>
-                      {conversation.title || `会话 ${conversation.id}`}
+                      {conversation.title || `${t('chat.conversation')} ${conversation.id}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                     <span className="flex items-center gap-1">
-                      <span>来源: {conversation.source}</span>
+                      <span>{t('chat.source')}: {conversation.source}</span>
                     </span>
                     <span className="flex items-center gap-1">
                       <ClockIcon className="w-3 h-3" />
@@ -166,7 +168,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onSelectConversation, select
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                     }`}
                   >
-                    {conversation.status === 'open' ? '进行中' : '已关闭'}
+                    {conversation.status === 'open' ? t('chat.statusOpen') : t('chat.statusClosed')}
                   </span>
                   {conversation.status === 'open' && (
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />

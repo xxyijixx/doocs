@@ -12,6 +12,7 @@ import {
   XMarkIcon,
   DocumentArrowDownIcon,
 } from "@heroicons/react/20/solid";
+import { useTranslation } from "react-i18next";
 import type { UserBot } from "../../types/dootask";
 import type { SystemConfig, ServerConfig } from "../../types/config";
 import type { CustomerServiceSource } from "../../types/source";
@@ -47,6 +48,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
   setNewSourceName,
   onUpdateCreateTask,
 }) => {
+  const { t } = useTranslation();
   const [showUsageModal, setShowUsageModal] = useState(false);
   const [selectedSource, setSelectedSource] = useState<CustomerServiceSource | null>(null);
   return (
@@ -54,7 +56,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
       <div className="flex items-center gap-2 mb-4">
         <BoltIcon className="h-6 w-6 text-blue-500" />
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-          聊天配置
+          {t('config.chatConfig')}
         </h2>
       </div>
       <div className="space-y-4">
@@ -70,7 +72,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <SparklesIcon className="h-4 w-4" />
-            创建项目
+            {t('config.createProject')}
           </Button>
 
           <Button
@@ -79,7 +81,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
             className="inline-flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition data-[hover]:bg-red-600 data-[focus]:ring-2 data-[focus]:ring-red-500"
           >
             <ExclamationTriangleIcon className="h-4 w-4" />
-            重置系统配置
+            {t('config.resetSystemConfig')}
           </Button>
         </div>
 
@@ -101,11 +103,11 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                 htmlFor="create_task"
                 className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
               >
-                自动创建 DooTask 任务
+                {t('config.autoCreateDooTaskTask')}
               </label>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              启用后，当有新的客服对话时，系统将自动在 DooTask 中创建对应的任务。
+              {t('config.autoCreateTaskDescription')}
             </p>
           </div>
         </div>
@@ -113,7 +115,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
         {/* 来源管理 */}
         <div className="mt-6">
           <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-4">
-            来源管理
+            {t('config.sourceManagement')}
           </h3>
 
           {/* 创建新来源 */}
@@ -124,7 +126,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                   type="text"
                   value={newSourceName}
                   onChange={(e) => setNewSourceName(e.target.value)}
-                  placeholder="请输入来源名称"
+                  placeholder={t('config.enterSourceName')}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-white"
                 />
               </div>
@@ -144,7 +146,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                 ) : (
                   <PlusIcon className="h-4 w-4" />
                 )}
-                {isCreatingSource ? "创建中..." : "创建来源"}
+                {isCreatingSource ? t('config.creating') : t('config.createSource')}
               </Button>
             </div>
           </div>
@@ -163,13 +165,13 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                         {source.name}
                       </h4>
                       <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        <span>来源Key: </span>
+                        <span>{t('config.sourceKey')}: </span>
                         <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
                           {source.source_key}
                         </code>
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        项目ID: {source.project_id} | 任务ID: {source.task_id} | 对话ID: {source.dialog_id}
+                        {t('config.projectId')}: {source.project_id} | {t('config.taskId')}: {source.task_id} | {t('config.dialogId')}: {source.dialog_id}
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -182,7 +184,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                         className="inline-flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
                       >
                         <QuestionMarkCircleIcon className="h-3 w-3" />
-                        使用说明
+                        {t('config.usageInstructions')}
                       </Button>
                       <Button
                         type="button"
@@ -190,7 +192,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                         className="inline-flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
                       >
                         <PencilIcon className="h-3 w-3" />
-                        编辑
+                        {t('config.edit')}
                       </Button>
                       <Button
                         type="button"
@@ -198,7 +200,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                         className="inline-flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
                       >
                         <TrashIcon className="h-3 w-3" />
-                        删除
+                        {t('config.delete')}
                       </Button>
                     </div>
                   </div>
@@ -214,7 +216,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto shadow-lg border border-gray-200 dark:border-gray-600">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Widget 使用说明</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{t('config.widgetUsageInstructions')}</h3>
               <Button
                 type="button"
                 onClick={() => {
@@ -229,7 +231,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
             
             <div className="space-y-4">
               <div>
-                <h4 className="font-medium text-gray-800 dark:text-white mb-2">1. 在您的网页中添加以下代码：</h4>
+                <h4 className="font-medium text-gray-800 dark:text-white mb-2">{t('config.addCodeToWebpage')}</h4>
                 <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md">
                   <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
 {`<!-- 配置全局参数 -->
@@ -252,10 +254,10 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
               </div>
               
               <div>
-                 <h4 className="font-medium text-gray-800 dark:text-white mb-2">2. 当前来源信息：</h4>
+                 <h4 className="font-medium text-gray-800 dark:text-white mb-2">{t('config.currentSourceInfo')}</h4>
                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                     <strong>来源名称：</strong>{selectedSource.name}
+                     <strong>{t('config.sourceName')}：</strong>{selectedSource.name}
                    </p>
                    <p className="text-sm text-gray-600 dark:text-gray-400">
                      <strong>Source Key：</strong>
@@ -265,7 +267,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                </div>
               
               <div>
-                <h4 className="font-medium text-gray-800 dark:text-white mb-2">3. 下载 Widget 文件：</h4>
+                <h4 className="font-medium text-gray-800 dark:text-white mb-2">{t('config.downloadWidgetFile')}</h4>
                 <Button
                   type="button"
                   onClick={() => {
@@ -279,10 +281,10 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                   className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                 >
                   <DocumentArrowDownIcon className="h-4 w-4" />
-                  下载 bundle.js
+                  {t('config.downloadBundle')}
                 </Button>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                  您也可以直接在网页中引用在线地址，或下载文件到本地服务器使用。
+                  {t('config.widgetUsageNote')}
                 </p>
               </div>
             </div>
@@ -296,7 +298,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                  }}
                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
                >
-                 关闭
+                 {t('config.close')}
                </Button>
              </div>
           </div>

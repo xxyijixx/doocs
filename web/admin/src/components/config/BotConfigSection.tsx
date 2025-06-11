@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   Listbox,
   ListboxButton,
@@ -48,6 +49,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
   onCheckProjectUser,
   onAddBotToProject,
 }) => {
+  const { t } = useTranslation();
   const DEFAULT_WEBHOOK_URL = `${serverConfig.base_url}/api/v1/dootask/${dootaskChatConfig.chat_key}/chat`;
   
   // 项目成员检查状态
@@ -114,33 +116,33 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
       <div className="flex items-center gap-2 mb-4">
         <BoltIcon className="h-6 w-6 text-blue-500" />
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-          机器人配置
+          {t('config.botConfig')}
         </h2>
       </div>
       <div className="space-y-4">
         {/* 显示当前配置状态 */}
         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            当前配置状态
+            {t('config.currentConfigStatus')}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <span className="text-gray-500 dark:text-gray-400">
-                机器人ID:
+                {t('config.botId')}:
               </span>
               <span className="ml-2 font-mono">
-                {systemConfig.dootask_integration.bot_id || "未设置"}
+                {systemConfig.dootask_integration.bot_id || t('config.notSet')}
               </span>
             </div>
             <div>
-              <span className="text-gray-500 dark:text-gray-400">项目ID:</span>
+              <span className="text-gray-500 dark:text-gray-400">{t('config.projectId')}:</span>
               <span className="ml-2 font-mono">
-                {systemConfig.dootask_integration.project_id || "未设置"}
+                {systemConfig.dootask_integration.project_id || t('config.notSet')}
               </span>
             </div>
             <div>
               <span className="text-gray-500 dark:text-gray-400">
-                来源数量:
+                {t('config.sourcesCount')}:
               </span>
               <span className="ml-2 font-mono">{sourcesCount}</span>
             </div>
@@ -169,7 +171,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
                     />
                   )}
                   <span className="block truncate text-gray-900 dark:text-white">
-                    {selectedUserBot?.name || "未选择机器人"}
+                    {selectedUserBot?.name || t('config.noBotSelected')}
                   </span>
                 </span>
                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -213,7 +215,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
             className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition data-[hover]:bg-green-600 data-[focus]:ring-2 data-[focus]:ring-green-500"
           >
             <BoltIcon className="h-4 w-4" />
-            创建机器人
+            {t('config.createBot')}
           </Button>
         </div>
         
@@ -223,14 +225,14 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
             <div className="flex items-start gap-3">
                 {isCheckingProject ? (
                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                    正在检查机器人是否在项目中...
+                    {t('config.checkingBotInProject')}
                   </p>
                 ) : botInProject === false ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <ExclamationTriangleIcon className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                       <p className="text-sm text-orange-800 dark:text-orange-200">
-                        机器人 <strong>{selectedUserBot.name}(id:{selectedUserBot.id})</strong> 不在当前项目中
+                        {t('config.botNotInProject', { botName: selectedUserBot.name, botId: selectedUserBot.id })}
                       </p>
                     </div>
                     <Button
@@ -240,12 +242,12 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
                       className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-700 data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <UserPlusIcon className="h-4 w-4" />
-                      {isAddingToProject ? '添加中...' : '将机器人添加到项目'}
+                      {isAddingToProject ? t('config.adding') : t('config.addBotToProject')}
                     </Button>
                   </div>
                 ) : (
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    无法检查项目成员状态
+                    {t('config.cannotCheckProjectStatus')}
                   </p>
                 )}
               </div>
@@ -259,7 +261,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
               <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1 space-y-3">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  已启用自动创建DooTask任务，请确保机器人有足够的权限。
+                  {t('config.autoCreateTaskEnabled')}
                 </p>
                 
                 {/* Webhook 状态显示和操作 */}
@@ -268,7 +270,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
                     {selectedUserBot.webhook_url === "" ? (
                       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                         <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                          未设置webhook URL，点击下方按钮设置默认webhook。
+                          {t('config.webhookNotSet')}
                         </p>
                         <Button
                           type="button"
@@ -281,17 +283,17 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
                           className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-md shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition data-[hover]:bg-yellow-700 data-[focus]:ring-2 data-[focus]:ring-yellow-500 whitespace-nowrap"
                         >
                           <BoltIcon className="h-4 w-4" />
-                          设置默认Webhook
+                          {t('config.setDefaultWebhook')}
                         </Button>
                       </div>
                     ) : selectedUserBot.webhook_url !== DEFAULT_WEBHOOK_URL ? (
                       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                         <div className="flex-1">
                           <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                            当前webhook: <code className="bg-yellow-100 dark:bg-yellow-800 px-1 py-0.5 rounded text-xs">{selectedUserBot.webhook_url}</code>
+                            {t('config.currentWebhook')}: <code className="bg-yellow-100 dark:bg-yellow-800 px-1 py-0.5 rounded text-xs">{selectedUserBot.webhook_url}</code>
                           </p>
                           <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-                            webhook已设置，但不是默认值。如需重置为默认值，请点击右侧按钮。
+                            {t('config.webhookNotDefault')}
                           </p>
                         </div>
                         <Button
@@ -305,14 +307,14 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
                           className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-md shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition data-[hover]:bg-yellow-700 data-[focus]:ring-2 data-[focus]:ring-yellow-500 whitespace-nowrap"
                         >
                           <BoltIcon className="h-4 w-4" />
-                          重置为默认
+                          {t('config.resetToDefault')}
                         </Button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
                         <CheckIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
                         <p className="text-sm text-green-800 dark:text-green-200">
-                          Webhook已正确配置为默认值: <code className="bg-green-100 dark:bg-green-800 px-1 py-0.5 rounded text-xs">{DEFAULT_WEBHOOK_URL}</code>
+                          {t('config.webhookConfiguredCorrectly')}: <code className="bg-green-100 dark:bg-green-800 px-1 py-0.5 rounded text-xs">{DEFAULT_WEBHOOK_URL}</code>
                         </p>
                       </div>
                     )}

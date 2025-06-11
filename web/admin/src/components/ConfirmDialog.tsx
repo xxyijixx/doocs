@@ -1,6 +1,7 @@
 import React from 'react';
 import { Dialog, DialogPanel, DialogTitle, Button } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -19,10 +20,15 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   title,
   message,
-  confirmText = '确认',
-  cancelText = '取消',
+  confirmText,
+  cancelText,
   type = 'warning'
 }) => {
+  const { t } = useTranslation();
+  
+  // 使用翻译作为默认值
+  const defaultConfirmText = confirmText || t('common.confirm');
+  const defaultCancelText = cancelText || t('common.cancel');
   const handleConfirm = () => {
     onConfirm();
     onClose();
@@ -82,13 +88,13 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             >
-              {cancelText}
+              {defaultCancelText}
             </Button>
             <Button
               onClick={handleConfirm}
               className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${styles.confirmButtonColor}`}
             >
-              {confirmText}
+              {defaultConfirmText}
             </Button>
           </div>
         </DialogPanel>

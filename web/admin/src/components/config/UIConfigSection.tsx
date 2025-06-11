@@ -9,6 +9,7 @@ import {
   Legend,
 } from "@headlessui/react";
 import { PaintBrushIcon } from "@heroicons/react/20/solid";
+import { useTranslation } from 'react-i18next';
 import type { SystemConfig } from "../../types/config";
 
 interface UIConfigSectionProps {
@@ -20,18 +21,19 @@ export const UIConfigSection: React.FC<UIConfigSectionProps> = ({
   systemConfig,
   onDefaultSourceConfigChange,
 }) => {
+  const { t } = useTranslation();
   return (
     <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
       <div className="flex items-center gap-2 mb-4">
         <PaintBrushIcon className="h-6 w-6 text-purple-500" />
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-          默认界面设置
+          {t('config.uiConfig')}
         </h2>
       </div>
       <div className="space-y-4">
         <Field>
           <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            主题颜色
+            {t('config.primaryColor')}
           </Label>
           <div className="flex items-center gap-3">
             <Input
@@ -81,7 +83,7 @@ export const UIConfigSection: React.FC<UIConfigSectionProps> = ({
 
         <Fieldset>
           <Legend className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            聊天气泡位置
+            {t('config.chatBubblePosition')}
           </Legend>
           <RadioGroup
             value={systemConfig.default_source_config.ui.chat_bubble_position}
@@ -101,7 +103,7 @@ export const UIConfigSection: React.FC<UIConfigSectionProps> = ({
                 <span className="invisible size-2 rounded-full bg-white group-data-[checked]:visible" />
               </Radio>
               <Label className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                左侧
+                {t('config.left')}
               </Label>
             </Field>
             <Field className="flex items-center">
@@ -112,7 +114,7 @@ export const UIConfigSection: React.FC<UIConfigSectionProps> = ({
                 <span className="invisible size-2 rounded-full bg-white group-data-[checked]:visible" />
               </Radio>
               <Label className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                右侧
+                {t('config.right')}
               </Label>
             </Field>
           </RadioGroup>

@@ -1,10 +1,12 @@
 import { useServiceConfig } from "../hooks/useServiceConfig";
+import { useTranslation } from 'react-i18next';
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { BotConfigSection } from "../components/config/BotConfigSection";
 import { ChatConfigSection } from "../components/config/ChatConfigSection";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 
 export default function ServiceConfig() {
+  const { t } = useTranslation();
   const {
     systemConfig,
     dootaskChatConfig,
@@ -35,16 +37,16 @@ export default function ServiceConfig() {
   } = useServiceConfig();
 
   if (isLoading) {
-    return <LoadingSpinner message="加载配置中..." />;
+    return <LoadingSpinner message={t('config.loadingConfig')} />;
   }
 
   return (
     <div className="h-full py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">客服系统配置</h1>
-          <p className="mt-2 text-gray-600">
-            配置您的客服系统设置，包括机器人集成、默认消息和界面设置。
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('config.title')}</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            {t('config.description')}
           </p>
         </div>
 
@@ -139,10 +141,10 @@ export default function ServiceConfig() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  保存中...
+                  {t('config.saving')}
                 </>
               ) : (
-                "保存配置"
+                t('config.saveConfig')
               )}
             </button>
           </div>
@@ -156,9 +158,9 @@ export default function ServiceConfig() {
          onConfirm={confirmDialog.onConfirm}
          title={confirmDialog.title}
          message={confirmDialog.message}
-         type={confirmDialog.title === '删除确认' ? 'danger' : 'warning'}
-         confirmText={confirmDialog.title === '删除确认' ? '删除' : '确认'}
-         cancelText="取消"
+         type={confirmDialog.title === t('config.deleteConfirm') ? 'danger' : 'warning'}
+         confirmText={confirmDialog.title === t('config.deleteConfirm') ? t('config.delete') : t('config.confirm')}
+         cancelText={t('config.cancel')}
        />
     </div>
   );

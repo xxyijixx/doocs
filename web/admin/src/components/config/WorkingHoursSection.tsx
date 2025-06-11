@@ -1,6 +1,7 @@
 import React from "react";
 import { Field, Label, Input, Switch } from "@headlessui/react";
 import { ClockIcon } from "@heroicons/react/20/solid";
+import { useTranslation } from 'react-i18next';
 import type { SystemConfig } from "../../types/config";
 
 interface WorkingHoursSectionProps {
@@ -12,14 +13,16 @@ export const WorkingHoursSection: React.FC<WorkingHoursSectionProps> = ({
   systemConfig,
   onDefaultSourceConfigChange,
 }) => {
+  const { t } = useTranslation();
+  
   const weekDays = [
-    { value: 1, label: "周一" },
-    { value: 2, label: "周二" },
-    { value: 3, label: "周三" },
-    { value: 4, label: "周四" },
-    { value: 5, label: "周五" },
-    { value: 6, label: "周六" },
-    { value: 0, label: "周日" },
+    { value: 1, label: t('config.monday') },
+    { value: 2, label: t('config.tuesday') },
+    { value: 3, label: t('config.wednesday') },
+    { value: 4, label: t('config.thursday') },
+    { value: 5, label: t('config.friday') },
+    { value: 6, label: t('config.saturday') },
+    { value: 0, label: t('config.sunday') },
   ];
 
   const handleWorkDayChange = (dayValue: number, checked: boolean) => {
@@ -43,7 +46,7 @@ export const WorkingHoursSection: React.FC<WorkingHoursSectionProps> = ({
       <div className="flex items-center gap-2 mb-4">
         <ClockIcon className="h-6 w-6 text-green-500" />
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-          默认工作时间设置
+          {t('config.workingHours')}
         </h2>
       </div>
       <div className="space-y-4">
@@ -61,14 +64,14 @@ export const WorkingHoursSection: React.FC<WorkingHoursSectionProps> = ({
             <span className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out group-data-[checked]:translate-x-5" />
           </Switch>
           <Label className="text-sm text-gray-700 dark:text-gray-300">
-            启用工作时间限制
+            {t('config.enableWorkingHours')}
           </Label>
         </Field>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field>
             <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              开始时间
+              {t('config.startTime')}
             </Label>
             <Input
               type="time"
@@ -86,7 +89,7 @@ export const WorkingHoursSection: React.FC<WorkingHoursSectionProps> = ({
 
           <Field>
             <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              结束时间
+              {t('config.endTime')}
             </Label>
             <Input
               type="time"
@@ -105,7 +108,7 @@ export const WorkingHoursSection: React.FC<WorkingHoursSectionProps> = ({
 
         <Field>
           <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            工作日
+            {t('config.workDays')}
           </Label>
           <div className="flex flex-wrap gap-4">
             {weekDays.map((day) => (

@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { getAgentList, setAgents, removeAgent } from "../api/auth";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { MessageAlert } from "../components/common/MessageAlert";
@@ -21,6 +22,7 @@ interface Agent {
 }
 
 export default function AgentManagement() {
+  const { t } = useTranslation();
   const [agents, setAgentsState] = useState<Agent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -40,9 +42,9 @@ export default function AgentManagement() {
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("加载客服列表失败:", error);
-        setMessage({ type: "error", text: error.message || "加载客服列表失败" });
+        setMessage({ type: "error", text: error.message || t('agent.loadFailed') });
       } else {
-        console.error("未知错误", error);
+        console.error(t('agent.unknownError'), error);
       }
     } finally {
       setIsLoading(false);
@@ -51,7 +53,7 @@ export default function AgentManagement() {
 
   // 移除客服
   const handleRemoveAgent = async (agentId: number, agentName: string) => {
-    if (!confirm(`确定要移除客服 "${agentName}" 吗？`)) {
+    if (!confirm(t('agent.confirmRemove', { name: agentName }))) {
       return;
     }
 
@@ -60,16 +62,16 @@ export default function AgentManagement() {
       setMessage(null);
 
       await removeAgent(agentId);
-      setMessage({ type: "success", text: `成功移除客服 "${agentName}"` });
+      setMessage({ type: "success", text: t('agent.removeSuccess', { name: agentName }) });
 
       // 重新加载客服列表
       await loadAgents();
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("移除客服失败:", error);
-        setMessage({ type: "error", text: error.message || "移除客服失败" });
+        setMessage({ type: "error", text: error.message || t('agent.removeFailed') });
       } else {
-        console.error("未知错误", error);
+        console.error(t('agent.unknownError'), error);
       }
     } finally {
       setRemovingAgentId(null);
@@ -85,12 +87,12 @@ export default function AgentManagement() {
       // 使用DooTask的用户选择器
       const selectedUsers = await methods.selectUsers({
         multiple: true,
-        title: "选择客服人员",
-        placeholder: "请选择要设置为客服的用户",
+        title: t('agent.selectAgentTitle'),
+        placeholder: t('agent.selectAgentPlaceholder'),
       });
 
       if (!selectedUsers || selectedUsers.length === 0) {
-        setMessage({ type: "error", text: "未选择任何用户" });
+        setMessage({ type: "error", text: t('agent.noUsersSelected') });
         return;
       }
       console.log("selectedUsers", selectedUsers);
@@ -103,7 +105,7 @@ export default function AgentManagement() {
       await setAgents(userIds);
       setMessage({
         type: "success",
-        text: `成功设置 ${selectedUsers.length} 个用户为客服`,
+        text: t('agent.setSuccess', { count: selectedUsers.length }),
       });
 
       // 重新加载客服列表
@@ -111,9 +113,9 @@ export default function AgentManagement() {
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("设置客服失败:", error);
-        setMessage({ type: "error", text: error.message || "设置客服失败" });
+        setMessage({ type: "error", text: error.message || t('agent.setFailed') });
       } else {
-        console.error("未知错误", error);
+        console.error(t('agent.unknownError'), error);
       }
     } finally {
       setIsSelectingUsers(false);
@@ -126,7 +128,7 @@ export default function AgentManagement() {
   }, []);
 
   if (isLoading) {
-    return <LoadingSpinner message="加载客服列表中..." />;
+    return <LoadingSpinner message={t('agent.loadingAgents')} />;
   }
 
   return (
@@ -134,10 +136,10 @@ export default function AgentManagement() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            客服管理
+            {t('agent.management')}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            管理客服人员，设置DooTask用户为客服。
+            {t('agent.managementDescription')}
           </p>
         </div>
 
@@ -151,11 +153,11 @@ export default function AgentManagement() {
         {/* 添加客服 */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            添加客服
+            {t('agent.addAgent')}
           </h2>
           <div className="flex flex-col gap-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              点击下方按钮从DooTask用户中选择客服人员
+              {t('agent.selectFromDootask')}
             </p>
             <div className="flex justify-start">
               <button
@@ -185,7 +187,7 @@ export default function AgentManagement() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    选择中...
+                    {t('agent.selecting')}
                   </>
                 ) : isSaving ? (
                   <>
@@ -209,12 +211,12 @@ export default function AgentManagement() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    设置中...
+                    {t('agent.setting')}
                   </>
                 ) : (
                   <>
                     <PlusIcon className="w-4 h-4 mr-2" />
-                    选择客服人员
+                    {t('agent.selectAgents')}
                   </>
                 )}
               </button>
@@ -226,16 +228,16 @@ export default function AgentManagement() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              客服列表 ({agents.length})
+              {t('agent.agentList')} ({agents.length})
             </h2>
           </div>
 
           {agents.length === 0 ? (
             <div className="p-8 text-center">
               <UserIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">暂无客服人员</p>
+              <p className="text-gray-500 dark:text-gray-400">{t('agent.noAgents')}</p>
               <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                请添加DooTask用户ID来设置客服
+                {t('agent.addDootaskUsers')}
               </p>
             </div>
           ) : (
@@ -264,10 +266,10 @@ export default function AgentManagement() {
                         {agent.name || agent.username}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        用户名: {agent.username}
+                        {t('agent.username')}: {agent.username}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        DooTask ID: {agent.dootask_user_id}
+                        {t('agent.dootaskId')}: {agent.dootask_user_id}
                       </div>
                     </div>
                   </div>
@@ -279,7 +281,7 @@ export default function AgentManagement() {
                           : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
                       }`}
                     >
-                      {agent.status === "active" ? "活跃" : "非活跃"}
+                      {agent.status === "active" ? t('agent.active') : t('agent.inactive')}
                     </span>
                     <button
                       onClick={() =>
@@ -290,7 +292,7 @@ export default function AgentManagement() {
                       }
                       disabled={removingAgentId === agent.id}
                       className="inline-flex items-center p-2 text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="移除客服"
+                      title={t('agent.removeAgent')}
                     >
                       {removingAgentId === agent.id ? (
                         <svg

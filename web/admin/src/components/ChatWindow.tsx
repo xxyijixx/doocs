@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { chatApi } from "../api/chat";
 import type { Conversation } from "../types/chat";
 import {
@@ -32,6 +33,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   conversationId,
   onBackClick,
 }) => {
+  const { t } = useTranslation();
   const { messagesByConversation, loading, fetchMessages, refreshTrigger, addMessage, loadMoreMessages } =
     useMessageStore();
   const { conversations } = useConversationStore();
@@ -162,10 +164,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 dark:text-gray-600" />
         <div className="text-center">
           <p className="text-xl font-medium text-gray-500 dark:text-gray-400 mb-2">
-            欢迎使用客服系统
+            {t('chat.welcomeToCustomerService')}
           </p>
           <p className="text-sm text-gray-400 dark:text-gray-500">
-            请从左侧选择一个会话开始聊天
+            {t('chat.selectConversationToStart')}
           </p>
         </div>
       </div>
@@ -188,7 +190,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <div className="flex items-center gap-2">
             <ChatBubbleLeftRightIcon className="w-6 h-6 text-blue-500" />
             <h2 className="text-xl font-semibold dark:text-white">
-              {conversation?.title || `会话 ${conversation?.id || ""}`}
+              {conversation?.title || `${t('chat.conversation')} ${conversation?.id || ""}`}
             </h2>
           </div>
           <div className="flex items-center gap-2">
@@ -199,7 +201,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400"
               }`}
             >
-              {conversation?.status === "open" ? "进行中" : "已关闭"}
+              {conversation?.status === "open" ? t('chat.statusOpen') : t('chat.statusClosed')}
             </span>
             {conversation?.status === "open" && (
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
@@ -228,7 +230,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                       focus ? "bg-gray-100 dark:bg-gray-600" : ""
                     } group flex w-full items-center rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200`}
                   >
-                    查看详情
+                    {t('chat.viewDetails')}
                   </button>
                 )}
               </MenuItem>
@@ -239,7 +241,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                       focus ? "bg-gray-100 dark:bg-gray-600" : ""
                     } group flex w-full items-center rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-200`}
                   >
-                    结束会话
+                    {t('chat.endConversation')}
                   </button>
                 )}
               </MenuItem>
@@ -255,7 +257,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <div className="text-center text-gray-400 dark:text-gray-500 mb-4">
             <div className="flex items-center justify-center gap-2">
               <CogIcon className="w-4 h-4 animate-spin" />
-              <span>加载更多消息...</span>
+              <span>{t('chat.loadingMoreMessages')}</span>
             </div>
           </div>
         )}
@@ -263,7 +265,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         {/* 没有更多消息提示 */}
         {!hasMore && messages.length > 0 && (
           <div className="text-center text-gray-400 dark:text-gray-500 mb-4">
-            <span className="text-sm">已显示所有消息</span>
+            <span className="text-sm">{t('chat.allMessagesShown')}</span>
           </div>
         )}
         
@@ -271,7 +273,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <div className="text-center text-gray-400 dark:text-gray-500 mt-10">
             <div className="flex items-center justify-center gap-2">
               <CogIcon className="w-5 h-5 animate-spin" />
-              <span>加载中...</span>
+              <span>{t('common.loading')}</span>
             </div>
           </div>
         ) : messages.length === 0 ? (
@@ -279,10 +281,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             <ChatBubbleLeftRightIcon className="w-12 h-12 text-gray-300 dark:text-gray-600" />
             <div>
               <p className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-1">
-                暂无消息
+                {t('chat.noMessages')}
               </p>
               <p className="text-sm text-gray-400 dark:text-gray-500">
-                开始对话吧
+                {t('chat.startConversation')}
               </p>
             </div>
           </div>
@@ -351,7 +353,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               onKeyDown={(e) =>
                 e.key === "Enter" && !e.shiftKey && handleSendMessage(e)
               }
-              placeholder="输入消息... (Enter 发送，Shift+Enter 换行)"
+              placeholder={t('chat.inputPlaceholderWithShortcuts')}
               className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 dark:focus:border-transparent bg-white dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200 resize-none shadow-sm"
               disabled={sending}
               style={{ minHeight: "48px" }}
@@ -365,12 +367,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             {sending ? (
               <>
                 <CogIcon className="w-4 h-4 animate-spin" />
-                发送中...
+                {t('chat.sending')}
               </>
             ) : (
               <>
                 <PaperAirplaneIcon className="w-4 h-4" />
-                发送
+                {t('chat.send')}
               </>
             )}
           </Button>

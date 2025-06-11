@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChatSidebar } from '../components/ChatSidebar';
 import { ChatWindow } from '../components/ChatWindow';
 import { Transition } from '@headlessui/react';
@@ -10,6 +11,7 @@ interface ChatProps {
 }
 
 export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentConversationChange }) => {
+  const { t } = useTranslation();
   const [selectedConversation, setSelectedConversation] = useState<number>(0);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [showSidebar, setShowSidebar] = useState<boolean>(true);
@@ -63,7 +65,7 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentCon
           <ComputerDesktopIcon className="w-4 h-4 text-green-500" />
         )}
         <span className="text-xs text-gray-600 dark:text-gray-300">
-          {isMobile ? '移动端' : '桌面端'}
+          {isMobile ? t('chat.mobile') : t('chat.desktop')}
         </span>
       </div>
 

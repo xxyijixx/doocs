@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { chatApi } from '../api/chat';
 import type { Message } from '../types/chat';
 import { Button, Field, Input, Transition } from '@headlessui/react';
@@ -10,6 +11,7 @@ interface ChatMessagesProps {
 }
 
 export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationId }) => {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -27,7 +29,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationId }) =>
         setMessages(response.items);
         setError(null);
       } catch (err) {
-        setError('获取消息失败');
+        setError(t('chat.fetchMessagesFailed'));
         console.error(err);
       } finally {
         setLoading(false);
@@ -66,7 +68,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationId }) =>
     return (
       <div className="flex flex-col justify-center items-center h-full space-y-4">
         <CogIcon className="w-8 h-8 text-blue-500 animate-spin" />
-        <span className="text-gray-500 dark:text-gray-400">加载消息...</span>
+        <span className="text-gray-500 dark:text-gray-400">{t('chat.loadingMessages')}</span>
       </div>
     );
   }
@@ -85,8 +87,8 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationId }) =>
       {/* 消息头部 */}
       <div className="flex items-center gap-3 p-4 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
         <ChatBubbleLeftEllipsisIcon className="w-6 h-6 text-blue-500" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">消息记录</h3>
-        <span className="ml-auto text-sm text-gray-500 dark:text-gray-400">({messages.length} 条消息)</span>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('chat.messageHistory')}</h3>
+        <span className="ml-auto text-sm text-gray-500 dark:text-gray-400">({messages.length} {t('chat.messages')})</span>
       </div>
 
       {/* 消息列表 */}
@@ -94,8 +96,8 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationId }) =>
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
             <ChatBubbleLeftEllipsisIcon className="w-16 h-16 mb-4 text-gray-300 dark:text-gray-600" />
-            <p className="text-lg font-medium mb-2">暂无消息</p>
-            <p className="text-sm">开始对话吧！</p>
+            <p className="text-lg font-medium mb-2">{t('chat.noMessages')}</p>
+            <p className="text-sm">{t('chat.startConversation')}</p>
           </div>
         ) : (
           messages.map((message) => (
@@ -158,7 +160,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ conversationId }) =>
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="输入消息..."
+              placeholder={t('chat.inputPlaceholder')}
               className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"              
             />
           </div>

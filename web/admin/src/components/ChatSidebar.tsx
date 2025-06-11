@@ -1,4 +1,5 @@
 import React, { useState, useEffect, forwardRef } from 'react';
+import { useTranslation } from 'react-i18next';
 // import type { Conversation } from '../types/chat';
 import { MagnifyingGlassIcon, HomeIcon, Cog6ToothIcon, UserGroupIcon, PlusIcon, CogIcon, FunnelIcon, XMarkIcon, EllipsisVerticalIcon, XCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { Button, Field, Input, Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
@@ -23,6 +24,7 @@ export interface ChatSidebarRef {
 }
 
 export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selectedId, onSelectConversation, onRefresh, isMobile = false, onNewMessage, onSendMessage }, ref) => {
+  const { t } = useTranslation();
   const { conversations, loading, fetchConversations, refreshTrigger, updateConversationLastMessage, updateConversationStatus } = useConversationStore();
   const [search, setSearch] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -58,8 +60,8 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
       // 更新本地状态
       updateConversationStatus(conversationId, 'closed');
     } catch (error) {
-      console.error('关闭会话时发生错误:', error);
-      alert('关闭会话失败: ' + (error instanceof Error ? error.message : '未知错误'));
+      console.error(t('chat.closeConversationError'), error);
+      alert(t('chat.closeConversationFailed') + ': ' + (error instanceof Error ? error.message : t('agent.unknownError')));
     }
   };
 
@@ -70,8 +72,8 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
       // 更新本地状态
       updateConversationStatus(conversationId, 'open');
     } catch (error) {
-      console.error('重新打开会话时发生错误:', error);
-      alert('重新打开会话失败: ' + (error instanceof Error ? error.message : '未知错误'));
+      console.error(t('chat.reopenConversationError'), error);
+      alert(t('chat.reopenConversationFailed') + ': ' + (error instanceof Error ? error.message : t('agent.unknownError')));
     }
   };
 
@@ -87,7 +89,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
   // 搜索和过滤
   const filtered = conversations.filter(c => {
     // 搜索过滤
-    const matchesSearch = (c.title || `会话 ${c.id}`).toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = (c.title || `${t('chat.conversation')} ${c.id}`).toLowerCase().includes(search.toLowerCase());
     
     // 状态过滤
     const matchesStatus = filters.status === 'all' || c.status === filters.status;
@@ -124,7 +126,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
     <aside className={`flex flex-col h-full ${isMobile ? 'w-full' : 'w-80'} bg-white dark:bg-gray-800 rounded-l-2xl shadow-lg px-6 py-8`}>
       {/* 顶部标题 */}
       <div className="flex items-center mb-6">
-        <h2 className="text-2xl font-bold flex-1 dark:text-white">Dialogs</h2>
+        <h2 className="text-2xl font-bold flex-1 dark:text-white">{t('chat.dialogs')}</h2>
         <span className="text-gray-400 dark:text-gray-500 font-semibold">{conversations.length}</span>
       </div>
       {/* 搜索框和过滤器 */}
@@ -136,7 +138,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
             <Input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="搜索会话..."
+              placeholder={t('chat.searchConversations')}
               className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent dark:text-white dark:placeholder-gray-400 transition-all"
             />
           </div>
@@ -153,7 +155,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
             }`}
           >
             <FunnelIcon className="w-4 h-4" />
-            过滤器
+            {t('chat.filters')}
             {hasActiveFilters && (
               <span className="w-2 h-2 rounded-full bg-blue-500" />
             )}
@@ -165,7 +167,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
               className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
               <XMarkIcon className="w-3 h-3" />
-              清除
+              {t('chat.clear')}
             </Button>
           )}
         </div>
@@ -182,7 +184,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
             <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-600 p-4 space-y-4 z-50 max-h-96 overflow-y-auto">
               {/* 面板标题 */}
               <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">过滤条件</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('chat.filterConditions')}</h3>
                 <Button
                   onClick={() => setShowFilters(false)}
                   className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -193,12 +195,12 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
               
               {/* 状态过滤 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">状态</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('chat.status')}</label>
                 <Menu as="div" className="relative">
                   <MenuButton className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                     <span>
-                      {filters.status === 'all' ? '全部状态' : 
-                       filters.status === 'open' ? '进行中' : '已关闭'}
+                      {filters.status === 'all' ? t('chat.allStatus') : 
+                       filters.status === 'open' ? t('chat.active') : t('chat.closed')}
                     </span>
                     <ChevronDownIcon className="w-4 h-4" />
                   </MenuButton>
@@ -208,7 +210,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
                         onClick={() => setFilters(prev => ({ ...prev, status: 'all' }))}
                         className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                       >
-                        全部状态
+                        {t('chat.allStatus')}
                       </button>
                     </MenuItem>
                     <MenuItem>
@@ -216,7 +218,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
                         onClick={() => setFilters(prev => ({ ...prev, status: 'open' }))}
                         className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                       >
-                        进行中
+                        {t('chat.active')}
                       </button>
                     </MenuItem>
                     <MenuItem>
@@ -224,7 +226,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
                         onClick={() => setFilters(prev => ({ ...prev, status: 'closed' }))}
                         className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                       >
-                        已关闭
+                        {t('chat.closed')}
                       </button>
                     </MenuItem>
                   </MenuItems>
@@ -273,11 +275,14 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
               
               {/* 来源过滤 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">来源</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('chat.source')}</label>
                 <Menu as="div" className="relative">
                   <MenuButton className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                     <span>
-                      {filters.source === 'all' ? '全部来源' : filters.source}
+                      {filters.source === 'all' ? t('chat.allSources') : 
+                       filters.source === 'web' ? t('chat.web') : 
+                       filters.source === 'mobile' ? t('chat.mobile') : 
+                       filters.source === 'wechat' ? t('chat.wechat') : filters.source}
                     </span>
                     <ChevronDownIcon className="w-4 h-4" />
                   </MenuButton>
@@ -288,7 +293,10 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
                           onClick={() => setFilters(prev => ({ ...prev, source }))}
                           className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                         >
-                          {source === 'all' ? '全部来源' : source}
+                          {source === 'all' ? t('chat.allSources') : 
+                           source === 'web' ? t('chat.web') : 
+                           source === 'mobile' ? t('chat.mobile') : 
+                           source === 'wechat' ? t('chat.wechat') : source}
                         </button>
                       </MenuItem>
                     ))}
@@ -325,7 +333,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500">
             <UserGroupIcon className="w-12 h-12 mb-3 text-gray-300 dark:text-gray-600" />
-            <span>{search ? '未找到匹配的会话' : '暂无会话'}</span>
+            <span>{search ? t('chat.noMatchingConversations') : t('chat.noConversations')}</span>
           </div>
         ) : (
           filtered.map((c, idx) => (
@@ -359,10 +367,10 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
                     c.last_message ? (
                       <span className="truncate">{c.last_message}</span>
                     ) : (
-                      <span>有新消息</span>
+                      <span>{t('chat.newMessage')}</span>
                     )
                   ) : (
-                    <span className="opacity-0">占位</span>
+                    <span className="opacity-0">{t('chat.placeholder')}</span>
                   )}
                 </div>
               </div>
@@ -394,7 +402,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
                           className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
                         >
                           <XCircleIcon className="w-4 h-4" />
-                          关闭会话
+                          {t('chat.closeConversation')}
                         </button>
                       </MenuItem>
                     ) : (
@@ -407,7 +415,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
                           className="w-full px-3 py-2 text-left text-sm text-green-600 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
                         >
                           <ArrowPathIcon className="w-4 h-4" />
-                          重新打开
+                          {t('chat.reopenConversation')}
                         </button>
                       </MenuItem>
                     )}
