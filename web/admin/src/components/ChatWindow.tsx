@@ -306,7 +306,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 >
                   {message.sender === "customer" && (
                     <div className="w-10 h-10 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center shadow-md">
-                      <UserIcon className="w-5 h-5 text-white" />
+                      <UserIcon className="w-5 h-5  text-black dark:text-white" />
                     </div>
                   )}
                   <div className="flex flex-col max-w-xs lg:max-w-md">
@@ -331,7 +331,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   </div>
                   {message.sender === "agent" && (
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
-                      <CpuChipIcon className="w-5 h-5 text-white" />
+                      <CpuChipIcon className="w-5 h-5 text-black dark:text-white" />
                     </div>
                   )}
                 </div>

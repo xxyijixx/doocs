@@ -1,4 +1,4 @@
-import { isMicroApp, getUserToken } from '@dootask/tools';
+import { isMicroApp, getUserToken, getLanguageName } from '@dootask/tools';
 import {  ApiError, NetworkError } from '../types/api';
 import type { ApiResponse} from '../types/api';
 /**
@@ -45,6 +45,12 @@ export async function apiRequest<T = any>(
     headers.set('Authorization', 'Bearer 123456');
     if (isMicroApp()) {
       headers.set('Token', getUserToken());
+    }
+
+    // 添加语言头
+    const language = getLanguageName();
+    if (language) {
+      headers.set('Accept-Language', language);
     }
 
     const response = await fetch(`${finalConfig.baseURL}${url}`, {

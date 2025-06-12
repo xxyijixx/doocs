@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Listbox,
@@ -42,7 +42,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
   userBots,
   selectedUserBot,
   sourcesCount,
-  // onGetUserBotList,
+  onGetUserBotList,
   onCreateUserBot,
   onSelectUserBot,
   onUpdateUserBot,
@@ -211,7 +211,11 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
 
           <Button
             type="button"
-            onClick={onCreateUserBot}
+            onClick={async () => {
+              await onCreateUserBot();
+              // 创建机器人后刷新机器人列表
+              onGetUserBotList();
+            }}
             className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition data-[hover]:bg-green-600 data-[focus]:ring-2 data-[focus]:ring-green-500"
           >
             <BoltIcon className="h-4 w-4" />

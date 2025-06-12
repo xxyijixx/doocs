@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+// import { useTranslation } from 'react-i18next';
 import { ChatSidebar } from '../components/ChatSidebar';
 import { ChatWindow } from '../components/ChatWindow';
 import { Transition } from '@headlessui/react';
-import { DevicePhoneMobileIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
+// import { DevicePhoneMobileIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
 
 interface ChatProps {
   onRefreshConversations?: () => void; // 保留属性但设为可选，以便向后兼容
@@ -11,7 +11,7 @@ interface ChatProps {
 }
 
 export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentConversationChange }) => {
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
   const [selectedConversation, setSelectedConversation] = useState<number>(0);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [showSidebar, setShowSidebar] = useState<boolean>(true);
@@ -58,7 +58,7 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentCon
   return (
     <div className="flex w-full md:w-full h-full md:h-full rounded-2xl shadow-2xl overflow-hidden bg-white dark:bg-gray-800 relative">
       {/* 设备类型指示器 */}
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
+      {/* <div className="absolute top-4 right-4 z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
         {isMobile ? (
           <DevicePhoneMobileIcon className="w-4 h-4 text-blue-500" />
         ) : (
@@ -67,7 +67,7 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentCon
         <span className="text-xs text-gray-600 dark:text-gray-300">
           {isMobile ? t('chat.mobile') : t('chat.desktop')}
         </span>
-      </div>
+      </div> */}
 
       {/* 侧边栏 - 使用 Transition 动画 */}
       <Transition

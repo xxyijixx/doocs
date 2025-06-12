@@ -620,7 +620,7 @@ async function initializeChatWidget(options) {
         }
         
         messageElement.innerHTML = `
-            ${!isCustomer && !isSystem ? avatarHtml : ''}
+            ${isSystem ? avatarHtml : ''}
             <div style="${bubbleStyle}">
                 ${message.content}
             </div>
