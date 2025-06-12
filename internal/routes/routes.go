@@ -141,92 +141,89 @@ func RegisterRoutes(r *gin.Engine) {
 	// 	c.File("./web/admin/dist/index.html")
 	// })
 	// 静态文件服务
-	r.GET(config.Cfg.App.Base+"/*filepath", func(c *gin.Context) {
-		path := c.Param("filepath")
+	staticGroup := r.Group(config.Cfg.App.Base)
+	{
+		staticGroup.GET("", func(c *gin.Context) {
+			c.Data(http.StatusOK, "text/html; charset=utf-8", web.IndexByte)
+				
+		})
+		staticGroup.GET("/*filepath", func(c *gin.Context) {
+			path := c.Param("filepath")
 
-		if path == "/" || path == "" {
-			path = "/index.html"
-		}
+			if path == "/" || path == "" {
+				path = "/index.html"
+			}
+			// 优先处理 widget/script.js
+			if path == "/widget/bundle.js" {
 
-		// 优先处理 widget/script.js
-		// if path == "/widget/bundle.js" {
-		// 	file, err := web.WidgetDist.ReadFile("widget/dist/bundle.js")
-		// 	if err != nil {
-		// 		c.String(http.StatusNotFound, "Widget script not found")
-		// 		return
-		// 	}
-		// 	c.Data(http.StatusOK, "application/javascript", file)
-		// 	return
-		// }
-		// 优先处理 widget/script.js
-		if path == "/widget/bundle.js" {
+				file, err := web.WidgetDist.ReadFile("widget/dist/bundle.js")
+				if err != nil {
+					c.String(http.StatusNotFound, "Widget script not found")
+					return
+				}
 
-			file, err := web.WidgetDist.ReadFile("widget/dist/bundle.js")
+				// 检查是否有下载或预览参数
+				download := c.Query("download")
+				preview := c.Query("preview")
+
+				if download == "true" {
+					c.Header("Content-Disposition", "attachment; filename=\"bundle.js\"")
+					c.Data(http.StatusOK, "application/javascript", file)
+				} else if preview == "true" {
+					c.Data(http.StatusOK, "text/plain; charset=utf-8", file)
+				} else {
+					c.Data(http.StatusOK, "application/javascript", file)
+				}
+				return
+			}
+
+			filePath := "admin/dist" + path
+
+			// 尝试读取文件
+			file, err := web.Dist.ReadFile(filePath)
 			if err != nil {
-				c.String(http.StatusNotFound, "Widget script not found")
+				// 文件不存在返回 index.html（用于 SPA 路由兼容）
+				if strings.Contains(err.Error(), "file does not exist") {
+					c.Data(http.StatusOK, "text/html; charset=utf-8", web.IndexByte)
+					return
+				} else {
+					c.String(http.StatusInternalServerError, "Error: %v", err)
+				}
+				if strings.HasSuffix(path, ".html") || path == "/index.html" {
+					c.Data(http.StatusOK, "text/html; charset=utf-8", web.IndexByte)
+					return
+				}
+
+				// 非 HTML 文件，直接返回 404
+				c.String(http.StatusNotFound, "Not Found")
 				return
 			}
-
-			// 检查是否有下载或预览参数
-			download := c.Query("download")
-			preview := c.Query("preview")
-
-			if download == "true" {
-				c.Header("Content-Disposition", "attachment; filename=\"bundle.js\"")
-				c.Data(http.StatusOK, "application/javascript", file)
-			} else if preview == "true" {
-				c.Data(http.StatusOK, "text/plain; charset=utf-8", file)
-			} else {
-				c.Data(http.StatusOK, "application/javascript", file)
+			// 可选：简单的 MIME 类型推断
+			mimeType := func(path string) string {
+				switch {
+				case strings.HasSuffix(path, ".html"):
+					return "text/html; charset=utf-8"
+				case strings.HasSuffix(path, ".js"):
+					return "application/javascript"
+				case strings.HasSuffix(path, ".css"):
+					return "text/css"
+				case strings.HasSuffix(path, ".svg"):
+					return "image/svg+xml"
+				case strings.HasSuffix(path, ".png"):
+					return "image/png"
+				case strings.HasSuffix(path, ".jpg"), strings.HasSuffix(path, ".jpeg"):
+					return "image/jpeg"
+				case strings.HasSuffix(path, ".json"):
+					return "application/json"
+				default:
+					return "application/octet-stream"
+				}
 			}
-			return
-		}
-
-		filePath := "admin/dist" + path
-
-		// 尝试读取文件
-		file, err := web.Dist.ReadFile(filePath)
-		if err != nil {
-			// 文件不存在返回 index.html（用于 SPA 路由兼容）
-			if strings.Contains(err.Error(), "file does not exist") {
-
-			} else {
-				c.String(http.StatusInternalServerError, "Error: %v", err)
-			}
-			if strings.HasSuffix(path, ".html") || path == "/index.html" {
-				c.Data(http.StatusOK, "text/html; charset=utf-8", web.IndexByte)
-				return
-			}
-
-			// 非 HTML 文件，直接返回 404
-			c.String(http.StatusNotFound, "Not Found")
-			return
-		}
-		// 可选：简单的 MIME 类型推断
-		mimeType := func(path string) string {
-			switch {
-			case strings.HasSuffix(path, ".html"):
-				return "text/html; charset=utf-8"
-			case strings.HasSuffix(path, ".js"):
-				return "application/javascript"
-			case strings.HasSuffix(path, ".css"):
-				return "text/css"
-			case strings.HasSuffix(path, ".svg"):
-				return "image/svg+xml"
-			case strings.HasSuffix(path, ".png"):
-				return "image/png"
-			case strings.HasSuffix(path, ".jpg"), strings.HasSuffix(path, ".jpeg"):
-				return "image/jpeg"
-			case strings.HasSuffix(path, ".json"):
-				return "application/json"
-			default:
-				return "application/octet-stream"
-			}
-		}
-		// 根据后缀设置 MIME 类型
-		contentType := mimeType(path)
-		c.Data(http.StatusOK, contentType, file)
-	})
+			// 根据后缀设置 MIME 类型
+			contentType := mimeType(path)
+			c.Data(http.StatusOK, contentType, file)
+		})
+	}
 
 	// 404处理，将所有未匹配的路由重定向到前端的index.html
 	// r.NoRoute(func(c *gin.Context) {

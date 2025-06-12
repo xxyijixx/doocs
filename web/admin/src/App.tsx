@@ -8,6 +8,7 @@ import {
 import { Chat } from "./pages/Chat";
 import ServiceConfig from "./pages/ServiceConfig";
 import AgentManagement from "./pages/AgentManagement";
+import Welcome from "./pages/Welcome";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { ToastProvider, useToast } from "./components/Toast";
@@ -266,11 +267,11 @@ function AppWithErrorHandling({
                 {/* 聊天页面 - 管理员和客服都可以访问 */}
                 {(isAdmin || isAgent) && (
                   <a
-                    href="/"
+                    href="/chat"
                     className="px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 flex items-center gap-2"
                     onClick={(e) => {
                       e.preventDefault();
-                      window.history.pushState({}, "", "/");
+                      window.history.pushState({}, "", "/chat");
                       window.dispatchEvent(new Event("popstate"));
                     }}
                   >
@@ -363,7 +364,11 @@ function AppWithErrorHandling({
         <main className="flex-1 container mx-auto px-4 py-8 h-[calc(100vh-60px)] overflow-auto">
           <Routes>
             <Route
-              path="/"
+              path="/entry"
+              element={<Welcome />}
+            />
+            <Route
+              path="/chat"
               element={
                 <PermissionGuard requireAgent={true}>
                   <Chat
@@ -404,7 +409,7 @@ function AppWithErrorHandling({
               path="*"
               element={
                 <PermissionGuard requireAgent={true}>
-                  <Navigate to="/" replace />
+                  <Navigate to="/chat" replace />
                 </PermissionGuard>
               }
             />

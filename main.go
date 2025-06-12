@@ -51,6 +51,10 @@ func main() {
 	// 创建Gin实例
 	r := gin.Default()
 
+	// 禁用自动重定向，避免301重定向问题
+	r.RedirectTrailingSlash = false
+	r.RedirectFixedPath = false
+
 	// 注册全局中间件
 	middleware.RegisterGlobal(r)
 
