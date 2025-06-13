@@ -122,46 +122,39 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
       <div className="space-y-4">
         {/* 显示当前配置状态 */}
         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             {t('config.currentConfigStatus')}
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">
+          <div className="space-y-3 sm:space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <span className="text-gray-500 dark:text-gray-400 text-sm min-w-0 sm:min-w-[100px]">
                 {t('config.botId')}:
               </span>
-              <span className="ml-2 font-mono">
+              <span className="font-mono text-sm break-all sm:ml-2">
                 {systemConfig.dootask_integration.bot_id || t('config.notSet')}
               </span>
             </div>
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">{t('config.projectId')}:</span>
-              <span className="ml-2 font-mono">
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <span className="text-gray-500 dark:text-gray-400 text-sm min-w-0 sm:min-w-[100px]">
+                {t('config.projectId')}:
+              </span>
+              <span className="font-mono text-sm break-all sm:ml-2">
                 {systemConfig.dootask_integration.project_id || t('config.notSet')}
               </span>
             </div>
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <span className="text-gray-500 dark:text-gray-400 text-sm min-w-0 sm:min-w-[100px]">
                 {t('config.sourcesCount')}:
               </span>
-              <span className="ml-2 font-mono">{sourcesCount}</span>
+              <span className="font-mono text-sm break-all sm:ml-2">{sourcesCount}</span>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-4">
-          {/* <Button
-            type="button"
-            onClick={onGetUserBotList}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 data-[focus]:ring-blue-500"
-          >
-            <SparklesIcon className="h-4 w-4" />
-            获取机器人列表
-          </Button> */}
-
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1 sm:flex-initial">
             <Listbox value={selectedUserBot} onChange={handleSelectUserBot}>
-              <ListboxButton className="relative w-48 cursor-default rounded-md bg-white dark:bg-gray-700 py-2 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm">
+              <ListboxButton className="relative w-full sm:w-64 cursor-default rounded-md bg-white dark:bg-gray-700 py-2 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm">
                 <span className="flex items-center">
                   {selectedUserBot?.avatar && (
                     <img
@@ -216,7 +209,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
               // 创建机器人后刷新机器人列表
               onGetUserBotList();
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition data-[hover]:bg-green-600 data-[focus]:ring-2 data-[focus]:ring-green-500"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition data-[hover]:bg-green-600 data-[focus]:ring-2 data-[focus]:ring-green-500 w-full sm:w-auto"
           >
             <BoltIcon className="h-4 w-4" />
             {t('config.createBot')}
@@ -272,7 +265,7 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
                 {selectedUserBot && (
                   <div className="space-y-2">
                     {selectedUserBot.webhook_url === "" ? (
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div className="space-y-3">
                         <p className="text-sm text-yellow-800 dark:text-yellow-200">
                           {t('config.webhookNotSet')}
                         </p>
@@ -284,19 +277,20 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
                               webhook_url: DEFAULT_WEBHOOK_URL,
                             })
                           }}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-md shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition data-[hover]:bg-yellow-700 data-[focus]:ring-2 data-[focus]:ring-yellow-500 whitespace-nowrap"
+                          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-md shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition data-[hover]:bg-yellow-700 data-[focus]:ring-2 data-[focus]:ring-yellow-500 w-full sm:w-auto"
                         >
                           <BoltIcon className="h-4 w-4" />
                           {t('config.setDefaultWebhook')}
                         </Button>
                       </div>
                     ) : selectedUserBot.webhook_url !== DEFAULT_WEBHOOK_URL ? (
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                        <div className="flex-1">
-                          <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                            {t('config.currentWebhook')}: <code className="bg-yellow-100 dark:bg-yellow-800 px-1 py-0.5 rounded text-xs">{selectedUserBot.webhook_url}</code>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-2">
+                            {t('config.currentWebhook')}:
                           </p>
-                          <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                          <code className="bg-yellow-100 dark:bg-yellow-800 px-2 py-1 rounded text-xs break-all block">{selectedUserBot.webhook_url}</code>
+                          <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-2">
                             {t('config.webhookNotDefault')}
                           </p>
                         </div>
@@ -308,18 +302,21 @@ export const BotConfigSection: React.FC<BotConfigSectionProps> = ({
                               webhook_url: DEFAULT_WEBHOOK_URL,
                             })
                           }}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-md shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition data-[hover]:bg-yellow-700 data-[focus]:ring-2 data-[focus]:ring-yellow-500 whitespace-nowrap"
+                          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-md shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition data-[hover]:bg-yellow-700 data-[focus]:ring-2 data-[focus]:ring-yellow-500 w-full sm:w-auto"
                         >
                           <BoltIcon className="h-4 w-4" />
                           {t('config.resetToDefault')}
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <CheckIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        <p className="text-sm text-green-800 dark:text-green-200">
-                          {t('config.webhookConfiguredCorrectly')}: <code className="bg-green-100 dark:bg-green-800 px-1 py-0.5 rounded text-xs">{DEFAULT_WEBHOOK_URL}</code>
-                        </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <CheckIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
+                          <p className="text-sm text-green-800 dark:text-green-200">
+                            {t('config.webhookConfiguredCorrectly')}:
+                          </p>
+                        </div>
+                        <code className="bg-green-100 dark:bg-green-800 px-2 py-1 rounded text-xs break-all block">{DEFAULT_WEBHOOK_URL}</code>
                       </div>
                     )}
                   </div>

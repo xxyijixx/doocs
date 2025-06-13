@@ -61,7 +61,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
       </div>
       <div className="space-y-4">
 
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <Button
             type="button"
             onClick={onCreateProject}
@@ -69,7 +69,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
               !selectedUserBot ||
               !!systemConfig.dootask_integration.project_id
             }
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition data-[hover]:bg-blue-600 data-[focus]:ring-2 data-[focus]:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
           >
             <SparklesIcon className="h-4 w-4" />
             {t('config.createProject')}
@@ -78,7 +78,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
           <Button
             type="button"
             onClick={onResetSystemConfig}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition data-[hover]:bg-red-600 data-[focus]:ring-2 data-[focus]:ring-red-500"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition data-[hover]:bg-red-600 data-[focus]:ring-2 data-[focus]:ring-red-500 w-full sm:w-auto"
           >
             <ExclamationTriangleIcon className="h-4 w-4" />
             {t('config.resetSystemConfig')}
@@ -120,8 +120,8 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
 
           {/* 创建新来源 */}
           <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md mb-4">
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
+            <div className="flex flex-col sm:flex-row gap-4 items-end">
+              <div className="flex-1 w-full">
                 <Input
                   type="text"
                   value={newSourceName}
@@ -139,7 +139,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                   !systemConfig.dootask_integration.project_id ||
                   !newSourceName.trim()
                 }
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
               >
                 {isCreatingSource ? (
                   <CogIcon className="h-4 w-4 animate-spin" />
@@ -159,7 +159,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                   key={source.id}
                   className="bg-white dark:bg-gray-600 p-4 rounded-md border border-gray-200 dark:border-gray-500"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-800 dark:text-white">
                         {source.name}
@@ -170,18 +170,31 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                           {source.source_key}
                         </code>
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {t('config.projectId')}: {source.project_id} | {t('config.taskId')}: {source.task_id} | {t('config.dialogId')}: {source.dialog_id}
+                      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        <div className="space-y-1 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
+                          <div>
+                            <span className="font-medium">{t('config.projectId')}:</span>{' '}
+                            <span className="break-all block sm:inline">{source.project_id}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium">{t('config.taskId')}:</span>{' '}
+                            <span className="break-all block sm:inline">{source.task_id}</span>
+                          </div>
+                          <div className="sm:col-span-2">
+                            <span className="font-medium">{t('config.dialogId')}:</span>{' '}
+                            <span className="break-all block sm:inline">{source.dialog_id}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                       <Button
                         type="button"
                         onClick={() => {
                           setSelectedSource(source);
                           setShowUsageModal(true);
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
+                        className="inline-flex items-center justify-center gap-1 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 w-full sm:w-auto"
                       >
                         <QuestionMarkCircleIcon className="h-3 w-3" />
                         {t('config.usageInstructions')}
@@ -189,7 +202,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                       <Button
                         type="button"
                         onClick={() => onEditSource(source)}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+                        className="inline-flex items-center justify-center gap-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 w-full sm:w-auto"
                       >
                         <PencilIcon className="h-3 w-3" />
                         {t('config.edit')}
@@ -197,7 +210,7 @@ export const ChatConfigSection: React.FC<ChatConfigSectionProps> = ({
                       <Button
                         type="button"
                         onClick={() => onDeleteSource(source)}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
+                        className="inline-flex items-center justify-center gap-1 px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 w-full sm:w-auto"
                       >
                         <TrashIcon className="h-3 w-3" />
                         {t('config.delete')}

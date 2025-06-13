@@ -25,7 +25,8 @@
     "chat": "Chat",
     "config": "Configuration",
     "agent": "Agent Management",
-    "settings": "Settings"
+    "settings": "Settings",
+    "menu": "Menu"
   },
   "chat": {
     "title": "Customer Service Chat",

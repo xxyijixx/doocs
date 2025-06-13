@@ -25,7 +25,8 @@
     "chat": "聊天",
     "config": "配置",
     "agent": "客服管理",
-    "settings": "设置"
+    "settings": "设置",
+    "menu": "菜单"
   },
   "chat": {
     "title": "客服聊天",
