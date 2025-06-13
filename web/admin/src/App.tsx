@@ -268,7 +268,7 @@ function AppWithErrorHandling({
                 {(isAdmin || isAgent) && (
                   <a
                     href="/chat"
-                    className="px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 flex items-center gap-2"
+                    className="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 flex items-center gap-1.5 text-sm"
                     onClick={(e) => {
                       e.preventDefault();
                       window.history.pushState({}, "", "/chat");
@@ -277,7 +277,7 @@ function AppWithErrorHandling({
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
+                      className="h-4 w-4"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -294,7 +294,7 @@ function AppWithErrorHandling({
                 {isAdmin && (
                   <a
                     href="/agents"
-                    className="px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 flex items-center gap-2"
+                    className="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 flex items-center gap-1.5 text-sm"
                     onClick={(e) => {
                       e.preventDefault();
                       window.history.pushState({}, "", "/agents");
@@ -303,7 +303,7 @@ function AppWithErrorHandling({
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
+                      className="h-4 w-4"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -316,7 +316,7 @@ function AppWithErrorHandling({
                 {isAdmin && (
                   <a
                     href="/config"
-                    className="px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 flex items-center gap-2"
+                    className="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 flex items-center gap-1.5 text-sm"
                     onClick={(e) => {
                       e.preventDefault();
                       window.history.pushState({}, "", "/config");
@@ -325,7 +325,7 @@ function AppWithErrorHandling({
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
+                      className="h-4 w-4"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >

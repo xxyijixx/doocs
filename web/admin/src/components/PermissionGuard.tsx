@@ -24,7 +24,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
 
   // 加载中
   if (isLoading) {
-    return <LoadingSpinner message="验证权限中..." />;
+    return <LoadingSpinner />;
   }
 
   // 认证失败
