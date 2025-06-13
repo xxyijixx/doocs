@@ -123,23 +123,23 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
   ];
 
   return (
-    <aside className={`flex flex-col h-full ${isMobile ? 'w-full' : 'w-80'} bg-white dark:bg-gray-800 rounded-l-2xl shadow-lg px-6 py-8`}>
+    <aside className={`flex flex-col h-full ${isMobile ? 'w-full' : 'w-full'} bg-white dark:bg-gray-800 ${isMobile ? 'rounded-lg' : 'rounded-l-lg md:rounded-l-xl lg:rounded-l-2xl'} shadow-lg px-4 sm:px-6 py-4 sm:py-6 md:py-8`}>
       {/* 顶部标题 */}
-      <div className="flex items-center mb-6">
-        <h2 className="text-2xl font-bold flex-1 dark:text-white">{t('chat.dialogs')}</h2>
-        <span className="text-gray-400 dark:text-gray-500 font-semibold">{conversations.length}</span>
+      <div className="flex items-center mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold flex-1 dark:text-white">{t('chat.dialogs')}</h2>
+        <span className="text-sm sm:text-base text-gray-400 dark:text-gray-500 font-semibold">{conversations.length}</span>
       </div>
       {/* 搜索框和过滤器 */}
-      <div className="mb-6 space-y-3 relative">
+      <div className="mb-4 sm:mb-6 space-y-3 relative">
         {/* 搜索框 */}
         <Field className="relative">
           <div className="relative">
-            <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+            <MagnifyingGlassIcon className="w-4 h-4 sm:w-5 sm:h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
             <Input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={t('chat.searchConversations')}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent dark:text-white dark:placeholder-gray-400 transition-all"
+              className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent dark:text-white dark:placeholder-gray-400 transition-all"
             />
           </div>
         </Field>
@@ -148,14 +148,14 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
         <div className="flex items-center justify-between">
           <Button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center gap-1 sm:gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
               showFilters || hasActiveFilters
                 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400'
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
             <FunnelIcon className="w-4 h-4" />
-            {t('chat.filters')}
+            <span className="hidden sm:inline">{t('chat.filters')}</span>
             {hasActiveFilters && (
               <span className="w-2 h-2 rounded-full bg-blue-500" />
             )}
@@ -167,7 +167,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
               className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
               <XMarkIcon className="w-3 h-3" />
-              {t('chat.clear')}
+              <span className="hidden sm:inline">{t('chat.clear')}</span>
             </Button>
           )}
         </div>
@@ -341,7 +341,7 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
               key={c.id}
               onClick={() => onSelectConversation(c.id)}
               className={`
-                group w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 h-16 cursor-pointer
+                group w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all duration-200 min-h-[60px] sm:h-16 cursor-pointer
                 shadow-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 focus:bg-blue-100 dark:focus:bg-blue-900/30 text-left relative   
                 ${selectedId === c.id ? 'bg-blue-50 dark:bg-blue-900/20 shadow-md' : 'bg-white dark:bg-gray-800 hover:shadow-md'}
               `}
@@ -351,18 +351,19 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
                 <span className="absolute left-0 top-2 bottom-2 w-1 rounded bg-blue-500" />
               )}
               {/* 彩色圆头像 */}
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold text-white shadow-sm ${avatarColors[idx % avatarColors.length]}`}>
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-lg font-bold text-white shadow-sm ${avatarColors[idx % avatarColors.length]}`}>
                 {c.title ? c.title[0].toUpperCase() : c.id}
               </div>
               {/* 标题和副标题 */}
               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <div className={`truncate font-medium ${selectedId === c.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}>
+                <div className={`truncate text-sm sm:text-base font-medium ${selectedId === c.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}>
                   {c.title || `会话 ${c.id}`}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
-                  <span>来源: {c.source}</span>
+                <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-400 dark:text-gray-500">
+                  <span className="hidden sm:inline">来源:</span>
+                  <span>{c.source}</span>
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 h-4">
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 h-4 hidden sm:block">
                   {c.last_message_at ? (
                     c.last_message ? (
                       <span className="truncate">{c.last_message}</span>
@@ -427,20 +428,20 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
         )}
       </div>
       {/* 底部导航栏 */}
-      <div className="flex justify-between items-center mt-8 px-2">
-        <div className="flex gap-3">
-          <Button className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
-            <HomeIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+      <div className="flex justify-between items-center mt-4 sm:mt-6 md:mt-8 px-1 sm:px-2">
+        <div className="flex gap-2 sm:gap-3">
+          <Button className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+            <HomeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 dark:text-gray-500" />
           </Button>
-          <Button className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
-            <UserGroupIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+          <Button className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+            <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 dark:text-gray-500" />
           </Button>
-          <Button className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
-            <Cog6ToothIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+          <Button className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+            <Cog6ToothIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 dark:text-gray-500" />
           </Button>
         </div>
-        <Button className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
-          <PlusIcon className="w-5 h-5" />
+        <Button className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg sm:rounded-xl bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+          <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
       </div>
     </aside>

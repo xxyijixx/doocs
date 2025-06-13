@@ -3,6 +3,7 @@ package headlers
 import (
 	"strconv"
 
+	"support-plugin/internal/config"
 	"support-plugin/internal/i18n"
 	"support-plugin/internal/models"
 	"support-plugin/internal/pkg/database"
@@ -138,6 +139,16 @@ func (a *AgentHeadler) Delete(c *gin.Context) {
 // @Failure 500 {object} models.Response
 // @Router /agents/verify [get]
 func (a *AgentHeadler) Verify(c *gin.Context) {
+	if config.Cfg.App.Mode == "dev" {
+		// 返回用户权限信息
+		response.Success(c, "验证成功", map[string]interface{}{
+			"is_admin":   true,
+			"is_agent":   false,
+			"user_id":    1,
+			"agent_info": nil,
+		})
+		return
+	}
 	// 获取当前用户信息
 	dootaskUserID, exists := c.Get("dootask_user_id")
 	if !exists {

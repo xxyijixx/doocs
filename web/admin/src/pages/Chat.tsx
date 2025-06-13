@@ -56,19 +56,7 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentCon
   };
 
   return (
-    <div className="flex w-full md:w-full h-full md:h-full rounded-2xl shadow-2xl overflow-hidden bg-white dark:bg-gray-800 relative">
-      {/* 设备类型指示器 */}
-      {/* <div className="absolute top-4 right-4 z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
-        {isMobile ? (
-          <DevicePhoneMobileIcon className="w-4 h-4 text-blue-500" />
-        ) : (
-          <ComputerDesktopIcon className="w-4 h-4 text-green-500" />
-        )}
-        <span className="text-xs text-gray-600 dark:text-gray-300">
-          {isMobile ? t('chat.mobile') : t('chat.desktop')}
-        </span>
-      </div> */}
-
+    <div className="flex w-full h-full rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg sm:shadow-xl md:shadow-2xl overflow-hidden bg-white dark:bg-gray-800 relative max-w-none">
       {/* 侧边栏 - 使用 Transition 动画 */}
       <Transition
         show={!isMobile || (isMobile && showSidebar)}
@@ -78,8 +66,8 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentCon
         leave="transition-transform duration-300 ease-in-out"
         leaveFrom="translate-x-0"
         leaveTo="-translate-x-full"
-        as={isMobile ? "div" : "div"}
-        className={isMobile ? "absolute inset-0 z-20" : "relative"}
+        as="div"
+        className={`${isMobile ? "absolute inset-0 z-20 w-full" : "relative w-80 lg:w-96 xl:w-[400px] 2xl:w-[450px]"}`}
       >
         <ChatSidebar
           selectedId={selectedConversation}
@@ -98,7 +86,8 @@ export const Chat: React.FC<ChatProps> = ({ onRefreshConversations, onCurrentCon
         leave="transition-transform duration-300 ease-in-out"
         leaveFrom="translate-x-0"
         leaveTo="translate-x-full"
-        as="div" className="flex-1 h-full"
+        as="div"
+        className={`${isMobile ? "absolute inset-0 z-10 w-full" : "flex-1"}`}
       >
         <ChatWindow 
           conversationId={selectedConversation} 

@@ -132,13 +132,13 @@ export default function AgentManagement() {
   }
 
   return (
-    <div className="h-full py-8">
+    <div className="h-full py-4 sm:py-6 md:py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             {t('agent.management')}
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">
             {t('agent.managementDescription')}
           </p>
         </div>
@@ -151,24 +151,24 @@ export default function AgentManagement() {
         )}
 
         {/* 添加客服 */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
             {t('agent.addAgent')}
           </h2>
-          <div className="flex flex-col gap-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               {t('agent.selectFromDootask')}
             </p>
             <div className="flex justify-start">
               <button
                 onClick={handleSelectUsers}
                 disabled={isSelectingUsers || isSaving}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSelectingUsers ? (
                   <>
                     <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      className="animate-spin -ml-1 mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-white"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -187,12 +187,13 @@ export default function AgentManagement() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    {t('agent.selecting')}
+                    <span className="hidden sm:inline">{t('agent.selecting')}</span>
+                    <span className="sm:hidden">选择中</span>
                   </>
                 ) : isSaving ? (
                   <>
                     <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      className="animate-spin -ml-1 mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-white"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -211,12 +212,14 @@ export default function AgentManagement() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    {t('agent.setting')}
+                    <span className="hidden sm:inline">{t('agent.setting')}</span>
+                    <span className="sm:hidden">设置中</span>
                   </>
                 ) : (
                   <>
-                    <PlusIcon className="w-4 h-4 mr-2" />
-                    {t('agent.selectAgents')}
+                    <PlusIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">{t('agent.selectAgents')}</span>
+                    <span className="sm:hidden">选择客服</span>
                   </>
                 )}
               </button>
@@ -226,17 +229,17 @@ export default function AgentManagement() {
 
         {/* 客服列表 */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
               {t('agent.agentList')} ({agents.length})
             </h2>
           </div>
 
           {agents.length === 0 ? (
-            <div className="p-8 text-center">
-              <UserIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">{t('agent.noAgents')}</p>
-              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            <div className="p-6 sm:p-8 text-center">
+              <UserIcon className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">{t('agent.noAgents')}</p>
+              <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-500 mt-1">
                 {t('agent.addDootaskUsers')}
               </p>
             </div>
@@ -245,43 +248,45 @@ export default function AgentManagement() {
               {agents.map((agent) => (
                 <div
                   key={agent.id}
-                  className="p-6 flex items-center justify-between"
+                  className="p-4 sm:p-6 flex items-center justify-between gap-3 sm:gap-4"
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center min-w-0 flex-1">
                     <div className="flex-shrink-0">
                       {agent.avatar ? (
                         <img
-                          className="h-10 w-10 rounded-full"
+                          className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
                           src={agent.avatar}
                           alt={agent.name}
                         />
                       ) : (
-                        <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                          <UserIcon className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                          <UserIcon className="h-4 w-4 sm:h-6 sm:w-6 text-gray-500 dark:text-gray-400" />
                         </div>
                       )}
                     </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+                      <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
                         {agent.name || agent.username}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {t('agent.username')}: {agent.username}
+                      <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
+                        <span className="hidden sm:inline">{t('agent.username')}: </span>{agent.username}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {t('agent.dootaskId')}: {agent.dootask_user_id}
+                      <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
+                        <span className="hidden sm:inline">{t('agent.dootaskId')}: </span>
+                        <span className="sm:hidden">ID: </span>{agent.dootask_user_id}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      className={`inline-flex items-center px-1.5 sm:px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         agent.status === "active"
                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                           : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
                       }`}
                     >
-                      {agent.status === "active" ? t('agent.active') : t('agent.inactive')}
+                      <span className="hidden sm:inline">{agent.status === "active" ? t('agent.active') : t('agent.inactive')}</span>
+                      <span className="sm:hidden">{agent.status === "active" ? "活跃" : "非活跃"}</span>
                     </span>
                     <button
                       onClick={() =>
@@ -291,12 +296,12 @@ export default function AgentManagement() {
                         )
                       }
                       disabled={removingAgentId === agent.id}
-                      className="inline-flex items-center p-2 text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center p-1.5 sm:p-2 text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
                       title={t('agent.removeAgent')}
                     >
                       {removingAgentId === agent.id ? (
                         <svg
-                          className="animate-spin h-4 w-4"
+                          className="animate-spin h-3 w-3 sm:h-4 sm:w-4"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
@@ -316,7 +321,7 @@ export default function AgentManagement() {
                           ></path>
                         </svg>
                       ) : (
-                        <TrashIcon className="h-4 w-4" />
+                        <TrashIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                       )}
                     </button>
                   </div>

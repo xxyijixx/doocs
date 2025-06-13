@@ -41,16 +41,16 @@ export default function ServiceConfig() {
   }
 
   return (
-    <div className="h-full py-8">
+    <div className="h-full py-4 sm:py-6 md:py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('config.title')}</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{t('config.title')}</h1>
+          <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">
             {t('config.description')}
           </p>
         </div>
 
-        <form onSubmit={handleSystemConfigSubmit} className="space-y-6">
+        <form onSubmit={handleSystemConfigSubmit} className="space-y-4 sm:space-y-6">
 
           {/* 机器人配置 */}
           <BotConfigSection
@@ -113,16 +113,16 @@ export default function ServiceConfig() {
            /> */}
 
           {/* 提交按钮 */}
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-4 sm:pt-6">
             <button
               type="submit"
               disabled={isSaving}
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? (
                 <>
                   <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -141,10 +141,14 @@ export default function ServiceConfig() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  {t('config.saving')}
+                  <span className="hidden sm:inline">{t('config.saving')}</span>
+                  <span className="sm:hidden">保存中</span>
                 </>
               ) : (
-                t('config.saveConfig')
+                <>
+                  <span className="hidden sm:inline">{t('config.saveConfig')}</span>
+                  <span className="sm:hidden">保存配置</span>
+                </>
               )}
             </button>
           </div>

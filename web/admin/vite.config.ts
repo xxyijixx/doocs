@@ -13,6 +13,22 @@ export default defineConfig(({ mode }) => {
     define: {
       // 将 API base URL 暴露给前端代码
       __API_BASE_URL__: JSON.stringify(env.VITE_API_BASE_URL || '')
+    },
+    // http://localhost:5173/apps/cs/api/v1/agents/verify,增加跨域处理
+    server: {
+      port: 5173,
+      host: '0.0.0.0',
+      proxy: {
+        '/apps/cs/api': {
+          target: 'http://localhost:8888',
+          changeOrigin: true,
+          secure: false,
+          ws: true,
+          rewrite: (path) => path.replace(/^\/apps\/cs\/api/, '/api'),
+        },
+      },
+      cors: true
     }
+
   }
 })

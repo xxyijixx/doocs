@@ -160,10 +160,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   if (!conversationId) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-lg h-full space-y-4">
-        <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 dark:text-gray-600" />
+      <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-lg h-full space-y-4 px-4">
+        <ChatBubbleLeftRightIcon className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 dark:text-gray-600" />
         <div className="text-center">
-          <p className="text-xl font-medium text-gray-500 dark:text-gray-400 mb-2">
+          <p className="text-lg sm:text-xl font-medium text-gray-500 dark:text-gray-400 mb-2">
             {t('chat.welcomeToCustomerService')}
           </p>
           <p className="text-sm text-gray-400 dark:text-gray-500">
@@ -177,31 +177,32 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   return (
     <section className="flex flex-col h-full bg-white dark:bg-gray-800">
       {/* 顶部标题栏 */}
-      <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between px-4 sm:px-6 md:px-8 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           {onBackClick && (
             <Button
               onClick={onBackClick}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex-shrink-0"
             >
-              <ArrowLeftIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              <ArrowLeftIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400" />
             </Button>
           )}
-          <div className="flex items-center gap-2">
-            <ChatBubbleLeftRightIcon className="w-6 h-6 text-blue-500" />
-            <h2 className="text-xl font-semibold dark:text-white">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <ChatBubbleLeftRightIcon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 flex-shrink-0" />
+            <h2 className="text-base sm:text-lg md:text-xl font-semibold dark:text-white truncate">
               {conversation?.title || `${t('chat.conversation')} ${conversation?.id || ""}`}
             </h2>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             <span
-              className={`px-3 py-1 rounded-full text-xs font-medium ${
+              className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
                 conversation?.status === "open"
                   ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
                   : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400"
               }`}
             >
-              {conversation?.status === "open" ? t('chat.statusOpen') : t('chat.statusClosed')}
+              <span className="hidden sm:inline">{conversation?.status === "open" ? t('chat.statusOpen') : t('chat.statusClosed')}</span>
+              <span className="sm:hidden">{conversation?.status === "open" ? "开启" : "关闭"}</span>
             </span>
             {conversation?.status === "open" && (
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
@@ -210,9 +211,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
 
         {/* 菜单按钮 */}
-        <Menu as="div" className="relative">
-          <MenuButton className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
-            <EllipsisVerticalIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+        <Menu as="div" className="relative flex-shrink-0">
+          <MenuButton className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+            <EllipsisVerticalIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400" />
           </MenuButton>
           <Transition
             enter="transition ease-out duration-100"
@@ -251,7 +252,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* 消息列表 */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-8 py-4">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-3 sm:py-4">
         {/* 加载更多提示 */}
         {messagesLoading && hasMore && (
           <div className="text-center text-gray-400 dark:text-gray-500 mb-4">
@@ -300,24 +301,24 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 enterTo="opacity-100 translate-y-0"
               >
                 <div
-                  className={`flex gap-3 ${
+                  className={`flex gap-2 sm:gap-3 ${
                     message.sender === "agent" ? "justify-end" : "justify-start"
                   }`}
                 >
                   {message.sender === "customer" && (
-                    <div className="w-10 h-10 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center shadow-md">
-                      <UserIcon className="w-5 h-5  text-black dark:text-white" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center shadow-md flex-shrink-0">
+                      <UserIcon className="w-4 h-4 sm:w-5 sm:h-5 text-black dark:text-white" />
                     </div>
                   )}
-                  <div className="flex flex-col max-w-xs lg:max-w-md">
+                  <div className="flex flex-col max-w-[280px] sm:max-w-xs lg:max-w-md">
                     <div
-                      className={`px-4 py-3 rounded-2xl ${
+                      className={`px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl ${
                         message.sender === "agent"
                           ? "bg-blue-500 text-white rounded-br-md shadow-md shadow-blue-500/20"
                           : "bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md shadow-sm border border-gray-200 dark:border-gray-600"
                       }`}
                     >
-                      <p className="text-sm leading-relaxed">{message.content}</p>
+                      <p className="text-sm leading-relaxed break-words">{message.content}</p>
                     </div>
                     <p
                       className={`text-xs mt-1 opacity-70 ${
@@ -330,8 +331,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     </p>
                   </div>
                   {message.sender === "agent" && (
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
-                      <CpuChipIcon className="w-5 h-5 text-black dark:text-white" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md flex-shrink-0">
+                      <CpuChipIcon className="w-4 h-4 sm:w-5 sm:h-5 text-black dark:text-white" />
                     </div>
                   )}
                 </div>
@@ -343,8 +344,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* 输入框 */}
-      <div className="px-8 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm">
-        <div className="flex gap-3 items-end">
+      <div className="px-4 sm:px-6 md:px-8 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm">
+        <div className="flex gap-2 sm:gap-3 items-end">
           <Field className="flex-1">
             <Input
               type="text"
@@ -354,25 +355,25 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 e.key === "Enter" && !e.shiftKey && handleSendMessage(e)
               }
               placeholder={t('chat.inputPlaceholderWithShortcuts')}
-              className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 dark:focus:border-transparent bg-white dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200 resize-none shadow-sm"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 dark:focus:border-transparent bg-white dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200 resize-none shadow-sm"
               disabled={sending}
-              style={{ minHeight: "48px" }}
+              style={{ minHeight: "40px" }}
             />
           </Field>
           <Button
             onClick={handleSendMessage}
             disabled={sending || !newMessage.trim()}
-            className="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30"
+            className="px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 bg-blue-500 text-white rounded-lg sm:rounded-xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1 sm:gap-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30 flex-shrink-0"
           >
             {sending ? (
               <>
                 <CogIcon className="w-4 h-4 animate-spin" />
-                {t('chat.sending')}
+                <span className="hidden sm:inline">{t('chat.sending')}</span>
               </>
             ) : (
               <>
                 <PaperAirplaneIcon className="w-4 h-4" />
-                {t('chat.send')}
+                <span className="hidden sm:inline">{t('chat.send')}</span>
               </>
             )}
           </Button>
