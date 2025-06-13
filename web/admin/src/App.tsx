@@ -259,247 +259,145 @@ function AppWithErrorHandling({
   return (
     <Router>
       <div className="h-full flex flex-col">
-        {/* 顶部导航栏 */}
-        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center">
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
+        {/* 应用头部 - 适配移动端和桌面端 */}
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div className="px-4 sm:px-6">
+            <div className="flex justify-between items-center h-14 sm:h-16">
+              {/* 应用标题和用户信息 */}
+              <div className="flex items-center gap-3">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">
                   Doocs
                 </h1>
-              </div>
-              
-              {/* 桌面端导航 */}
-              <div className="hidden md:flex items-center space-x-4">
-                <nav className="flex items-center space-x-2">
-                  {/* 聊天页面 - 管理员和客服都可以访问 */}
-                  {(isAdmin || isAgent) && (
-                    <a
-                      href="/chat"
-                      className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        window.history.pushState({}, "", "/chat");
-                        window.dispatchEvent(new Event("popstate"));
-                      }}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {t("navigation.chat")}
-                    </a>
-                  )}
-                  {/* 客服管理页面 - 只有管理员可以访问 */}
-                  {isAdmin && (
-                    <a
-                      href="/agents"
-                      className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        window.history.pushState({}, "", "/agents");
-                        window.dispatchEvent(new Event("popstate"));
-                      }}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                      </svg>
-                      {t("navigation.agent")}
-                    </a>
-                  )}
-                  {/* 配置页面 - 只有管理员可以访问 */}
-                  {isAdmin && (
-                    <a
-                      href="/config"
-                      className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        window.history.pushState({}, "", "/config");
-                        window.dispatchEvent(new Event("popstate"));
-                      }}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {t("navigation.config")}
-                    </a>
-                  )}
-                  {/* 显示当前用户权限 */}
-                  {!isLoading && (
-                    <div className="flex items-center gap-2 ml-4">
-                      {isAdmin && (
-                        <span className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs font-medium">
-                          {t("agent.admin")}
-                        </span>
-                      )}
-                      {isAgent && (
-                        <span className="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full text-xs font-medium">
-                        {t("agent.agent")}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </nav>
-                {/* <LanguageSwitch /> */}
-                {/* <ThemeToggle /> */}
-              </div>
-              
-              {/* 移动端汉堡菜单按钮 */}
-              <div className="md:hidden">
-                <button
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-                  aria-expanded="false"
-                >
-                  <span className="sr-only">打开主菜单</span>
-                  {isMobileMenuOpen ? (
-                    <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
-                  ) : (
-                    <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          {/* 移动端导航菜单 */}
-          <Transition
-            show={isMobileMenuOpen}
-            enter="transition ease-out duration-200"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="transition ease-in duration-150"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
-          >
-            <div className="md:hidden">
-              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-                {/* 移动端聊天页面链接 */}
-                {(isAdmin || isAgent) && (
-                  <a
-                    href="/chat"
-                    className="text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium flex items-center gap-3"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsMobileMenuOpen(false);
-                      window.history.pushState({}, "", "/chat");
-                      window.dispatchEvent(new Event("popstate"));
-                    }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {t("navigation.chat")}
-                  </a>
-                )}
-                
-                {/* 移动端客服管理页面链接 */}
-                {isAdmin && (
-                  <a
-                    href="/agents"
-                    className="text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium flex items-center gap-3"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsMobileMenuOpen(false);
-                      window.history.pushState({}, "", "/agents");
-                      window.dispatchEvent(new Event("popstate"));
-                    }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                    </svg>
-                    {t("navigation.agent")}
-                  </a>
-                )}
-                
-                {/* 移动端配置页面链接 */}
-                {isAdmin && (
-                  <a
-                    href="/config"
-                    className="text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium flex items-center gap-3"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsMobileMenuOpen(false);
-                      window.history.pushState({}, "", "/config");
-                      window.dispatchEvent(new Event("popstate"));
-                    }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {t("navigation.config")}
-                  </a>
-                )}
-                
-                {/* 移动端用户权限显示 */}
+                {/* 用户权限标识 */}
                 {!isLoading && (
-                  <div className="px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      {isAdmin && (
-                        <span className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs font-medium">
-                          {t("agent.admin")}
-                        </span>
-                      )}
-                      {isAgent && (
-                        <span className="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full text-xs font-medium">
-                          {t("agent.agent")}
-                        </span>
-                      )}
-                    </div>
+                  <div className="flex items-center gap-1">
+                    {isAdmin && (
+                      <span className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs font-medium">
+                        {t("agent.admin")}
+                      </span>
+                    )}
+                    {isAgent && (
+                      <span className="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full text-xs font-medium">
+                        {t("agent.agent")}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
+              
+              {/* 导航菜单按钮 */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="inline-flex items-center justify-center p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <span className="sr-only">{isMobileMenuOpen ? '关闭菜单' : '打开菜单'}</span>
+                {isMobileMenuOpen ? (
+                  <XMarkIcon className="h-6 w-6" />
+                ) : (
+                  <Bars3Icon className="h-6 w-6" />
+                )}
+              </button>
             </div>
-          </Transition>
+          </div>
         </header>
+        
+        {/* 全屏导航菜单 */}
+        <Transition
+          show={isMobileMenuOpen}
+          enter="transition ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="transition ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900">
+            {/* 菜单头部 */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('navigation.menu')}
+              </h2>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            
+            {/* 菜单内容 */}
+            <div className="p-4 space-y-2">
+              {/* 聊天页面 */}
+              {(isAdmin || isAgent) && (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    window.history.pushState({}, "", "/chat");
+                    window.dispatchEvent(new Event("popstate"));
+                  }}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="font-medium">{t("navigation.chat")}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">客服聊天界面</div>
+                  </div>
+                </button>
+              )}
+              
+              {/* 客服管理 */}
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    window.history.pushState({}, "", "/agents");
+                    window.dispatchEvent(new Event("popstate"));
+                  }}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="font-medium">{t("navigation.agent")}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">管理客服人员</div>
+                  </div>
+                </button>
+              )}
+              
+              {/* 系统配置 */}
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    window.history.pushState({}, "", "/config");
+                    window.dispatchEvent(new Event("popstate"));
+                  }}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="font-medium">{t("navigation.config")}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">系统设置配置</div>
+                  </div>
+                </button>
+              )}
+            </div>
+          </div>
+         </Transition>
 
         {/* 主内容区 */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-4 sm:py-6 md:py-8 h-[calc(100vh-64px)] overflow-auto">
+        <main className="flex-1 px-4 sm:px-6 py-4 sm:py-6 md:py-8 h-[calc(100vh-56px)] sm:h-[calc(100vh-64px)] overflow-auto">
           <Routes>
             <Route
               path="/entry"
