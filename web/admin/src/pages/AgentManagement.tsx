@@ -81,7 +81,8 @@ export default function AgentManagement() {
   // 选择用户并设置为客服
   const handleSelectUsers = async () => {
     try {
-      setIsSelectingUsers(true);
+      // 
+      // setIsSelectingUsers(true);
       setMessage(null);
 
       // 使用DooTask的用户选择器
