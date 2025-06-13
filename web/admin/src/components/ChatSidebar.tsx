@@ -1,12 +1,13 @@
 import React, { useState, useEffect, forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 // import type { Conversation } from '../types/chat';
-import { MagnifyingGlassIcon, HomeIcon, Cog6ToothIcon, UserGroupIcon, PlusIcon, CogIcon, FunnelIcon, XMarkIcon, EllipsisVerticalIcon, XCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, HomeIcon, Cog6ToothIcon, UserGroupIcon, PlusIcon, CogIcon, FunnelIcon, XMarkIcon, EllipsisVerticalIcon, XCircleIcon, ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { Button, Field, Input, Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 // import { ThemeToggle } from './ThemeToggle';
 import { useConversationStore } from '../store/conversationStore';
 import { closeConversation, reopenConversation } from '../api/cs';
+import { isElectron, isMainElectron, openWindow } from '@dootask/tools';
 
 interface ChatSidebarProps {
   selectedId: number;
@@ -127,6 +128,25 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(({ selec
       {/* 顶部标题 */}
       <div className="flex items-center mb-4 sm:mb-6">
         <h2 className="text-xl sm:text-2xl font-bold flex-1 dark:text-white">{t('chat.dialogs')}</h2>
+        
+        {/* 新窗口打开按钮 - 仅在Electron主窗口环境下显示 */}
+        {isElectron() && isMainElectron() && (
+          <Button
+            onClick={() => {
+              openWindow({
+                url: "/apps/cs/chat",
+                title: '客服系统 - 新窗口',
+                width: 1200,
+                height: 800
+              });
+            }}
+            className="mr-3 p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="在新窗口中打开"
+          >
+            <ArrowTopRightOnSquareIcon className="w-5 h-5" />
+          </Button>
+        )}
+        
         <span className="text-sm sm:text-base text-gray-400 dark:text-gray-500 font-semibold">{conversations.length}</span>
       </div>
       {/* 搜索框和过滤器 */}

@@ -22,7 +22,7 @@ import { PermissionGuard } from "./components/PermissionGuard";
 import { useAuth } from "./hooks/useAuth";
 // import { LanguageSwitch } from "./components/LanguageSwitch";
 import { useTranslation } from "react-i18next";
-import { isMicroApp, getUserToken } from "@dootask/tools";
+import { isMicroApp, isElectron, isMainElectron, openWindow, getUserToken } from "@dootask/tools";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Transition } from "@headlessui/react";
 
@@ -389,6 +389,32 @@ function AppWithErrorHandling({
                   <div className="flex-1 text-left">
                     <div className="font-medium">{t("navigation.config")}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">系统设置配置</div>
+                  </div>
+                </button>
+              )}
+              
+              {/* 新窗口打开 - 仅在Electron主窗口环境下显示 */}
+              {isElectron() && isMainElectron() && (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    openWindow({
+                      url: "/apps/cs/chat",
+                      title: '客服系统 - 新窗口',
+                      width: 1200,
+                      height: 800
+                    });
+                  }}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="font-medium">新窗口打开</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">在新窗口中打开系统</div>
                   </div>
                 </button>
               )}
